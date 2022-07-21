@@ -1,0 +1,3 @@
+rootProject.name = 'minigameplugins'
+
+include 'gametools'

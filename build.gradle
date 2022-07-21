@@ -1,0 +1,43 @@
+apply plugin: 'idea'
+
+ext {
+  junitVersion = '5.7.0'
+  spigotVersion = '1.19-R0.1-SNAPSHOT'
+}
+
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+}
+
+subprojects {
+  apply plugin: 'java'
+
+  group = "io.zkz.mc.${rootProject.name}"
+
+  repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+  }
+
+  dependencies {
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    compileOnly "org.spigotmc:spigot-api:${spigotVersion}"
+    compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+    annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+  }
+
+  test {
+    useJUnitPlatform()
+  }
+
+  task buildAll(type: Copy) {
+    from('build/libs') {
+      include "**/*.jar"
+    }
+    into '../build'
+  }
+  buildAll.dependsOn(build)
+}
