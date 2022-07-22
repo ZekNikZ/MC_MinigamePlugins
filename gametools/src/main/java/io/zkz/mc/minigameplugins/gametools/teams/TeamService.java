@@ -15,9 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 // TODO: scoreboard service handles team service events instead of being explicitly called
-// team create event (teams)
-// team remove event (teams)
-// team join event (players, oldTeam, newTeam) - teams can be nullable
 
 public class TeamService extends GameToolsService {
     private static final TeamService INSTANCE = new TeamService();
