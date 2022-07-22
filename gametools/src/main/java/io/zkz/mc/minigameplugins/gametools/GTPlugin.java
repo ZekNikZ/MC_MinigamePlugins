@@ -11,7 +11,7 @@ import java.util.List;
 
 public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     private final List<CommandGroup> commands = new ArrayList<>();
-    private final List<PluginService<T>> services = new ArrayList<>();
+    protected final List<PluginService<T>> services = new ArrayList<>();
 
     protected void register(CommandGroup commandGroup) {
         this.commands.add(commandGroup);

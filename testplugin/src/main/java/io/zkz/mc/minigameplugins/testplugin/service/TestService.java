@@ -8,6 +8,7 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,6 +34,7 @@ public class TestService extends TestPluginService {
 
         globalScoreboard.addEntry("Test 1");
         globalScoreboard.addEntry("Test 2");
+        globalScoreboard.addEntry("\u200b");
         globalScoreboard.addSpace();
 
         CompositeScoreboardEntry compositeScoreboardEntry = globalScoreboard.addEntry(new CompositeScoreboardEntry(globalScoreboard));
@@ -40,10 +42,10 @@ public class TestService extends TestPluginService {
         compositeScoreboardEntry.addChild(new StringEntry(globalScoreboard, "Test 4"));
         globalScoreboard.addSpace();
 
-        ValueEntry<String> valueEntry = globalScoreboard.addEntry(new ValueEntry<>(globalScoreboard, "Boop: ", "true"));
+        ValueEntry<String> valueEntry = globalScoreboard.addEntry(new ValueEntry<>(globalScoreboard, "", "Boop: ", "%s", ""));
         Bukkit.getScheduler().runTaskTimer(this.getPlugin(), () -> {
             testBool.set(!testBool.get());
-            valueEntry.setValue(String.valueOf(testBool.get()));
+            valueEntry.setValue((testBool.get() ? ChatColor.GREEN : ChatColor.RED) + String.valueOf(testBool.get()));
         }, 0, 20);
 
         ScoreboardService.getInstance().setGlobalScoreboard(globalScoreboard);
@@ -52,9 +54,9 @@ public class TestService extends TestPluginService {
 
         GameScoreboard teamScoreboard = ScoreboardService.getInstance().createNewScoreboard("Blue Team");
 
-        teamScoreboard.addEntry("Foo");
-        teamScoreboard.addSpace();
-        teamScoreboard.addEntry("Bar");
+        for (int i = 0; i < 15; i++) {
+            teamScoreboard.addSpace();
+        }
 
         ScoreboardService.getInstance().setTeamScoreboard(DefaultTeams.BLUE.getId(), teamScoreboard);
     }

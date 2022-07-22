@@ -1,5 +1,10 @@
 version "4.0-SNAPSHOT"
 
-dependencies {
+repositories {
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
+}
 
+dependencies {
+    compileOnly "org.spigotmc:spigot:${spigotVersion}"
+    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.0.0-SNAPSHOT";
 }

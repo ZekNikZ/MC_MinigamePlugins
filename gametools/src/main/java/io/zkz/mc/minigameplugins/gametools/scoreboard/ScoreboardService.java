@@ -4,6 +4,7 @@ import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
+import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -109,7 +110,7 @@ public class ScoreboardService extends GameToolsService {
 
     public GameScoreboard createNewScoreboard(String title) {
         GameScoreboard scoreboard = new GameScoreboard(title);
-        this.setupTeamsOnScoreboard(scoreboard.getScoreboard());
+        this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
         return scoreboard;
     }
 
@@ -132,13 +133,13 @@ public class ScoreboardService extends GameToolsService {
         }
     }
 
-    public void setupTeams() {
-        this.setupTeamsOnScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-        this.getAllScoreboards().forEach(scoreboard -> this.setupTeamsOnScoreboard(scoreboard.getScoreboard()));
-        this.updateTeams();
+    public void setupGlobalTeams() {
+        this.setupGlobalTeamsOnScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        this.getAllScoreboards().forEach(scoreboard -> this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard()));
+        this.updateGlobalPlayerTeams();
     }
 
-    private void setupTeamsOnScoreboard(Scoreboard scoreboard) {
+    private void setupGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
             Team oldTeam = scoreboard.getTeam(gameTeam.getId());
             if (oldTeam != null) {
@@ -151,12 +152,12 @@ public class ScoreboardService extends GameToolsService {
         });
     }
 
-    public void updateTeams() {
-        this.updateTeamsOnScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-        this.getAllScoreboards().forEach(scoreboard -> this.updateTeamsOnScoreboard(scoreboard.getScoreboard()));
+    public void updateGlobalPlayerTeams() {
+        this.updateGlobalTeamsOnScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        this.getAllScoreboards().forEach(scoreboard -> this.updateGlobalTeamsOnScoreboard(scoreboard.getScoreboard()));
     }
 
-    private void updateTeamsOnScoreboard(Scoreboard scoreboard) {
+    private void updateGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
             Team team = scoreboard.getTeam(gameTeam.getId());
             team.getEntries().forEach(team::removeEntry);
@@ -179,17 +180,31 @@ public class ScoreboardService extends GameToolsService {
     }
 
     @EventHandler
+    private void onTeamCreate(TeamCreateEvent event) {
+        // Setup team colors on scoreboards
+        this.setupGlobalTeams();
+    }
+
+    @EventHandler
     private void onTeamRemove(TeamRemoveEvent event) {
+        // Remove obsolete team scoreboards
         event.getTeams().stream()
             .map(GameTeam::getId)
             .forEach(teamId -> this.setTeamScoreboard(teamId, null));
+
+        // Setup team colors on scoreboards
+        this.setupGlobalTeams();
     }
 
     @EventHandler
     private void onTeamChange(TeamChangeEvent event) {
+        // Potentially update displayed scoreboard
         event.getPlayers().stream()
             .map(Bukkit::getPlayer)
             .filter(Objects::nonNull)
             .forEach(this::updatePlayerScoreboard);
+
+        // Update player colors on scoreboards
+        this.updateGlobalPlayerTeams();
     }
 }

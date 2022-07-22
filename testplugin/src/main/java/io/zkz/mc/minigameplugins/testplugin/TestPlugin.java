@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.testplugin;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
 import io.zkz.mc.minigameplugins.testplugin.service.TestService;
+import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
@@ -13,6 +14,7 @@ import java.util.logging.Logger;
 @Description("A test plugin for the GameTools ecosystem")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
+@Dependency("GameTools")
 public class TestPlugin extends GTPlugin<TestPlugin> {
     private static Logger logger;
     public static Logger logger() {
