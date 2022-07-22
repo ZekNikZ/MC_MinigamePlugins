@@ -1,11 +1,14 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
-import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
-import io.zkz.mc.minigameplugins.gametools.command.GameToolsCommandGroup;
+import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 
-public class TeamCommands extends GameToolsCommandGroup {
+public class TeamCommands extends CommandGroup {
+    public static class Permissions {
+        public static final String TEAM_CREATE = "gametools.team.create";
+    }
+
     @Override
-    public void registerCommands(GameToolsPlugin plugin) {
-
+    public void registerCommands() {
+        this.register(new DefaultTeamsCommand());
     }
 }

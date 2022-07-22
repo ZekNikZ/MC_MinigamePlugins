@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools;
 
-import io.zkz.mc.minigameplugins.gametools.command.GameToolsCommandGroup;
+import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -14,19 +14,26 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Plugin(name = "GameTools", version = "4.0")
 @Description("A library for making minigame plugins")
 @Author("ZekNikZ")
 public class GameToolsPlugin extends JavaPlugin {
-    private final List<GameToolsCommandGroup> commands = new ArrayList<>();
+    private static Logger logger;
+
+    public static Logger logger() {
+        return logger;
+    }
+
+    private final List<CommandGroup> commands = new ArrayList<>();
     private final List<GameToolsService> services = new ArrayList<>();
 
-    public <T extends GameToolsCommandGroup> void register(T commandGroup) {
+    public void register(CommandGroup commandGroup) {
         this.commands.add(commandGroup);
     }
 
-    public <T extends GameToolsService> void register(T service) {
+    public void register(GameToolsService service) {
         this.services.add(service);
     }
 
@@ -40,10 +47,12 @@ public class GameToolsPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        logger = this.getLogger();
+
         PluginManager pluginManager = this.getServer().getPluginManager();
 
         // Register and enable services
-        this.getLogger().info(ChatColor.YELLOW + "Registering services... ");
+        logger().info(ChatColor.YELLOW + "Registering services... ");
         services.forEach(service -> {
             service.setup(this);
             service.onEnable();
@@ -51,10 +60,10 @@ public class GameToolsPlugin extends JavaPlugin {
         });
 
         // Register commands
-        this.getLogger().info(ChatColor.YELLOW + "Registering commands... ");
+        logger().info(ChatColor.YELLOW + "Registering commands... ");
         commands.forEach(commandGroup -> commandGroup.registerCommands(this));
 
-        this.getLogger().info(ChatColor.GREEN + "Enabled " + this.getName());
+        logger().info(ChatColor.GREEN + "Enabled " + this.getName());
     }
 
     @Override

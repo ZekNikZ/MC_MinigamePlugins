@@ -1,8 +1,10 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import org.bukkit.ChatColor;
 
 import java.awt.*;
+import java.util.logging.Level;
 
 public class DefaultTeams {
     public static final GameTeam SPECTATOR;
@@ -43,7 +45,7 @@ public class DefaultTeams {
         CYAN.setFormatCode(ChatColor.DARK_AQUA);
         CYAN.setColor(Color.CYAN.darker().darker());
 
-        DARK_RED = new GameTeam("dark_red", "Dark_red", "DARK_RED");
+        DARK_RED = new GameTeam("dark_red", "Dark Red", "DARK_RED");
         DARK_RED.setFormatCode(ChatColor.DARK_RED);
         DARK_RED.setColor(Color.RED.darker().darker());
 
@@ -59,7 +61,7 @@ public class DefaultTeams {
         GRAY.setFormatCode(ChatColor.GRAY);
         GRAY.setColor(Color.GRAY);
 
-        DARK_GRAY = new GameTeam("dark_gray", "Dark_gray", "DARK_GRAY");
+        DARK_GRAY = new GameTeam("dark_gray", "Dark Gray", "DARK_GRAY");
         DARK_GRAY.setFormatCode(ChatColor.DARK_GRAY);
         DARK_GRAY.setColor(Color.DARK_GRAY);
 
@@ -93,22 +95,26 @@ public class DefaultTeams {
     }
 
     public static void addAll() {
-        TeamService.getInstance().createTeam(SPECTATOR);
-        TeamService.getInstance().createTeam(BLACK);
-        TeamService.getInstance().createTeam(NAVY);
-        TeamService.getInstance().createTeam(GREEN);
-        TeamService.getInstance().createTeam(CYAN);
-        TeamService.getInstance().createTeam(DARK_RED);
-        TeamService.getInstance().createTeam(PURPLE);
-        TeamService.getInstance().createTeam(GOLD);
-        TeamService.getInstance().createTeam(GRAY);
-        TeamService.getInstance().createTeam(DARK_GRAY);
-        TeamService.getInstance().createTeam(BLUE);
-        TeamService.getInstance().createTeam(LIME);
-        TeamService.getInstance().createTeam(AQUA);
-        TeamService.getInstance().createTeam(RED);
-        TeamService.getInstance().createTeam(MAGENTA);
-        TeamService.getInstance().createTeam(YELLOW);
-        TeamService.getInstance().createTeam(WHITE);
+        try {
+            TeamService.getInstance().createTeam(SPECTATOR, false);
+            TeamService.getInstance().createTeam(BLACK, false);
+            TeamService.getInstance().createTeam(NAVY, false);
+            TeamService.getInstance().createTeam(GREEN, false);
+            TeamService.getInstance().createTeam(CYAN, false);
+            TeamService.getInstance().createTeam(DARK_RED, false);
+            TeamService.getInstance().createTeam(PURPLE, false);
+            TeamService.getInstance().createTeam(GOLD, false);
+            TeamService.getInstance().createTeam(GRAY, false);
+            TeamService.getInstance().createTeam(DARK_GRAY, false);
+            TeamService.getInstance().createTeam(BLUE, false);
+            TeamService.getInstance().createTeam(LIME, false);
+            TeamService.getInstance().createTeam(AQUA, false);
+            TeamService.getInstance().createTeam(RED, false);
+            TeamService.getInstance().createTeam(MAGENTA, false);
+            TeamService.getInstance().createTeam(YELLOW, false);
+            TeamService.getInstance().createTeam(WHITE, false);
+        } catch (TeamService.TeamCreationException exception) {
+            GameToolsPlugin.logger().log(Level.SEVERE, exception, () -> "Could not create default teams.");
+        }
     }
 }
