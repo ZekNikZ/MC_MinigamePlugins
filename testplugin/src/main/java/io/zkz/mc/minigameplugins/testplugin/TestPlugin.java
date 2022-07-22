@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.util.logging.Logger;
 
-@Plugin(name = "TestPlugin", version = "4.0")
+@Plugin(name = "TestPlugin", version = "0.1")
 @Description("A test plugin for the GameTools ecosystem")
 @Author("ZekNikZ")
 public class TestPlugin extends GTPlugin<TestPlugin> {
