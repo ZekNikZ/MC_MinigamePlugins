@@ -4,7 +4,7 @@ import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
-import io.zkz.mc.minigameplugins.gametools.teams.event.TeamDeleteEvent;
+import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -28,7 +28,7 @@ public class TeamService extends GameToolsService {
 
     @Override
     protected void setup() {
-
+        this.loadRemoteTeamData();
     }
 
     @Override
@@ -93,14 +93,14 @@ public class TeamService extends GameToolsService {
         this.players.values().removeAll(Collections.singleton(id));
 
         // Call event
-        Bukkit.getServer().getPluginManager().callEvent(new TeamDeleteEvent(team));
+        Bukkit.getServer().getPluginManager().callEvent(new TeamRemoveEvent(team));
     }
 
     public GameTeam getTeam(String id) {
         return this.teams.get(id);
     }
 
-    public List<GameTeam> getAllTeams() {
+    public Collection<GameTeam> getAllTeams() {
         return this.teams.values().stream().toList();
     }
 
@@ -113,7 +113,7 @@ public class TeamService extends GameToolsService {
 
         // Clear teams
         if (!this.teams.isEmpty()) {
-            Bukkit.getServer().getPluginManager().callEvent(new TeamDeleteEvent(this.teams.values()));
+            Bukkit.getServer().getPluginManager().callEvent(new TeamRemoveEvent(this.teams.values()));
         }
         this.teams.clear();
     }
@@ -126,7 +126,7 @@ public class TeamService extends GameToolsService {
         }
 
         // Remove the team members
-        List<UUID> teamMembers = this.getTeamMembers(teamId);
+        Collection<UUID> teamMembers = this.getTeamMembers(teamId);
         if (teamMembers.isEmpty()) {
             return;
         }
@@ -208,18 +208,18 @@ public class TeamService extends GameToolsService {
         return team == null ? null : this.teams.get(team);
     }
 
-    public List<UUID> getTeamMembers(String teamId) {
+    public Collection<UUID> getTeamMembers(String teamId) {
         return this.players.entrySet().stream()
             .filter((entry) -> teamId.equals(entry.getValue()))
             .map(Map.Entry::getKey)
             .toList();
     }
 
-    public List<UUID> getTeamMembers(GameTeam team) {
+    public Collection<UUID> getTeamMembers(GameTeam team) {
         return this.getTeamMembers(team.getId());
     }
 
-    public List<Player> getOnlineTeamMembers(String teamId) {
+    public Collection<Player> getOnlineTeamMembers(String teamId) {
         return this.players.entrySet().stream()
             .filter((entry) -> teamId.equals(entry.getValue()))
             .map(Map.Entry::getKey)
@@ -228,8 +228,12 @@ public class TeamService extends GameToolsService {
             .toList();
     }
 
+    public void loadRemoteTeamData() {
+        // TODO: implement
+    }
+
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    private void onPlayerChat(AsyncPlayerChatEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
             event.setFormat("<" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " %1$s" + ChatColor.RESET + "> %2$s");
@@ -237,17 +241,17 @@ public class TeamService extends GameToolsService {
     }
 
     @EventHandler
-    public static void onTeamCreate(TeamCreateEvent event) {
+    private void onTeamCreate(TeamCreateEvent event) {
         GameToolsPlugin.logger().info("Team(s) created: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
     }
 
     @EventHandler
-    public static void onTeamDelete(TeamDeleteEvent event) {
+    private void onTeamDelete(TeamRemoveEvent event) {
         GameToolsPlugin.logger().info("Team(s) deleted: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
     }
 
     @EventHandler
-    public static void onPlayerTeamChange(TeamChangeEvent event) {
+    private void onPlayerTeamChange(TeamChangeEvent event) {
         String oldTeam = event.getOldTeam() != null ? event.getOldTeam().getName() : "<none>";
         String newTeam = event.getNewTeam() != null ? event.getNewTeam().getName() : "<none>";
         GameToolsPlugin.logger().info("Team changed: " + oldTeam + " -> " + newTeam + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));

@@ -8,14 +8,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class TeamDeleteEvent extends AbstractEvent {
+public class TeamRemoveEvent extends AbstractEvent {
     private final List<GameTeam> teams;
 
-    public TeamDeleteEvent(Collection<GameTeam> teams) {
+    public TeamRemoveEvent(Collection<GameTeam> teams) {
         this.teams = new ArrayList<>(teams);
     }
 
-    public TeamDeleteEvent(GameTeam... teams) {
+    public TeamRemoveEvent(GameTeam... teams) {
         this.teams = Arrays.asList(teams);
     }
 
