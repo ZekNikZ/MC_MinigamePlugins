@@ -4,12 +4,15 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.CompositeScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import org.bukkit.Bukkit;
+import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
+import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
 import org.bukkit.ChatColor;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestService extends TestPluginService {
@@ -25,6 +28,8 @@ public class TestService extends TestPluginService {
     }
 
     private static final AtomicBoolean testBool = new AtomicBoolean();
+    private GameCountupTimer timer1;
+    private GameCountdownTimer timer2;
 
     @Override
     public void onEnable() {
@@ -43,10 +48,19 @@ public class TestService extends TestPluginService {
         globalScoreboard.addSpace();
 
         ValueEntry<String> valueEntry = globalScoreboard.addEntry(new ValueEntry<>(globalScoreboard, "", "Boop: ", "%s", ""));
-        Bukkit.getScheduler().runTaskTimer(this.getPlugin(), () -> {
-            testBool.set(!testBool.get());
-            valueEntry.setValue((testBool.get() ? ChatColor.GREEN : ChatColor.RED) + String.valueOf(testBool.get()));
-        }, 0, 20);
+        this.timer1 = new GameCountupTimer(this.getPlugin(), 20) {
+            @Override
+            protected void onUpdate() {
+                super.onUpdate();
+                testBool.set(!testBool.get());
+                valueEntry.setValue((testBool.get() ? ChatColor.GREEN : ChatColor.RED) + String.valueOf(testBool.get()));
+            }
+        };
+        this.timer1.start();
+        this.timer2 = new GameCountdownTimer(this.getPlugin(), 20, 10000, TimeUnit.SECONDS);
+        this.timer2.start();
+        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 1: ", "%s", this.timer1));
+        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 2: ", "%s", this.timer2));
 
         ScoreboardService.getInstance().setGlobalScoreboard(globalScoreboard);
 
