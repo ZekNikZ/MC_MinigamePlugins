@@ -28,6 +28,7 @@ subprojects {
     compileOnly "org.spigotmc:spigot-api:${spigotVersion}"
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
     annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+    compileOnly 'org.jetbrains:annotations:16.0.2'
   }
 
   test {

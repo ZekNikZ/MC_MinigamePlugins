@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import org.bukkit.ChatColor;
@@ -32,7 +33,7 @@ public class ReloadTeamsCommand extends ArgumentCommandExecutor {
 
         // TODO: error checking?
 
-        sender.sendMessage(ChatColor.GRAY + "Successfully reloaded teams.");
+        sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.GRAY + "Successfully reloaded teams.");
 
         return true;
     }

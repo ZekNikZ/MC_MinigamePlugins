@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import org.bukkit.ChatColor;
@@ -31,12 +32,12 @@ public class DefaultTeamsCommand extends ArgumentCommandExecutor {
         try {
             TeamService.getInstance().setupDefaultTeams();
         } catch (TeamService.TeamCreationException exception) {
-            sender.sendMessage(ChatColor.RED + "Error: could not set up default teams.");
-            sender.sendMessage(ChatColor.RED + exception.getMessage());
+            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "Error: could not set up default teams.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + exception.getMessage());
             return true;
         }
 
-        sender.sendMessage(ChatColor.GRAY + "Successfully set up default teams.");
+        sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.GRAY + "Successfully set up default teams.");
 
         return true;
     }

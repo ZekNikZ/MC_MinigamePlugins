@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -230,6 +232,22 @@ public class TeamService extends GameToolsService {
 
     public void loadRemoteTeamData() {
         // TODO: implement
+    }
+
+    @EventHandler
+    private void onPlayerJoin(PlayerJoinEvent event) {
+        GameTeam team = this.getTeamOfPlayer(event.getPlayer());
+        if (team != null) {
+            event.setJoinMessage("" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " " + event.getPlayer().getName() + ChatColor.YELLOW + " joined the game.");
+        }
+    }
+
+    @EventHandler
+    private void onPlayerLeave(PlayerQuitEvent event) {
+        GameTeam team = this.getTeamOfPlayer(event.getPlayer());
+        if (team != null) {
+            event.setQuitMessage("" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " " + event.getPlayer().getName() + ChatColor.YELLOW + " left the game.");
+        }
     }
 
     @EventHandler

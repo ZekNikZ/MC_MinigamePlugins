@@ -1,17 +1,25 @@
 package io.zkz.mc.minigameplugins.testplugin.service;
 
+import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.CompositeScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,8 +36,6 @@ public class TestService extends TestPluginService {
     }
 
     private static final AtomicBoolean testBool = new AtomicBoolean();
-    private GameCountupTimer timer1;
-    private GameCountdownTimer timer2;
 
     @Override
     public void onEnable() {
@@ -48,7 +54,7 @@ public class TestService extends TestPluginService {
         globalScoreboard.addSpace();
 
         ValueEntry<String> valueEntry = globalScoreboard.addEntry(new ValueEntry<>(globalScoreboard, "", "Boop: ", "%s", ""));
-        this.timer1 = new GameCountupTimer(this.getPlugin(), 20) {
+        GameCountupTimer timer1 = new GameCountupTimer(this.getPlugin(), 20) {
             @Override
             protected void onUpdate() {
                 super.onUpdate();
@@ -56,11 +62,11 @@ public class TestService extends TestPluginService {
                 valueEntry.setValue((testBool.get() ? ChatColor.GREEN : ChatColor.RED) + String.valueOf(testBool.get()));
             }
         };
-        this.timer1.start();
-        this.timer2 = new GameCountdownTimer(this.getPlugin(), 20, 10000, TimeUnit.SECONDS);
-        this.timer2.start();
-        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 1: ", "%s", this.timer1));
-        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 2: ", "%s", this.timer2));
+        timer1.start();
+        GameCountdownTimer timer2 = new GameCountdownTimer(this.getPlugin(), 20, 10000, TimeUnit.SECONDS);
+        timer2.start();
+        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 1: ", "%s", timer1));
+        globalScoreboard.addEntry(new TimerEntry(globalScoreboard, "", "Timer 2: ", "%s", timer2));
 
         ScoreboardService.getInstance().setGlobalScoreboard(globalScoreboard);
 
@@ -78,5 +84,23 @@ public class TestService extends TestPluginService {
     @Override
     public void onDisable() {
 
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        new GameCountdownTimer(
+            INSTANCE.getPlugin(),
+            10,
+            10,
+            TimeUnit.SECONDS,
+            () -> ReadyUpService.getInstance().waitForReady(
+                List.of(player.getUniqueId()),
+                () -> {
+                    player.sendMessage("Cool!");
+                    player.playSound(player.getLocation(), StandardSounds.GOAL_MET_MAJOR, 1, 1);
+                }
+            )
+        ).start();
     }
 }

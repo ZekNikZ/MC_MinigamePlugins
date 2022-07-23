@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import org.bukkit.Bukkit;
@@ -32,19 +33,19 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Please specify at least one player.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "Please specify at least one player.");
             return true;
         }
 
         Arrays.stream(args).forEach(playerName -> {
             Player player = Bukkit.getPlayer(playerName);
             if (player == null) {
-                sender.sendMessage(ChatColor.RED + "The player '" + playerName + "' is not online.");
+                sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "The player '" + playerName + "' is not online.");
                 return;
             }
 
             TeamService.getInstance().leaveTeam(player);
-            sender.sendMessage(ChatColor.GRAY + "Removed player '" + playerName + "' from their team.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.GRAY + "Removed player '" + playerName + "' from their team.");
         });
 
         return true;
