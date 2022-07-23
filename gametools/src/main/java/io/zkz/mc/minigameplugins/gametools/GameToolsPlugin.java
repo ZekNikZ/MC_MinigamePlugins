@@ -2,6 +2,8 @@ package io.zkz.mc.minigameplugins.gametools;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
+import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.command.ReadyUpCommands;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
@@ -35,10 +37,12 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         this.register(TeamService.getInstance());
         this.register(ScoreboardService.getInstance());
         this.register(ReadyUpService.getInstance());
+        this.register(CustomEventService.getInstance());
 
         // Command Groups
         this.register(new TeamCommands());
         this.register(new ReadyUpCommands());
+        this.register(new MiscCommands());
     }
 
     @Override

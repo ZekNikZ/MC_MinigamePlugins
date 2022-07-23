@@ -2,11 +2,13 @@ package io.zkz.mc.minigameplugins.gametools.event;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
-    public HandlerList getHandlers() {
+    @Override
+    public @NotNull HandlerList getHandlers() {
         return handlers;
     }
 
