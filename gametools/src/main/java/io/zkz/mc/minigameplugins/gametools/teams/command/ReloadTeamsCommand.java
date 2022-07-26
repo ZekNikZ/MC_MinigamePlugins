@@ -29,7 +29,7 @@ public class ReloadTeamsCommand extends ArgumentCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         // Setup default teams
-        TeamService.getInstance().loadRemoteTeamData();
+        TeamService.getInstance().loadAllData();
 
         // TODO: error checking?
 

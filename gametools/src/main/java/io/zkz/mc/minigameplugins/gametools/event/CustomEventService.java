@@ -21,21 +21,6 @@ public class CustomEventService extends GameToolsService {
         return INSTANCE;
     }
 
-    @Override
-    protected void setup() {
-
-    }
-
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
     @EventHandler
     public void onInventoryInteract(InventoryInteractEvent event) {
         BukkitUtils.dispatchNextTick(() -> new PlayerInventoryChangeEvent((Player) event.getWhoClicked(), event.getWhoClicked().getInventory(), event));

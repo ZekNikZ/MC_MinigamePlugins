@@ -28,23 +28,13 @@ public class ScoreboardService extends GameToolsService {
     private final Map<String, GameScoreboard> teamScoreboards = new HashMap<>();
     private final Map<UUID, GameScoreboard> playerScoreboards = new HashMap<>();
 
-    @Override
-    protected void setup() {
-
+    public void setGlobalScoreboard(GameScoreboard scoreboard) {
+        this.setGlobalScoreboard(scoreboard, true);
     }
 
     @Override
     public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
-    public void setGlobalScoreboard(GameScoreboard scoreboard) {
-        this.setGlobalScoreboard(scoreboard, true);
+        this.updateGlobalPlayerTeams();
     }
 
     public void setGlobalScoreboard(GameScoreboard scoreboard, boolean cleanup) {
@@ -115,6 +105,7 @@ public class ScoreboardService extends GameToolsService {
     }
 
     private void updatePlayerScoreboard(Player player) {
+        // Choose the scoreboard
         GameScoreboard playerScoreboard = playerScoreboards.get(player.getUniqueId());
         if (playerScoreboard == null) {
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
@@ -126,6 +117,7 @@ public class ScoreboardService extends GameToolsService {
             }
         }
 
+        // Apply the scoreboard
         if (playerScoreboard != null) {
             player.setScoreboard(playerScoreboard.getScoreboard());
         } else {
@@ -177,6 +169,7 @@ public class ScoreboardService extends GameToolsService {
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerJoin(PlayerJoinEvent event) {
         this.updatePlayerScoreboard(event.getPlayer());
+        this.updateGlobalPlayerTeams();
     }
 
     @EventHandler

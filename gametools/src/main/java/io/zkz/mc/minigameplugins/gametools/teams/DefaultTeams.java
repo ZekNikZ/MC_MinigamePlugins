@@ -96,23 +96,23 @@ public class DefaultTeams {
 
     public static void addAll() {
         try {
-            TeamService.getInstance().createTeam(SPECTATOR, false);
-            TeamService.getInstance().createTeam(BLACK, false);
-            TeamService.getInstance().createTeam(NAVY, false);
-            TeamService.getInstance().createTeam(GREEN, false);
-            TeamService.getInstance().createTeam(CYAN, false);
-            TeamService.getInstance().createTeam(DARK_RED, false);
-            TeamService.getInstance().createTeam(PURPLE, false);
-            TeamService.getInstance().createTeam(GOLD, false);
-            TeamService.getInstance().createTeam(GRAY, false);
-            TeamService.getInstance().createTeam(DARK_GRAY, false);
-            TeamService.getInstance().createTeam(BLUE, false);
-            TeamService.getInstance().createTeam(LIME, false);
-            TeamService.getInstance().createTeam(AQUA, false);
-            TeamService.getInstance().createTeam(RED, false);
-            TeamService.getInstance().createTeam(MAGENTA, false);
-            TeamService.getInstance().createTeam(YELLOW, false);
-            TeamService.getInstance().createTeam(WHITE, false);
+            TeamService.getInstance().createTeam(SPECTATOR, true);
+            TeamService.getInstance().createTeam(BLACK, true);
+            TeamService.getInstance().createTeam(NAVY, true);
+            TeamService.getInstance().createTeam(GREEN, true);
+            TeamService.getInstance().createTeam(CYAN, true);
+            TeamService.getInstance().createTeam(DARK_RED, true);
+            TeamService.getInstance().createTeam(PURPLE, true);
+            TeamService.getInstance().createTeam(GOLD, true);
+            TeamService.getInstance().createTeam(GRAY, true);
+            TeamService.getInstance().createTeam(DARK_GRAY, true);
+            TeamService.getInstance().createTeam(BLUE, true);
+            TeamService.getInstance().createTeam(LIME, true);
+            TeamService.getInstance().createTeam(AQUA, true);
+            TeamService.getInstance().createTeam(RED, true);
+            TeamService.getInstance().createTeam(MAGENTA, true);
+            TeamService.getInstance().createTeam(YELLOW, true);
+            TeamService.getInstance().createTeam(WHITE, true);
         } catch (TeamService.TeamCreationException exception) {
             GameToolsPlugin.logger().log(Level.SEVERE, exception, () -> "Could not create default teams.");
         }

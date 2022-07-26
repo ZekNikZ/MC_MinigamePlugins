@@ -72,21 +72,6 @@ public class ReadyUpService extends GameToolsService {
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
     }
 
-    @Override
-    protected void setup() {
-
-    }
-
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
     @EventHandler
     private void onJoin(PlayerJoinEvent event) {
         if (this.sessions.values().stream().anyMatch(s -> s.isPlayerTracked(event.getPlayer()))) {

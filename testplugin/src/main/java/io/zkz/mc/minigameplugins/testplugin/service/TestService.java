@@ -9,16 +9,13 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
-import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,17 +27,10 @@ public class TestService extends TestPluginService {
         return INSTANCE;
     }
 
-    @Override
-    protected void setup() {
-
-    }
-
     private static final AtomicBoolean testBool = new AtomicBoolean();
 
     @Override
     public void onEnable() {
-        TeamService.getInstance().setupDefaultTeams();
-
         GameScoreboard globalScoreboard = ScoreboardService.getInstance().createNewScoreboard("Testing");
 
         globalScoreboard.addEntry("Test 1");
@@ -79,11 +69,6 @@ public class TestService extends TestPluginService {
         }
 
         ScoreboardService.getInstance().setTeamScoreboard(DefaultTeams.BLUE.getId(), teamScoreboard);
-    }
-
-    @Override
-    public void onDisable() {
-
     }
 
     @EventHandler

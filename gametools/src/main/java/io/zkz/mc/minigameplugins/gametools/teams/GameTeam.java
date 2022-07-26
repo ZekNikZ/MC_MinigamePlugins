@@ -10,13 +10,13 @@ import java.util.Objects;
 public class GameTeam {
     private String id;
     private String name;
-
     private String prefix;
     private ChatColor formatCode;
     private Color color;
 
     public GameTeam() {
         this.formatCode = ChatColor.RESET;
+        this.color = Color.WHITE;
     }
 
     public GameTeam(String id, String name, String prefix) {
@@ -47,7 +47,7 @@ public class GameTeam {
         return this.name;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
         this.updateMinecraftTeam();
     }
@@ -56,17 +56,17 @@ public class GameTeam {
         return prefix;
     }
 
-    public void setPrefix(String prefix) {
+    void setPrefix(String prefix) {
         this.prefix = prefix;
         this.updateMinecraftTeam();
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
-
     public Color getColor() {
         return this.color;
+    }
+
+    void setColor(Color color) {
+        this.color = color;
     }
 
     private void updateMinecraftTeam() {

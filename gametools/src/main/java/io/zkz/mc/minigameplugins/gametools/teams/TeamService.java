@@ -1,6 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
@@ -13,7 +16,13 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.awt.Color;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 // TODO: scoreboard service handles team service events instead of being explicitly called
@@ -28,18 +37,10 @@ public class TeamService extends GameToolsService {
     private final Map<String, GameTeam> teams = new HashMap<>();
     private final Map<UUID, String> players = new HashMap<>();
 
+    private MySQLDataManager<TeamService> db;
+
     @Override
     protected void setup() {
-        this.loadRemoteTeamData();
-    }
-
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
 
     }
 
@@ -50,10 +51,10 @@ public class TeamService extends GameToolsService {
     }
 
     public void createTeam(GameTeam team) throws TeamCreationException {
-        this.createTeam(team, true);
+        this.createTeam(team, false);
     }
 
-    void createTeam(GameTeam team, boolean callEvent) throws TeamCreationException {
+    void createTeam(GameTeam team, boolean suppressEvent) throws TeamCreationException {
         // Ensure that the team does not already exist
         if (this.teams.containsKey(team.getId())) {
             throw new TeamCreationException("team ID already exists");
@@ -63,7 +64,7 @@ public class TeamService extends GameToolsService {
         this.teams.put(team.getId(), team);
 
         // Call event
-        if (callEvent) {
+        if (!suppressEvent) {
             Bukkit.getServer().getPluginManager().callEvent(new TeamCreateEvent(team));
         }
     }
@@ -91,8 +92,7 @@ public class TeamService extends GameToolsService {
             return;
         }
 
-        // this.players.values().remove(id); would only remove the first instance
-        this.players.values().removeAll(Collections.singleton(id));
+        this.clearTeam(id);
 
         // Call event
         Bukkit.getServer().getPluginManager().callEvent(new TeamRemoveEvent(team));
@@ -159,7 +159,15 @@ public class TeamService extends GameToolsService {
         this.joinTeam(player.getUniqueId(), team.getId());
     }
 
+    public void joinTeam(Player player, GameTeam team, boolean suppressEvent) throws TeamJoinException {
+        this.joinTeam(player.getUniqueId(), team.getId(), suppressEvent);
+    }
+
     public void joinTeam(UUID playerId, String teamId) throws TeamJoinException {
+        this.joinTeam(playerId, teamId, false);
+    }
+
+    void joinTeam(UUID playerId, String teamId, boolean suppressEvent) throws TeamJoinException {
         GameTeam newTeam = this.getTeam(teamId);
         if (newTeam == null) {
             throw new TeamJoinException("Team does not exist");
@@ -172,11 +180,13 @@ public class TeamService extends GameToolsService {
         this.players.put(playerId, teamId);
 
         // Call event
-        Bukkit.getServer().getPluginManager().callEvent(new TeamChangeEvent(
-            oldTeam,
-            newTeam,
-            playerId
-        ));
+        if (!suppressEvent) {
+            Bukkit.getServer().getPluginManager().callEvent(new TeamChangeEvent(
+                oldTeam,
+                newTeam,
+                playerId
+            ));
+        }
     }
 
     public void leaveTeam(Player player) {
@@ -230,10 +240,6 @@ public class TeamService extends GameToolsService {
             .toList();
     }
 
-    public void loadRemoteTeamData() {
-        // TODO: implement
-    }
-
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
@@ -260,12 +266,20 @@ public class TeamService extends GameToolsService {
 
     @EventHandler
     private void onTeamCreate(TeamCreateEvent event) {
+        // Log message
         GameToolsPlugin.logger().info("Team(s) created: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
+
+        // Update database
+        this.db.addAction(c -> this.createTeamsInDB(c, event.getTeams()));
     }
 
     @EventHandler
     private void onTeamDelete(TeamRemoveEvent event) {
+        // Log message
         GameToolsPlugin.logger().info("Team(s) deleted: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
+
+        // Update database
+        this.db.addAction(c -> this.removeTeamsFromDB(c, event.getTeams()));
     }
 
     @EventHandler
@@ -273,5 +287,130 @@ public class TeamService extends GameToolsService {
         String oldTeam = event.getOldTeam() != null ? event.getOldTeam().getName() : "<none>";
         String newTeam = event.getNewTeam() != null ? event.getNewTeam().getName() : "<none>";
         GameToolsPlugin.logger().info("Team changed: " + oldTeam + " -> " + newTeam + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
+
+        // Update database
+        this.db.addAction(c -> this.changePlayerTeamInDB(c, event.getPlayers(), event.getNewTeam()));
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            this.db = new MySQLDataManager<>(this, this::loadDB)
+        );
+    }
+
+    private void loadDB(Connection conn) {
+        // Clear existing data
+        this.teams.clear();
+        this.players.clear();
+
+        // Load teams
+        try (PreparedStatement statement = conn.prepareStatement(
+            "SELECT * from gt_teams;"
+        )) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                GameTeam team = new GameTeam(
+                    resultSet.getString("teamId"),
+                    resultSet.getString("teamName"),
+                    resultSet.getString("teamPrefix")
+                );
+                team.setFormatCode(ChatColor.getByChar(resultSet.getString("teamFormatCode")));
+                team.setColor(new Color(resultSet.getInt("teamColor")));
+                this.createTeam(team, true);
+            }
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
+        }
+
+        // Load player teams
+        try (PreparedStatement statement = conn.prepareStatement(
+            "SELECT * from gt_player_teams;"
+        )) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                this.joinTeam(
+                    UUID.fromString(resultSet.getString("playerId")),
+                    resultSet.getString("teamId"),
+                    true
+                );
+            }
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
+        }
+    }
+
+    private void createTeamsInDB(Connection conn, List<GameTeam> teams) {
+        try (PreparedStatement statement = conn.prepareStatement(
+            "INSERT INTO gt_teams (teamId, teamName, teamPrefix, teamFormatCode, teamColor) VALUES (?, ?, ?, ?, ?);"
+        )) {
+            conn.setAutoCommit(false);
+
+            for (GameTeam team : teams) {
+                statement.setString(1, team.getId());
+                statement.setString(2, team.getName());
+                statement.setString(3, team.getPrefix());
+                statement.setString(4, String.valueOf(team.getFormatCode().getChar()));
+                statement.setInt(5, team.getColor().getRGB());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            conn.commit();
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not create team(s)", e);
+        }
+    }
+
+    private void removeTeamsFromDB(Connection conn, List<GameTeam> teams) {
+        try (PreparedStatement statement = conn.prepareStatement(
+            "DELETE FROM gt_teams WHERE teamId = ?;"
+        )) {
+            conn.setAutoCommit(false);
+
+            for (GameTeam team : teams) {
+                statement.setString(1, team.getId());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            conn.commit();
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not create team(s)", e);
+        }
+    }
+
+    private void changePlayerTeamInDB(Connection conn, List<UUID> players, GameTeam newTeam) {
+        if (newTeam != null) {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO gt_player_teams (playerId, teamId) VALUES (?, ?) ON DUPLICATE KEY UPDATE teamId = ?;"
+            )) {
+                conn.setAutoCommit(false);
+
+                for (UUID playerId : players) {
+                    statement.setString(1, playerId.toString());
+                    statement.setString(2, newTeam.getId());
+                    statement.setString(3, newTeam.getId());
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not create team(s)", e);
+            }
+        } else {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "DELETE FROM gt_player_teams WHERE playerId = ?;"
+            )) {
+                conn.setAutoCommit(false);
+
+                for (UUID playerId : players) {
+                    statement.setString(1, playerId.toString());
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not create team(s)", e);
+            }
+        }
     }
 }
