@@ -11,14 +11,20 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
-import org.bukkit.ChatColor;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.util.Vector;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TestService extends TestPluginService {
     private static final TestService INSTANCE = new TestService();
@@ -87,5 +93,39 @@ public class TestService extends TestPluginService {
                 }
             )
         ).start();
+    }
+
+    @EventHandler
+    public void onPlayerStep(PlayerMoveEvent event) {
+        Location blockOn = event.getTo().clone().add(new Vector(0, -0.1, 0));
+        if (!blockOn.isWorldLoaded()) {
+            return;
+        }
+        Block block = blockOn.getBlock();
+        Location blockLocation = block.getLocation();
+
+        if (block.getType() == Material.AIR) {
+            List<Location> otherOptions = List.of(
+                blockLocation.add(1, 0, 0).getBlock().getLocation(),
+                blockLocation.add(-1, 0, 0).getBlock().getLocation(),
+                blockLocation.add(0, 0, -1).getBlock().getLocation(),
+                blockLocation.add(0, 0, 1).getBlock().getLocation()
+            );
+
+            Location finalBlockOn = blockOn;
+            blockOn = otherOptions.stream().map(b -> b.add(new Vector(0.5, 0.5, 0.5))).min(Comparator.comparing(b -> b.distance(finalBlockOn))).get();
+        }
+
+        if (blockOn.getBlock().getType() == Material.STONE) {
+            blockOn.getWorld().setBlockData(blockOn, Material.ANDESITE.createBlockData());
+            this.scheduleBlockForRemoval(blockOn);
+        }
+    }
+
+    private void scheduleBlockForRemoval(Location location) {
+        final double seconds = 0.5;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
+            location.getWorld().setBlockData(location, Material.AIR.createBlockData());
+        }, (long) (seconds * 20));
     }
 }

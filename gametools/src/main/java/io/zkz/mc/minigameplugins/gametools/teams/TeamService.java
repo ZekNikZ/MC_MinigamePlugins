@@ -240,6 +240,10 @@ public class TeamService extends GameToolsService {
             .toList();
     }
 
+    public Collection<UUID> getTrackedPlayers() {
+        return this.players.keySet();
+    }
+
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());

@@ -1,4 +1,5 @@
 rootProject.name = 'minigameplugins'
 
 include 'gametools'
+include 'minigamemanager'
 include 'testplugin'
