@@ -62,7 +62,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         // This file contains statements to create our inital tables.
         // it is located in the resources.
         String setup;
-        try (InputStream in = this.getClassLoader().getResourceAsStream("dbsetup.sql")) {
+        try (InputStream in = this.getResourceAsStream("dbsetup.sql")) {
             if (in == null) {
                 return;
             }
@@ -72,5 +72,9 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             throw e;
         }
         MySQLService.getInstance().addInitCommands(setup);
+    }
+
+    public InputStream getResourceAsStream(String name) {
+        return this.getClassLoader().getResourceAsStream(name);
     }
 }

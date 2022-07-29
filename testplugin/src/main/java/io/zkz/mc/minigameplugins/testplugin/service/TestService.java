@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.testplugin.service;
 
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
+import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.CompositeScoreboardEntry;
@@ -34,6 +35,13 @@ public class TestService extends TestPluginService {
     }
 
     private static final AtomicBoolean testBool = new AtomicBoolean();
+
+    @Override
+    protected void setup() {
+        ResourcePackService.getInstance().addBlockTexture("iron_block", this.getPlugin().getResourceAsStream("testblock.png"));
+        char c1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 128, 128);
+        char c2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 128, 128);
+    }
 
     @Override
     public void onEnable() {

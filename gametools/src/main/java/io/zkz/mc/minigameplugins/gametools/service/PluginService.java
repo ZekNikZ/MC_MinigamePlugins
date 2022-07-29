@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 public abstract class PluginService<T extends JavaPlugin> implements Listener {
     private T plugin;
@@ -21,6 +22,10 @@ public abstract class PluginService<T extends JavaPlugin> implements Listener {
 
     public T getPlugin() {
         return this.plugin;
+    }
+
+    public Logger getLogger() {
+        return this.getPlugin().getLogger();
     }
 
     /**

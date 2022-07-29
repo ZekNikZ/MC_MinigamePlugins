@@ -28,7 +28,7 @@ public class MySQLDataManager<T extends PluginService<?>> extends AbstractDataMa
         try (Connection conn = MySQLService.getInstance().getConnection()) {
             this.loader.accept(conn);
         } catch (SQLException e) {
-            this.service.getPlugin().getLogger().log(Level.SEVERE, "Could not load data from the database", e);
+            this.service.getLogger().log(Level.SEVERE, "Could not load data from the database", e);
         }
     }
 
@@ -44,7 +44,7 @@ public class MySQLDataManager<T extends PluginService<?>> extends AbstractDataMa
         try (Connection conn = MySQLService.getInstance().getConnection()) {
             this.pendingActions.remove().accept(conn);
         } catch (SQLException e) {
-            this.service.getPlugin().getLogger().log(Level.SEVERE, "Could not save data to the database", e);
+            this.service.getLogger().log(Level.SEVERE, "Could not save data to the database", e);
         }
     }
 

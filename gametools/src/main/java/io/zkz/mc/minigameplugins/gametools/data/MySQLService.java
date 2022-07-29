@@ -97,9 +97,9 @@ public class MySQLService extends GameToolsService {
             try (Connection conn = this.getConnection(); PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.execute();
             } catch (SQLException e) {
-                this.getPlugin().getLogger().log(Level.SEVERE, "Could not initialize database", e);
+                this.getLogger().log(Level.SEVERE, "Could not initialize database", e);
             }
         }
-        this.getPlugin().getLogger().info(ChatColor.AQUA + "Database setup complete.");
+        this.getLogger().info(ChatColor.AQUA + "Database setup complete.");
     }
 }

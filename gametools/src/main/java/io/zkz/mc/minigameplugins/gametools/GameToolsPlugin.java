@@ -5,8 +5,10 @@ import com.comphenix.protocol.ProtocolManager;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
+import io.zkz.mc.minigameplugins.gametools.http.HTTPService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.command.ReadyUpCommands;
+import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
@@ -40,6 +42,8 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         this.register(ScoreboardService.getInstance());
         this.register(ReadyUpService.getInstance());
         this.register(CustomEventService.getInstance());
+        this.register(HTTPService.getInstance());
+        this.register(ResourcePackService.getInstance());
 
         // Command Groups
         this.register(new TeamCommands());
