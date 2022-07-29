@@ -31,6 +31,8 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     public void onEnable() {
         PluginManager pluginManager = this.getServer().getPluginManager();
 
+        this.registerPluginDependents(pluginManager);
+
         // Init database
         try {
             this.initDB();
@@ -76,5 +78,9 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
     public InputStream getResourceAsStream(String name) {
         return this.getClassLoader().getResourceAsStream(name);
+    }
+
+    protected void registerPluginDependents(PluginManager pluginManager) {
+
     }
 }

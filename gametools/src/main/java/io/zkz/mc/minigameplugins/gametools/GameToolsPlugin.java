@@ -1,7 +1,5 @@
 package io.zkz.mc.minigameplugins.gametools;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
@@ -12,7 +10,11 @@ import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
-import org.bukkit.plugin.java.annotation.dependency.Dependency;
+import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
+import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
+import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
@@ -24,7 +26,9 @@ import java.util.logging.Logger;
 @Description("A library for making minigame plugins")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
-@Dependency("ProtocolLib")
+//@Dependency("ProtocolLib")
+@SoftDependency("WorldEdit")
+@SoftDependency("WorldGuard")
 public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     private static Logger logger;
 
@@ -32,7 +36,7 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         return logger;
     }
 
-    private ProtocolManager protocolManager;
+//    private ProtocolManager protocolManager;
 
     public GameToolsPlugin() {
         // Services
@@ -52,10 +56,26 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     }
 
     @Override
+    protected void registerPluginDependents(PluginManager pluginManager) {
+        if (pluginManager.getPlugin("WorldEdit") != null) {
+            WorldEditService.markAsLoaded();
+            this.register(WorldEditService.getInstance());
+
+            SchematicService.markAsLoaded();
+            this.register(SchematicService.getInstance());
+        }
+
+        if (pluginManager.getPlugin("WorldGuard") != null) {
+            RegionService.markAsLoaded();
+            this.register(RegionService.getInstance());
+        }
+    }
+
+    @Override
     public void onEnable() {
         logger = this.getLogger();
         super.onEnable();
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
+//        this.protocolManager = ProtocolLibrary.getProtocolManager();
     }
 
     @Override
@@ -63,7 +83,7 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         super.onDisable();
     }
 
-    public ProtocolManager getProtocolManager() {
-        return this.protocolManager;
-    }
+//    public ProtocolManager getProtocolManager() {
+//        return this.protocolManager;
+//    }
 }
