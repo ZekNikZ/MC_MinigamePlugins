@@ -1,10 +1,15 @@
 package io.zkz.mc.minigameplugins.gametools.scoreboard.entry;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
+import org.bukkit.ChatColor;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class ValueEntry<T> extends FormattedScoreboardEntry {
-    private String prefix, suffix, mainText;
+    private final String prefix, suffix, mainText;
     private T value;
+    private String format = null;
 
     public ValueEntry(GameScoreboard scoreboard, T value) {
         this(scoreboard, "", "%s", "", value);
@@ -30,6 +35,14 @@ public class ValueEntry<T> extends FormattedScoreboardEntry {
         return this.getValue().toString();
     }
 
+    protected final String getColoredValueString() {
+        if (this.format != null) {
+            return this.format + this.getValueString() + ChatColor.RESET;
+        } else {
+            return this.getValueString();
+        }
+    }
+
     public void setValue(T value) {
         this.value = value;
         this.markDirty();
@@ -42,11 +55,16 @@ public class ValueEntry<T> extends FormattedScoreboardEntry {
 
     @Override
     protected String getPrefix() {
-        return this.prefix.formatted(this.getValueString());
+        return this.prefix.formatted(this.getColoredValueString());
     }
 
     @Override
     protected String getSuffix() {
-        return this.suffix.formatted(this.getValueString());
+        return this.suffix.formatted(this.getColoredValueString());
+    }
+
+    public ValueEntry<T> setValueColor(ChatColor... color) {
+        this.format = Arrays.stream(color).map(ChatColor::toString).collect(Collectors.joining(""));
+        return this;
     }
 }

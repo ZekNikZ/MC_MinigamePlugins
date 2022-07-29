@@ -16,11 +16,6 @@ import java.util.logging.Logger;
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
 public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
-    private static Logger logger;
-    public static Logger logger() {
-        return logger;
-    }
-
     public MinigameManagerPlugin() {
         // Services
         this.register(MinigameService.getInstance());
@@ -29,7 +24,6 @@ public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
     @Override
     public void onEnable() {
         super.onEnable();
-        logger = this.getLogger();
     }
 
     @Override

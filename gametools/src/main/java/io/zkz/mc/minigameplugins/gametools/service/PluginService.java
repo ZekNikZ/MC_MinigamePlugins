@@ -83,6 +83,8 @@ public abstract class PluginService<T extends JavaPlugin> implements Listener {
 
         // Link event handlers
         pluginManager.registerEvents(this, plugin);
+
+        plugin.getLogger().info("Initialized service " + this.getClass().getSimpleName());
     }
 
     public final void cleanup() {

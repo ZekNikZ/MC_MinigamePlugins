@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard.entry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 
+// TODO: make another version that takes a timer proxy that can be replaced by the minigame service dynamically
 public class TimerEntry extends ValueEntry<AbstractTimer> {
     private final int hookId;
 

@@ -58,6 +58,8 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     @Override
     protected void registerPluginDependents(PluginManager pluginManager) {
         if (pluginManager.getPlugin("WorldEdit") != null) {
+            this.getLogger().info("WorldEdit found, registering dependent services...");
+
             WorldEditService.markAsLoaded();
             this.register(WorldEditService.getInstance());
 
@@ -66,6 +68,8 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         }
 
         if (pluginManager.getPlugin("WorldGuard") != null) {
+            this.getLogger().info("WorldGuard found, registering dependent services...");
+
             RegionService.markAsLoaded();
             this.register(RegionService.getInstance());
         }

@@ -1,6 +1,11 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
@@ -9,11 +14,14 @@ import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
+import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
+import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.StateBasedMinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -29,11 +37,36 @@ public class MinigameService extends MinigameManagerService {
         return INSTANCE;
     }
 
+    private static final StateBasedMinigameScoreboard DEFAULT_SCOREBOARD = (currentState) -> {
+        switch (currentState) {
+            case LOADING, SETUP, WAITING_FOR_PLAYERS, RULES, WAITING_TO_BEGIN, IN_GAME, PAUSED -> {
+                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(MinigameConstantsService.getInstance().getPrefix());
+
+                scoreboard.addSpace();
+                scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                scoreboard.addSpace();
+
+                ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+            }
+            case PRE_ROUND, POST_ROUND, POST_GAME -> {
+                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(MinigameConstantsService.getInstance().getPrefix());
+
+                scoreboard.addSpace();
+                scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                scoreboard.addEntry(new TimerEntry(scoreboard, "Time: ", getInstance().timer).setValueColor(ChatColor.YELLOW));
+                scoreboard.addSpace();
+
+                ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+            }
+        }
+    };
+
     private MinigameState state;
     private final Map<MinigameState, List<Runnable>> stateSetupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<GameTask>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, IPlayerState> statePlayerStates = new HashMap<>();
+    private final Map<MinigameState, MinigameScoreboard> scoreboards = new HashMap<>();
     private int preRoundDelay = 100;
     private int postRoundDelay = 100;
     private int postGameDelay = 200;
@@ -96,9 +129,9 @@ public class MinigameService extends MinigameManagerService {
     }
 
     public void setState(MinigameState newState) {
-        StateChangeEvent event = new StateChangeEvent(this.state, newState);
-        BukkitUtils.dispatchEvent(event);
-        if (!event.isCancelled()) {
+        StateChangeEvent.Pre preEvent = new StateChangeEvent.Pre(this.state, newState);
+        BukkitUtils.dispatchEvent(preEvent);
+        if (!preEvent.isCancelled()) {
             this.stateTasks.get(this.state).forEach(BukkitRunnable::cancel);
             this.stateCleanupHandlers.get(this.state).forEach(Runnable::run);
             this.state = newState;
@@ -109,6 +142,11 @@ public class MinigameService extends MinigameManagerService {
                 Bukkit.getOnlinePlayers().forEach(playerState::apply);
             }
         }
+        BukkitUtils.dispatchEvent(new StateChangeEvent.Post(this.state, newState));
+    }
+
+    public MinigameState getCurrentState() {
+        return this.state;
     }
 
     @EventHandler
@@ -157,6 +195,22 @@ public class MinigameService extends MinigameManagerService {
 
     public void registerPlayerState(MinigameState state, IPlayerState playerState) {
         this.statePlayerStates.put(state, playerState);
+    }
+
+    public void setPreRoundDelay(int delayInTicks) {
+        this.preRoundDelay = delayInTicks;
+    }
+
+    public void setPostRoundDelay(int delayInTicks) {
+        this.postRoundDelay = delayInTicks;
+    }
+
+    public void setPostGameDelay(int delayInTicks) {
+        this.postGameDelay = delayInTicks;
+    }
+
+    public void registerScoreboard(MinigameState state, MinigameScoreboard scoreboard) {
+        this.scoreboards.put(state, scoreboard);
     }
 
     public int getCurrentRound() {
@@ -215,7 +269,7 @@ public class MinigameService extends MinigameManagerService {
         }
     }
 
-    private Collection<UUID> getPlayers() {
+    public Collection<UUID> getPlayers() {
         Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
         return players.stream()
             .filter(uuid -> TeamService.getInstance().getTeamOfPlayer(uuid) != DefaultTeams.SPECTATOR)
@@ -242,19 +296,20 @@ public class MinigameService extends MinigameManagerService {
         this.setState(MinigameState.IN_GAME);
     }
 
-    public void setPreRoundDelay(int delayInTicks) {
-        this.preRoundDelay = delayInTicks;
-    }
-
-    public void setPostRoundDelay(int delayInTicks) {
-        this.postRoundDelay = delayInTicks;
-    }
-
-    public void setPostGameDelay(int delayInTicks) {
-        this.postGameDelay = delayInTicks;
-    }
-
     public void endRound() {
         this.setState(MinigameState.POST_ROUND);
+    }
+
+    /**
+     * Apply new scoreboards upon state change.
+     */
+    @EventHandler
+    private void onStateChange(StateChangeEvent.Post event) {
+        ScoreboardService.getInstance().resetAllScoreboards();
+        MinigameScoreboard scoreboard = this.scoreboards.get(event.getNewState());
+        if (scoreboard == null) {
+            scoreboard = DEFAULT_SCOREBOARD;
+        }
+        scoreboard.setup();
     }
 }

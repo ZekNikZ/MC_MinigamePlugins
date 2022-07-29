@@ -20,10 +20,12 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
     protected void register(CommandGroup commandGroup) {
         this.commands.add(commandGroup);
+        this.getLogger().info("Registered command group " + commandGroup.getClass().getSimpleName());
     }
 
     protected void register(PluginService<T> service) {
         this.services.add(service);
+        this.getLogger().info("Registered service " + service.getClass().getSimpleName());
     }
 
     @Override
@@ -35,20 +37,23 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
         // Init database
         try {
+            this.getLogger().info("Initializing database...");
             this.initDB();
+            this.getLogger().info("Database initialization complete");
         } catch (SQLException | IOException e) {
-            this.getLogger().log(Level.SEVERE, ChatColor.RED + "Error setting up databases", e);
+            this.getLogger().log(Level.SEVERE, "Error setting up databases", e);
         }
 
         // Register and enable services
-        this.getLogger().info(ChatColor.YELLOW + "Registering services... ");
+        this.getLogger().info("Initializing services... ");
         services.forEach(service -> service.init((T) this, pluginManager));
 
+
         // Register commands
-        this.getLogger().info(ChatColor.YELLOW + "Registering commands... ");
+        this.getLogger().info("Initializing commands... ");
         commands.forEach(commandGroup -> commandGroup.registerCommands(this));
 
-        this.getLogger().info(ChatColor.GREEN + "Enabled " + this.getName());
+        this.getLogger().info("Enabled " + this.getName());
     }
 
     @Override
@@ -56,7 +61,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         // Disable services
         services.forEach(PluginService::cleanup);
 
-        this.getLogger().info(ChatColor.RED + "Disabled " + this.getName());
+        this.getLogger().info("Disabled " + this.getName());
     }
 
     private void initDB() throws SQLException, IOException {
@@ -73,7 +78,9 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
             throw e;
         }
-        MySQLService.getInstance().addInitCommands(setup);
+        if (setup != null) {
+            MySQLService.getInstance().addInitCommands(setup);
+        }
     }
 
     public InputStream getResourceAsStream(String name) {

@@ -100,6 +100,6 @@ public class MySQLService extends GameToolsService {
                 this.getLogger().log(Level.SEVERE, "Could not initialize database", e);
             }
         }
-        this.getLogger().info(ChatColor.AQUA + "Database setup complete.");
+        this.getLogger().info( "Database setup complete.");
     }
 }

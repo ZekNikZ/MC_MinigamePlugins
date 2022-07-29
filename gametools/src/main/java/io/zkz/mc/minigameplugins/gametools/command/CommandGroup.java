@@ -27,5 +27,7 @@ public abstract class CommandGroup {
         this.registerCommands();
 
         this.commands.forEach((commandName, executor) -> plugin.getCommand(commandName).setExecutor(executor));
+
+        plugin.getLogger().info("Initialized command group " + this.getClass().getSimpleName());
     }
 }
