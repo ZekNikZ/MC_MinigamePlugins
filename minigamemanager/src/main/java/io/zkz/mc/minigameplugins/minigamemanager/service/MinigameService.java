@@ -3,6 +3,8 @@ package io.zkz.mc.minigameplugins.minigamemanager.service;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
+import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
@@ -17,12 +19,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MinigameService extends MinigameManagerService {
     private static final MinigameService INSTANCE = new MinigameService();
-    private int preRoundDelay = 100;
-    private int postRoundDelay = 100;
 
     public static MinigameService getInstance() {
         return INSTANCE;
@@ -33,9 +34,13 @@ public class MinigameService extends MinigameManagerService {
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<GameTask>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, IPlayerState> statePlayerStates = new HashMap<>();
-
+    private int preRoundDelay = 100;
+    private int postRoundDelay = 100;
+    private int postGameDelay = 200;
     private final List<Round> rounds = new ArrayList<>();
+    private final List<Character> rulesSlides = new ArrayList<>();
     private int currentRound = -1;
+    private AbstractTimer timer;
 
     @Override
     public void onEnable() {
@@ -63,19 +68,31 @@ public class MinigameService extends MinigameManagerService {
         this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady));
 
         // PRE_ROUND
-        this.addSetupHandler(MinigameState.PRE_ROUND, () -> Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> this.setState(MinigameState.IN_GAME), this.preRoundDelay));
+        this.addSetupHandler(MinigameState.PRE_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame)));
 
         // POST_ROUND
-        this.addSetupHandler(MinigameState.POST_ROUND, this::nextRound);
+        this.addSetupHandler(MinigameState.POST_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postRoundDelay * 50L, TimeUnit.MILLISECONDS, this::nextRound)));
 
-        // IN_GAME
-        this.addSetupHandler(MinigameState.IN_GAME, () -> this.rounds.get(this.currentRound).onStart());
-        this.addCleanupHandler(MinigameState.IN_GAME, () -> this.rounds.get(this.currentRound).onEnd());
+        // IN_GAME (note: these are registered for different states to prevent paused from triggering them)
+        this.addCleanupHandler(MinigameState.PRE_ROUND, () -> this.rounds.get(this.currentRound).onStart());
+        this.addSetupHandler(MinigameState.POST_ROUND, () -> this.rounds.get(this.currentRound).onEnd());
 
         // PAUSE
         this.addSetupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onPause());
         this.addCleanupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onUnpause());
 
+        // POST_GAME
+        this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L, TimeUnit.MILLISECONDS, Bukkit::shutdown)));
+        // TODO: send back to hub
+    }
+
+    private void changeTimer(AbstractTimer timer) {
+        if (this.timer != null) {
+            this.timer.stop();
+        }
+
+        this.timer = timer;
+        timer.start();
     }
 
     public void setState(MinigameState newState) {
@@ -130,6 +147,18 @@ public class MinigameService extends MinigameManagerService {
         this.rounds.addAll(Arrays.asList(rounds));
     }
 
+    public void registerRulesSlide(char c) {
+        this.rulesSlides.add(c);
+    }
+
+    public List<Character> getRulesSlides() {
+        return this.rulesSlides;
+    }
+
+    public void registerPlayerState(MinigameState state, IPlayerState playerState) {
+        this.statePlayerStates.put(state, playerState);
+    }
+
     public int getCurrentRound() {
         return this.currentRound;
     }
@@ -163,8 +192,15 @@ public class MinigameService extends MinigameManagerService {
     }
 
     private void transitionToSetup() {
+        // This is here to make sure it runs last
         this.addSetupHandler(MinigameState.SETUP, this::transitionToWaitingForPlayers);
+
+        // Actually transition
         this.setState(MinigameState.SETUP);
+    }
+
+    private void transitionToInGame() {
+        this.setState(MinigameState.IN_GAME);
     }
 
     private void transitionToWaitingForPlayers() {
@@ -206,8 +242,19 @@ public class MinigameService extends MinigameManagerService {
         this.setState(MinigameState.IN_GAME);
     }
 
-    public void setRoundDelay(int preRoundInTicks, int postRoundInTicks) {
-        this.preRoundDelay = preRoundInTicks;
-        this.postRoundDelay = postRoundInTicks;
+    public void setPreRoundDelay(int delayInTicks) {
+        this.preRoundDelay = delayInTicks;
+    }
+
+    public void setPostRoundDelay(int delayInTicks) {
+        this.postRoundDelay = delayInTicks;
+    }
+
+    public void setPostGameDelay(int delayInTicks) {
+        this.postGameDelay = delayInTicks;
+    }
+
+    public void endRound() {
+        this.setState(MinigameState.POST_ROUND);
     }
 }

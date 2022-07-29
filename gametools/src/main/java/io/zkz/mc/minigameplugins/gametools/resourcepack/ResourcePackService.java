@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.IntStream;
-import java.util.zip.ZipInputStream;
 
 public class ResourcePackService extends GameToolsService {
     // TODO: this should probably be the resource pack hash instead

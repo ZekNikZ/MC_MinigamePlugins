@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.minigamemanager.round;
 
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 
 public abstract class Round {
     /**
@@ -44,5 +43,12 @@ public abstract class Round {
      */
     public void onUnpause() {
 
+    }
+
+    /**
+     * Convenience method to end a round.
+     */
+    public void triggerRoundEnd() {
+        MinigameService.getInstance().endRound();
     }
 }
