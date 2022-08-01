@@ -249,34 +249,12 @@ public class TNTRunService extends TNTRunPluginService {
             }
         });
 
-        supportingBlocks.forEach(block -> {
+        // Schedule blocks for removal
+        for (Block block : supportingBlocks) {
             if (block.getType() == Material.SAND || block.getType() == Material.GRAVEL) {
                 this.scheduleBlockForRemoval(block.getLocation());
+                break; // ensure only one block gets removed
             }
-        });
-
-        // Naive approach
-//        Location blockOn = event.getTo().clone().add(new Vector(0, -0.1, 0));
-//        if (!blockOn.isWorldLoaded()) {
-//            return;
-//        }
-//        Block block = blockOn.getBlock();
-//        Location blockLocation = block.getLocation();
-//
-//        if (block.getType() == Material.AIR) {
-//            List<Location> otherOptions = List.of(
-//                blockLocation.add(1, 0, 0).getBlock().getLocation(),
-//                blockLocation.add(-1, 0, 0).getBlock().getLocation(),
-//                blockLocation.add(0, 0, -1).getBlock().getLocation(),
-//                blockLocation.add(0, 0, 1).getBlock().getLocation()
-//            );
-//
-//            Location finalBlockOn = blockOn;
-//            blockOn = otherOptions.stream().map(b -> b.add(new Vector(0.5, 0.5, 0.5))).min(Comparator.comparing(b -> b.distance(finalBlockOn))).get();
-//        }
-//
-//        if (blockOn.getBlock().getType() == Material.SAND || blockOn.getBlock().getType() == Material.GRAVEL) {
-//            this.scheduleBlockForRemoval(blockOn);
-//        }
+        }
     }
 }
