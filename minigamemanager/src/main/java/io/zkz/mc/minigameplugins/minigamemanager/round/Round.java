@@ -25,6 +25,20 @@ public abstract class Round {
     }
 
     /**
+     * Run when game enters pre-round phase.
+     */
+    public void onPreRound() {
+
+    }
+
+    /**
+     * Run when game enters post-round phase.
+     */
+    public void onPostRound() {
+
+    }
+
+    /**
      * Run when round has ended (i.e., when timer expires or last man standing).
      */
     public void onEnd() {

@@ -124,7 +124,7 @@ public class TNTRunService extends TNTRunPluginService {
     }
 
     private void scheduleBlockForRemoval(Location location) {
-        final double seconds = 0.5;
+        final double seconds = 0.45;
         Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
             location.getWorld().setBlockData(location, Material.AIR.createBlockData());
             location.getWorld().setBlockData(location.clone().add(0, -1, 0), Material.AIR.createBlockData());
@@ -192,7 +192,11 @@ public class TNTRunService extends TNTRunPluginService {
 
     @EventHandler
     private void onPlayerLeave(PlayerQuitEvent event) {
-        this.setDead(event.getPlayer());
+        MinigameState currentState = MinigameService.getInstance().getCurrentState();
+
+        if (currentState == MinigameState.IN_GAME && this.alivePlayers.contains(event.getPlayer().getUniqueId())) {
+            this.setDead(event.getPlayer());
+        }
     }
 
     @EventHandler
@@ -219,7 +223,7 @@ public class TNTRunService extends TNTRunPluginService {
 
         // First, check if the player is just simply on a block
         Player player = event.getPlayer();
-        Location blockOn = player.getLocation().add(new Vector(0, -1, 0));
+        Location blockOn = player.getLocation().add(new Vector(0, -0.1, 0));
         if (!blockOn.isWorldLoaded()) {
             return;
         }
@@ -229,7 +233,7 @@ public class TNTRunService extends TNTRunPluginService {
         }
 
         // Otherwise, find the block the player is crouching on
-        final AxisAlignedBB playerBB = NMSUtils.getEntityBoundingBox(player).d(0, -1, 0);
+        final AxisAlignedBB playerBB = NMSUtils.getEntityBoundingBox(player).d(0, -0.1, 0);
         Map<Block, AxisAlignedBB> blockBoxes = new HashMap<>();
         ArrayList<Block> supportingBlocks = new ArrayList<>();
         final Location cornerLoc = player.getLocation().clone().add(-1, -1, -1);
@@ -239,7 +243,6 @@ public class TNTRunService extends TNTRunPluginService {
                 if (block.getType() != Material.AIR) {
                     AxisAlignedBB boundingBox = NMSUtils.getBlockBoundingBox(block);
                     blockBoxes.put(block, boundingBox);
-                    player.sendMessage(block.getType() + " @ " + boundingBox.toString());
                 }
             }
         }

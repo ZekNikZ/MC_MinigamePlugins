@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager.task;
 
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
@@ -8,12 +10,12 @@ import org.bukkit.Bukkit;
 import java.util.List;
 
 public class RulesTask extends GameTask {
-    private static final int SECOND_DELAY = 5;
+    private static final int TICK_DELAY = 100;
     private int currentIndex = 0;
     private final List<Character> slides;
 
     public RulesTask() {
-        super(SECOND_DELAY, SECOND_DELAY);
+        super(TICK_DELAY, TICK_DELAY);
         this.slides = MinigameService.getInstance().getRulesSlides();
     }
 
@@ -24,7 +26,8 @@ public class RulesTask extends GameTask {
             return;
         }
 
-        Bukkit.getOnlinePlayers().forEach(player -> TitleUtils.sendActionBarMessage(player, "" + this.slides.get(this.currentIndex)));
+        SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+        Bukkit.getOnlinePlayers().forEach(player -> TitleUtils.sendActionBarMessage(player, "" + this.slides.get(this.currentIndex), 20, MinigameService.getInstance().getPlugin()));
 
         this.currentIndex++;
     }

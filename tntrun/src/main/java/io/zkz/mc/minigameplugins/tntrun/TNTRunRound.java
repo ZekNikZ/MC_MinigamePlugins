@@ -7,6 +7,7 @@ import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.tntrun.service.TNTRunService;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 
 public class TNTRunRound extends Round {
@@ -25,6 +26,11 @@ public class TNTRunRound extends Round {
     @Override
     public void onSetup() {
         TNTRunService.getInstance().setupArena(this);
+    }
+
+    @Override
+    public void onPreRound() {
+        Bukkit.getOnlinePlayers().forEach(player -> player.teleport(new Location(Bukkit.getWorlds().get(0), this.getSpawnLocation().getX(), this.getSpawnLocation().getY(), this.getSpawnLocation().getZ())));
     }
 
     public BlockVector3 getArenaMax() {

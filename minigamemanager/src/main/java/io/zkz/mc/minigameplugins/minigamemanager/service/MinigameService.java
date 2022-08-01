@@ -104,19 +104,23 @@ public class MinigameService extends MinigameManagerService {
         this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady));
 
         // PRE_ROUND
-        this.addSetupHandler(MinigameState.PRE_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
-            @Override
-            protected void onUpdate() {
-                if (getCurrentTimeMillis() <= 5000) {
-                    SoundUtils.broadcastSound(StandardSounds.TIMER_TICK, 1, 1);
-                }
+        this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
+            this.getCurrentRound().onPreRound();
+            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
+                @Override
+                protected void onUpdate() {
+                    if (getCurrentTimeMillis() <= 5000) {
+                        SoundUtils.broadcastSound(StandardSounds.TIMER_TICK, 1, 1);
+                    }
 
-                super.onUpdate();
-            }
-        }));
+                    super.onUpdate();
+                }
+            });
+        });
 
         // POST_ROUND
         this.addSetupHandler(MinigameState.POST_ROUND, () -> {
+            this.getCurrentRound().onPostRound();
             if (this.isLastRound()) {
                 BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
             } else {
