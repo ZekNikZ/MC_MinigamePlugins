@@ -7,5 +7,7 @@ repositories {
 dependencies {
     compileOnly "org.spigotmc:spigot:${spigotVersion}"
     compileOnly "com.comphenix.protocol:ProtocolLib:${protocolLibVersion}"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"
+    compileOnly "com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}"
     implementation 'mysql:mysql-connector-java:8.0.29'
 }

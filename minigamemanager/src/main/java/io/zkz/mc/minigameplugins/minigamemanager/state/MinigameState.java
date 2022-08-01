@@ -2,6 +2,10 @@ package io.zkz.mc.minigameplugins.minigamemanager.state;
 
 public enum MinigameState {
     /**
+     * Server is starting. Don't use.
+     */
+    SERVER_STARTING("Server starting"),
+    /**
      * Server is loading. Don't use.
      */
     LOADING("Loading"),
@@ -40,8 +44,7 @@ public enum MinigameState {
     /**
      * Post-game cleanup - game is over
      */
-    POST_GAME("Game over")
-    ;
+    POST_GAME("Game over");
 
     private final String stateString;
 

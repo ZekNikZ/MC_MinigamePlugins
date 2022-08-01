@@ -44,6 +44,33 @@ public class TeamService extends GameToolsService {
 
     }
 
+    /**
+     * Checks if all of the specified players are on the same team. If an empty collection is passed, true is returned.
+     * @param players the players to query
+     * @return whether all of the players are on the same team
+     */
+    public boolean allSameTeam(Collection<UUID> players) {
+        if (players.isEmpty()) {
+            return true;
+        }
+
+        boolean flag = false;
+        GameTeam first = null;
+        for (UUID playerId : players) {
+            if (!flag) {
+                first = this.getTeamOfPlayer(playerId);
+                flag = true;
+                continue;
+            }
+
+            if (this.getTeamOfPlayer(playerId) != first) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public static class TeamCreationException extends RuntimeException {
         public TeamCreationException(String problem) {
             super("Could not create team: " + problem);

@@ -1,10 +1,8 @@
 package io.zkz.mc.minigameplugins.gametools.readyup.command;
 
-import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
-import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -34,14 +32,14 @@ public class ReadyUpCommand extends ArgumentCommandExecutor {
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         // Ensure sender is a player
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "You cannot execute this command from the console.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "You cannot execute this command from the console.");
             return true;
         }
 
         if (!ReadyUpService.getInstance().recordReady(player)) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "Nothing is waiting for you to be ready.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Nothing is waiting for you to be ready.");
         } else {
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.GRAY + "You are now ready!");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "You are now ready!");
         }
 
         return true;

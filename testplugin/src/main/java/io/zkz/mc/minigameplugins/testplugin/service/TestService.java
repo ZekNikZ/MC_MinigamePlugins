@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.testplugin.service;
 
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.Region;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
@@ -12,6 +14,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
+import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -83,6 +86,10 @@ public class TestService extends TestPluginService {
         }
 
         ScoreboardService.getInstance().setTeamScoreboard(DefaultTeams.BLUE.getId(), teamScoreboard);
+
+        WorldEditService we = WorldEditService.getInstance();
+        Region region = we.createCuboidRegion(BlockVector3.at(-50, 100, -50), BlockVector3.at(50, 100, 50));
+        we.fillRegion(we.wrapWorld(Bukkit.getWorlds().get(0)), region, we.createPattern(Material.STONE));
     }
 
     @EventHandler

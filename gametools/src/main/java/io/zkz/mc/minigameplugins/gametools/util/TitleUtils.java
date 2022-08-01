@@ -76,4 +76,52 @@ public class TitleUtils {
             PENDING_MESSAGES.get(bukkitPlayer).cancel();
         }
     }
+
+    public static void sendTitle(Player player, String title) {
+        sendTitle(player, title, "");
+    }
+
+    public static void sendTitle(Player player, String title, String subtitle) {
+        sendTitle(player, title, subtitle, 10, 10, 10);
+    }
+
+    public static void sendTitle(Player player, String title, int fadeTime, int lingerTime) {
+        sendTitle(player, title, "", fadeTime, lingerTime, fadeTime);
+    }
+
+    public static void sendTitle(Player player, String title, String subtitle, int fadeTime, int lingerTime) {
+        sendTitle(player, title, subtitle, fadeTime, lingerTime, fadeTime);
+    }
+
+    public static void sendTitle(Player player, String title, int fadeInTime, int lingerTime, int fadeOutTime) {
+        sendTitle(player, title, "", fadeInTime, lingerTime, fadeOutTime);
+    }
+
+    public static void sendTitle(Player player, String title, String subtitle, int fadeInTime, int lingerTime, int fadeOutTime) {
+        player.sendTitle(title, subtitle, fadeInTime, lingerTime, fadeOutTime);
+    }
+
+    public static void broadcastTitle(String title) {
+        broadcastTitle(title, "");
+    }
+
+    public static void broadcastTitle(String title, String subtitle) {
+        broadcastTitle(title, subtitle, 10, 10, 10);
+    }
+    
+    public static void broadcastTitle(String title, int fadeTime, int lingerTime) {
+        broadcastTitle(title, "", fadeTime, lingerTime, fadeTime);
+    }
+
+    public static void broadcastTitle(String title, String subtitle, int fadeTime, int lingerTime) {
+        broadcastTitle(title, subtitle, fadeTime, lingerTime, fadeTime);
+    }
+
+    public static void broadcastTitle(String title, int fadeInTime, int lingerTime, int fadeOutTime) {
+        broadcastTitle(title, "", fadeInTime, lingerTime, fadeOutTime);
+    }
+    
+    public static void broadcastTitle(String title, String subtitle, int fadeInTime, int lingerTime, int fadeOutTime) {
+        BukkitUtils.forEachPlayer(player -> sendTitle(player, title, subtitle, fadeInTime, lingerTime, fadeOutTime));
+    }
 }

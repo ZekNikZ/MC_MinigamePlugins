@@ -1,16 +1,18 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
-import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
@@ -22,6 +24,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -40,7 +43,7 @@ public class MinigameService extends MinigameManagerService {
     private static final StateBasedMinigameScoreboard DEFAULT_SCOREBOARD = (currentState) -> {
         switch (currentState) {
             case LOADING, SETUP, WAITING_FOR_PLAYERS, RULES, WAITING_TO_BEGIN, IN_GAME, PAUSED -> {
-                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(MinigameConstantsService.getInstance().getPrefix());
+                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
 
                 scoreboard.addSpace();
                 scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
@@ -49,7 +52,7 @@ public class MinigameService extends MinigameManagerService {
                 ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
             }
             case PRE_ROUND, POST_ROUND, POST_GAME -> {
-                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(MinigameConstantsService.getInstance().getPrefix());
+                GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
 
                 scoreboard.addSpace();
                 scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
@@ -61,14 +64,14 @@ public class MinigameService extends MinigameManagerService {
         }
     };
 
-    private MinigameState state;
+    private MinigameState state = MinigameState.SERVER_STARTING;
     private final Map<MinigameState, List<Runnable>> stateSetupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<GameTask>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, IPlayerState> statePlayerStates = new HashMap<>();
     private final Map<MinigameState, MinigameScoreboard> scoreboards = new HashMap<>();
-    private int preRoundDelay = 100;
-    private int postRoundDelay = 100;
+    private int preRoundDelay = 200;
+    private int postRoundDelay = 200;
     private int postGameDelay = 200;
     private final List<Round> rounds = new ArrayList<>();
     private final List<Character> rulesSlides = new ArrayList<>();
@@ -101,10 +104,25 @@ public class MinigameService extends MinigameManagerService {
         this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady));
 
         // PRE_ROUND
-        this.addSetupHandler(MinigameState.PRE_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame)));
+        this.addSetupHandler(MinigameState.PRE_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
+            @Override
+            protected void onUpdate() {
+                if (getCurrentTimeMillis() <= 5000) {
+                    SoundUtils.broadcastSound(StandardSounds.TIMER_TICK, 1, 1);
+                }
+
+                super.onUpdate();
+            }
+        }));
 
         // POST_ROUND
-        this.addSetupHandler(MinigameState.POST_ROUND, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postRoundDelay * 50L, TimeUnit.MILLISECONDS, this::nextRound)));
+        this.addSetupHandler(MinigameState.POST_ROUND, () -> {
+            if (this.isLastRound()) {
+                BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
+            } else {
+                this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postRoundDelay * 50L, TimeUnit.MILLISECONDS, this::nextRound));
+            }
+        });
 
         // IN_GAME (note: these are registered for different states to prevent paused from triggering them)
         this.addCleanupHandler(MinigameState.PRE_ROUND, () -> this.rounds.get(this.currentRound).onStart());
@@ -129,14 +147,22 @@ public class MinigameService extends MinigameManagerService {
     }
 
     public void setState(MinigameState newState) {
+        this.getLogger().info("State transition from " + this.state.name() + " to " + newState.name());
         StateChangeEvent.Pre preEvent = new StateChangeEvent.Pre(this.state, newState);
         BukkitUtils.dispatchEvent(preEvent);
         if (!preEvent.isCancelled()) {
-            this.stateTasks.get(this.state).forEach(BukkitRunnable::cancel);
-            this.stateCleanupHandlers.get(this.state).forEach(Runnable::run);
+            if (this.state != null) {
+                this.stateTasks.get(this.state).forEach(BukkitRunnable::cancel);
+                this.stateCleanupHandlers.get(this.state).forEach(Runnable::run);
+            }
             this.state = newState;
             this.stateSetupHandlers.get(newState).forEach(Runnable::run);
-            this.stateTasks.get(this.state).forEach(t -> t.start(this.getPlugin()));
+            this.stateTasks.get(this.state).forEach(t -> {
+                if (!t.isScheduled()) {
+                    t.start(this.getPlugin());
+                    this.getLogger().info("Started task with ID " + t.getTaskId());
+                }
+            });
             IPlayerState playerState = this.statePlayerStates.get(this.state);
             if (playerState != null) {
                 Bukkit.getOnlinePlayers().forEach(playerState::apply);
@@ -147,22 +173,6 @@ public class MinigameService extends MinigameManagerService {
 
     public MinigameState getCurrentState() {
         return this.state;
-    }
-
-    @EventHandler
-    private void onPlayerJoin(PlayerJoinEvent event) {
-        // Ensure new players are spectators
-        if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == null) {
-            TeamService.getInstance().joinTeam(event.getPlayer(), DefaultTeams.SPECTATOR);
-        }
-
-        // TODO: apply spectator player state
-
-        // Apply player state
-        IPlayerState playerState = this.statePlayerStates.get(this.state);
-        if (playerState != null) {
-            playerState.apply(event.getPlayer());
-        }
     }
 
     public void addSetupHandler(MinigameState state, Runnable handler) {
@@ -185,16 +195,16 @@ public class MinigameService extends MinigameManagerService {
         this.rounds.addAll(Arrays.asList(rounds));
     }
 
-    public void registerRulesSlide(char c) {
-        this.rulesSlides.add(c);
+    public void registerRulesSlides(Character... c) {
+        this.rulesSlides.addAll(Arrays.asList(c));
     }
 
     public List<Character> getRulesSlides() {
         return this.rulesSlides;
     }
 
-    public void registerPlayerState(MinigameState state, IPlayerState playerState) {
-        this.statePlayerStates.put(state, playerState);
+    public void registerPlayerState(IPlayerState playerState, MinigameState... states) {
+        Arrays.stream(states).forEach(state -> this.statePlayerStates.put(state, playerState));
     }
 
     public void setPreRoundDelay(int delayInTicks) {
@@ -213,14 +223,23 @@ public class MinigameService extends MinigameManagerService {
         this.scoreboards.put(state, scoreboard);
     }
 
-    public int getCurrentRound() {
+    public int getCurrentRoundIndex() {
         return this.currentRound;
+    }
+
+    public Round getCurrentRound() {
+        if (this.currentRound < 0 || this.currentRound >= this.rounds.size()) {
+            return null;
+        }
+
+        return this.rounds.get(this.currentRound);
     }
 
     public void setCurrentRound(int newRound) {
         if (newRound < 0 || newRound >= this.rounds.size()) {
             throw new IllegalArgumentException("New round must correspond to an existing round");
         }
+        this.getLogger().info("Round transition from " + this.currentRound + " to " + newRound);
         RoundChangeEvent event = new RoundChangeEvent(this.currentRound, newRound);
         BukkitUtils.dispatchEvent(event);
         if (!event.isCancelled()) {
@@ -237,12 +256,8 @@ public class MinigameService extends MinigameManagerService {
     }
 
     public void nextRound() {
-        if (this.isLastRound()) {
-            this.setState(MinigameState.POST_GAME);
-        } else {
-            this.setCurrentRound(this.getCurrentRound() + 1);
-            this.setState(MinigameState.PRE_ROUND);
-        }
+        this.setCurrentRound(this.getCurrentRoundIndex() + 1);
+        this.setState(MinigameState.PRE_ROUND);
     }
 
     private void transitionToSetup() {
@@ -311,5 +326,25 @@ public class MinigameService extends MinigameManagerService {
             scoreboard = DEFAULT_SCOREBOARD;
         }
         scoreboard.setup();
+    }
+
+    @EventHandler
+    private void onPlayerJoin(PlayerJoinEvent event) {
+        // Ensure new players are spectators
+        if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == null) {
+            TeamService.getInstance().joinTeam(event.getPlayer(), DefaultTeams.SPECTATOR);
+        }
+
+        // Apply spectator player state
+        if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == DefaultTeams.SPECTATOR) {
+            event.getPlayer().setGameMode(GameMode.SPECTATOR);
+            return;
+        }
+
+        // Apply player state
+        IPlayerState playerState = this.statePlayerStates.get(this.state);
+        if (playerState != null) {
+            playerState.apply(event.getPlayer());
+        }
     }
 }

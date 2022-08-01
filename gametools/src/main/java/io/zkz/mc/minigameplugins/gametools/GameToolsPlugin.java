@@ -41,7 +41,7 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     public GameToolsPlugin() {
         // Services
         this.register(MySQLService.getInstance());
-        this.register(MinigameConstantsService.getInstance());
+        this.register(ChatConstantsService.getInstance());
         this.register(TeamService.getInstance());
         this.register(ScoreboardService.getInstance());
         this.register(ReadyUpService.getInstance());

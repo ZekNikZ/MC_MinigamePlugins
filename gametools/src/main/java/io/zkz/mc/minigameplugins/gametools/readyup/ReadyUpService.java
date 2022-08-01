@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
-import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import org.bukkit.Bukkit;
@@ -68,7 +68,7 @@ public class ReadyUpService extends GameToolsService {
     }
 
     private void displayInitialReadyMessage(Player player) {
-        player.sendMessage(MinigameConstantsService.getInstance().getPrefix() + "Are you ready? Type /ready to confirm.");
+        player.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + "Are you ready? Type /ready to confirm.");
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
     }
 

@@ -1,0 +1,9 @@
+version "0.1-SNAPSHOT"
+
+dependencies {
+    implementation project(':gametools')
+    implementation project(':minigamemanager')
+    compileOnly "org.spigotmc:spigot:${spigotVersion}"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"
+    compileOnly "com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}"
+}

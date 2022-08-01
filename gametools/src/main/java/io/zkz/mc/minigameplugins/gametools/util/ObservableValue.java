@@ -7,7 +7,7 @@ public class ObservableValue<T> extends AbstractObservable {
         this.value = defaultValue;
     }
 
-    private void set(T newValue) {
+    public void set(T newValue) {
         this.value = newValue;
         this.notifyObservers();
     }

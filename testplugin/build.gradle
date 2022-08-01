@@ -2,4 +2,5 @@ version "0.1-SNAPSHOT"
 
 dependencies {
     implementation project(':gametools')
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"
 }

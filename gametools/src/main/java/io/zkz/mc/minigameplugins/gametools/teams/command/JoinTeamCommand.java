@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
-import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -38,26 +38,26 @@ public class JoinTeamCommand extends AbstractCommandExecutor {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "Please specify at least one player.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Please specify at least one player.");
             return true;
         }
 
         // Get the team
         GameTeam team = TeamService.getInstance().getTeam(args[0]);
         if (team == null) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "The team with ID '" + args[0] + "' does not exist.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "The team with ID '" + args[0] + "' does not exist.");
             return true;
         }
 
         Arrays.stream(args).skip(1).forEach(playerName -> {
             Player player = Bukkit.getPlayer(playerName);
             if (player == null) {
-                sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.RED + "The player '" + playerName + "' is not online.");
+                sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "The player '" + playerName + "' is not online.");
                 return;
             }
 
             TeamService.getInstance().joinTeam(player, team);
-            sender.sendMessage(MinigameConstantsService.getInstance().getPrefix() + ChatColor.GRAY + "Added player '" + playerName + "' to team '" + team.getName() + "'.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Added player '" + playerName + "' to team '" + team.getName() + "'.");
         });
 
         return true;

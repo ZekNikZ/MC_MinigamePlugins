@@ -4,6 +4,8 @@ ext {
   junitVersion = '5.7.0'
   spigotVersion = '1.19-R0.1-SNAPSHOT'
   protocolLibVersion = '5.0.0-SNAPSHOT'
+  worldeditVersion = '7.2.11-SNAPSHOT'
+  worldguardVersion = '7.0.8-SNAPSHOT'
 }
 
 allprojects {
@@ -21,6 +23,7 @@ subprojects {
   repositories {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url "https://maven.enginehub.org/repo/" }
   }
 
   dependencies {

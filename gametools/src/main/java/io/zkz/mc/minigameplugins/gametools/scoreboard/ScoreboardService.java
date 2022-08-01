@@ -34,7 +34,7 @@ public class ScoreboardService extends GameToolsService {
 
     @Override
     public void onEnable() {
-        this.updateGlobalPlayerTeams();
+        this.setupGlobalTeams();
     }
 
     public void setGlobalScoreboard(GameScoreboard scoreboard, boolean cleanup) {
@@ -152,6 +152,7 @@ public class ScoreboardService extends GameToolsService {
     private void updateGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
             Team team = scoreboard.getTeam(gameTeam.getId());
+            if (team == null)
             team.getEntries().forEach(team::removeEntry);
             TeamService.getInstance().getTeamMembers(gameTeam).forEach(uuid -> team.addEntry(Bukkit.getOfflinePlayer(uuid).getName()));
         });
