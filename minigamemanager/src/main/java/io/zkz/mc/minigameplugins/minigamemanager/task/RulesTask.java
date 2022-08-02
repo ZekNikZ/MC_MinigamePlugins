@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.minigamemanager.task;
 
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
@@ -22,12 +23,13 @@ public class RulesTask extends GameTask {
     @Override
     public void run() {
         if (this.currentIndex >= this.slides.size()) {
+            BukkitUtils.forEachPlayer(TitleUtils::cancelPendingMessages);
             MinigameService.getInstance().setState(MinigameState.WAITING_TO_BEGIN);
             return;
         }
 
         SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
-        Bukkit.getOnlinePlayers().forEach(player -> TitleUtils.sendActionBarMessage(player, "" + this.slides.get(this.currentIndex), 20, MinigameService.getInstance().getPlugin()));
+        BukkitUtils.forEachPlayer(player -> TitleUtils.sendActionBarMessage(player, "" + this.slides.get(this.currentIndex), 20, MinigameService.getInstance().getPlugin()));
 
         this.currentIndex++;
     }

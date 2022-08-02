@@ -8,6 +8,7 @@ import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -152,9 +153,16 @@ public class ScoreboardService extends GameToolsService {
     private void updateGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
             Team team = scoreboard.getTeam(gameTeam.getId());
-            if (team == null)
-            team.getEntries().forEach(team::removeEntry);
-            TeamService.getInstance().getTeamMembers(gameTeam).forEach(uuid -> team.addEntry(Bukkit.getOfflinePlayer(uuid).getName()));
+            if (team != null) {
+                team.getEntries().forEach(team::removeEntry);
+                TeamService.getInstance().getTeamMembers(gameTeam).forEach(uuid -> {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+                    if (offlinePlayer.getName() == null) {
+                        return;
+                    }
+                    team.addEntry(offlinePlayer.getName());
+                });
+            }
         });
 
         Bukkit.getOnlinePlayers().forEach(this::updatePlayerScoreboard);

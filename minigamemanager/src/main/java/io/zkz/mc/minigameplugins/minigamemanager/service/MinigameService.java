@@ -47,6 +47,9 @@ public class MinigameService extends MinigameManagerService {
 
                 scoreboard.addSpace();
                 scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                if (getInstance().getRoundCount() > 1) {
+                    scoreboard.addEntry("Round " + (getInstance().getCurrentRoundIndex() + 1) + " of " + getInstance().getRoundCount());
+                }
                 scoreboard.addSpace();
 
                 ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
@@ -56,6 +59,9 @@ public class MinigameService extends MinigameManagerService {
 
                 scoreboard.addSpace();
                 scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                if (getInstance().getRoundCount() > 1) {
+                    scoreboard.addEntry("Round " + (getInstance().getCurrentRoundIndex() + 1) + " of " + getInstance().getRoundCount());
+                }
                 scoreboard.addEntry(new TimerEntry(scoreboard, "Time: ", getInstance().timer).setValueColor(ChatColor.YELLOW));
                 scoreboard.addSpace();
 
@@ -137,7 +143,7 @@ public class MinigameService extends MinigameManagerService {
         this.addCleanupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onUnpause());
 
         // POST_GAME
-        this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L, TimeUnit.MILLISECONDS, Bukkit::shutdown)));
+        this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L, TimeUnit.MILLISECONDS, this::endGame)));
         // TODO: send back to hub
     }
 
@@ -191,7 +197,7 @@ public class MinigameService extends MinigameManagerService {
         this.stateTasks.get(state).add(task);
     }
 
-    public void randomizeRounds() {
+    public void randomizeRoundOrder() {
         Collections.shuffle(this.rounds);
     }
 
@@ -319,6 +325,11 @@ public class MinigameService extends MinigameManagerService {
         this.setState(MinigameState.POST_ROUND);
     }
 
+    private void endGame() {
+        // TODO: score summary
+        Bukkit.shutdown();
+    }
+
     /**
      * Apply new scoreboards upon state change.
      */
@@ -350,5 +361,9 @@ public class MinigameService extends MinigameManagerService {
         if (playerState != null) {
             playerState.apply(event.getPlayer());
         }
+    }
+
+    public int getRoundCount() {
+        return this.rounds.size();
     }
 }

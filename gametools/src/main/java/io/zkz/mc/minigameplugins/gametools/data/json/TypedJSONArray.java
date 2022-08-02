@@ -29,7 +29,7 @@ public class TypedJSONArray<T> extends ArrayList<T> implements List<T>, JSONAwar
     @SuppressWarnings("unchecked")
     public TypedJSONArray(JSONArray jsonArray, Class<T> type) throws ClassCastException {
         if (jsonArray.stream().anyMatch(el -> el != null && el.getClass().isAssignableFrom(type))) {
-            throw new ClassCastException("At least one element is not the expected type.");
+            throw new ClassCastException("At least one element is not the expected type in " + jsonArray.toJSONString());
         }
         this.addAll(jsonArray);
     }

@@ -3,6 +3,8 @@ package io.zkz.mc.minigameplugins.gametools.readyup;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -68,11 +70,16 @@ class ReadyUpSession {
 
         // Chat message
         this.readyPlayers.keySet().stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(p -> {
+            // Don't send chat message to self
+            if (player.equals(p)) {
+                return;
+            }
+
             GameTeam playerTeam = TeamService.getInstance().getTeamOfPlayer(player);
             if (playerTeam != null) {
-                p.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RESET + ChatColor.GRAY + playerTeam.getFormatCode() + ChatColor.BOLD + playerTeam.getPrefix() + " " + playerTeam.getFormatCode() + player.getDisplayName() + ChatColor.RESET + " is ready!");
+                Chat.sendAlert(ChatType.PASSIVE_INFO, "" + playerTeam.getFormatCode() + ChatColor.BOLD + playerTeam.getPrefix() + " " + playerTeam.getFormatCode() + player.getDisplayName() + ChatColor.RESET + " is ready!");
             } else {
-                p.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RESET + player.getDisplayName() + " is ready!");
+                Chat.sendAlert(ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
             }
         });
 

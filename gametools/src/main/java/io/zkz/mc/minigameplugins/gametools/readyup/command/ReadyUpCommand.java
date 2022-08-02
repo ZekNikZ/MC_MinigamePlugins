@@ -3,6 +3,8 @@ package io.zkz.mc.minigameplugins.gametools.readyup.command;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -37,9 +39,9 @@ public class ReadyUpCommand extends ArgumentCommandExecutor {
         }
 
         if (!ReadyUpService.getInstance().recordReady(player)) {
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Nothing is waiting for you to be ready.");
+            Chat.sendAlert(ChatType.WARNING, "Nothing is waiting for you to be ready.");
         } else {
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "You are now ready!");
+            Chat.sendAlert(ChatType.ACTIVE_INFO, "You are now ready!");
         }
 
         return true;

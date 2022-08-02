@@ -1,33 +1,37 @@
 package io.zkz.mc.minigameplugins.tntrun.service;
 
-import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
+import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
-import io.zkz.mc.minigameplugins.gametools.util.NMSUtils;
-import io.zkz.mc.minigameplugins.gametools.util.ObservableValue;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
-import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
+import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
+import io.zkz.mc.minigameplugins.tntrun.Points;
+import io.zkz.mc.minigameplugins.tntrun.TNTRunPlugin;
 import io.zkz.mc.minigameplugins.tntrun.TNTRunRound;
-import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.phys.AxisAlignedBB;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -35,10 +39,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.util.Vector;
+import org.json.simple.JSONObject;
 
+import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class TNTRunService extends TNTRunPluginService {
+public class TNTRunService extends PluginService<TNTRunPlugin> {
     private static final TNTRunService INSTANCE = new TNTRunService();
 
     public static TNTRunService getInstance() {
@@ -48,6 +55,8 @@ public class TNTRunService extends TNTRunPluginService {
     private final Set<UUID> alivePlayers = new HashSet<>();
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
 
+    private final List<TNTRunRound> rounds = new ArrayList<>();
+
     @Override
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
@@ -55,18 +64,12 @@ public class TNTRunService extends TNTRunPluginService {
         ChatConstantsService.getInstance().setMinigameName("Spleef");
 
         // Rules slides
-        char slide1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 128, 128);
-        char slide2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 128, 128);
+        char slide1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 200, 200);
+        char slide2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 200, 200);
         minigame.registerRulesSlides(slide1, slide2);
         minigame.setPreRoundDelay(400);
         minigame.setPostRoundDelay(400);
         minigame.setPostGameDelay(600);
-
-        // Round
-        minigame.registerRounds(
-            new TNTRunRound(BlockVector3.at(-50, 90, -50), BlockVector3.at(50, 105, 50), BlockVector3.at(0, 101, 0), 95),
-            new TNTRunRound(BlockVector3.at(-50, 90, -50), BlockVector3.at(50, 105, 50), BlockVector3.at(0, 101, 0), 95)
-        );
 
         // Player states
         BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE);
@@ -106,17 +109,61 @@ public class TNTRunService extends TNTRunPluginService {
             SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Game over!", ChatColor.GOLD + "Check the chat for score information.", 10, 70, 20);
         });
-        
+
         // In game scoreboard
         minigame.registerScoreboard(MinigameState.IN_GAME, () -> {
             GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
 
             scoreboard.addSpace();
-            scoreboard.addEntry(new ObservableValueEntry<>(scoreboard, "Remaining players: ", this.alivePlayerCount));
+            scoreboard.addEntry("Round " + (MinigameService.getInstance().getCurrentRoundIndex() + 1) + " of " + MinigameService.getInstance().getRoundCount());
+            scoreboard.addEntry(new ValueEntry<>(scoreboard, "Map: ", this.getCurrentRound().getMapName()).setValueColor(ChatColor.YELLOW));
+            scoreboard.addSpace();
+            scoreboard.addEntry(new ObservableValueEntry<>(scoreboard, "Remaining players: ", this.alivePlayerCount).setValueColor(ChatColor.YELLOW));
             scoreboard.addSpace();
 
             ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
         });
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            new JSONDataManager<>(this, Path.of("arenas.json"), this::saveData, this::loadData)
+        );
+    }
+
+    private JSONObject saveData() {
+        return new JSONObject(Map.of(
+            "arenas", new TypedJSONArray<>(this.rounds.stream().map(round -> new JSONObject(Map.of(
+                "pos1", JSONUtils.toJSON(round.getArenaMin()),
+                "pos2", JSONUtils.toJSON(round.getArenaMax()),
+                "spawn", JSONUtils.toJSON(round.getSpawnLocation()),
+                "deathLevel", round.getDeathYLevel(),
+                "mapName", round.getMapName()
+            ))).toList())
+        ));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadData(TypedJSONObject<Object> object) {
+        this.rounds.clear();
+        this.rounds.addAll(object.getArray("arenas").stream().map(obj -> {
+            TypedJSONObject<Object> round = new TypedJSONObject<Object>((JSONObject) obj);
+            return new TNTRunRound(
+                JSONUtils.readBlockVector(round.getList("pos1", Long.class)),
+                JSONUtils.readBlockVector(round.getList("pos2", Long.class)),
+                JSONUtils.readBlockVector(round.getList("spawn", Long.class)),
+                round.getInteger("deathLevel"),
+                round.getString("mapName")
+            );
+        }).toList());
+    }
+
+    @Override
+    public void onEnable() {
+        // Register rounds
+        MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
+        MinigameService.getInstance().randomizeRoundOrder();
     }
 
     public TNTRunRound getCurrentRound() {
@@ -155,6 +202,7 @@ public class TNTRunService extends TNTRunPluginService {
         WorldSyncUtils.setGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE, false);
         WorldSyncUtils.setWeatherClear();
         WorldSyncUtils.setGameRuleValue(GameRule.DO_WEATHER_CYCLE, false);
+        WorldSyncUtils.setGameRuleValue(GameRule.DO_MOB_SPAWNING, false);
     }
 
     private void setDead(Player player) {
@@ -163,7 +211,42 @@ public class TNTRunService extends TNTRunPluginService {
         SoundUtils.broadcastSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
         this.alivePlayers.remove(player.getUniqueId());
 
-        // TODO: assign points
+        // Assign points to alive players
+        this.alivePlayers.forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.PLAYER_ELIMINATION));
+
+        // Chat message
+        Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
+        Collection<? extends Player> pointsPlayers = this.alivePlayers.stream().map(Bukkit::getPlayer).toList();
+        noPointsPlayers.removeAll(pointsPlayers);
+        Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " fell and was eliminated.");
+        SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
+        Chat.sendAlert(pointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " fell and was eliminated.", Points.PLAYER_ELIMINATION);
+
+        // Team elimination message
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+        if (this.alivePlayers.stream().noneMatch(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId) == team)) {
+            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getName() + " was eliminated.");
+        }
+
+        // Last player messages
+        if (this.alivePlayers.size() <= 5 && this.alivePlayers.size() > 0) {
+            Chat.sendAlert(ChatType.ALERT, this.alivePlayers.size() + " players remaining.");
+        }
+
+        // Assign points to top 3
+        if (this.alivePlayers.size() == 2) {
+            SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
+            ScoreService.getInstance().earnPoints(player, "third place", Points.THIRD_PLACE);
+            Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in third place!", Points.THIRD_PLACE);
+        } else if (this.alivePlayers.size() == 1) {
+            SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
+            ScoreService.getInstance().earnPoints(player, "second place", Points.SECOND_PLACE);
+            Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in second place!", Points.SECOND_PLACE);
+        } else if (this.alivePlayers.size() == 0) {
+            SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
+            ScoreService.getInstance().earnPoints(player, "first place", Points.FIRST_PLACE);
+            Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in first place!", Points.FIRST_PLACE);
+        }
 
         this.updateGameState();
     }
@@ -174,7 +257,20 @@ public class TNTRunService extends TNTRunPluginService {
 
         // Check if round is over
         if (TeamService.getInstance().allSameTeam(this.alivePlayers)) {
-            // TODO: assign round win points
+            Collection<? extends Player> players = this.alivePlayers.stream().map(Bukkit::getPlayer).toList();
+
+            // Award first place points
+            ScoreService.getInstance().earnPointsUUID(this.alivePlayers, "first place", Points.FIRST_PLACE);
+            Chat.sendAlert(players, ChatType.SUCCESS, "You were awarded bonus points for coming in first place!", Points.FIRST_PLACE);
+
+            // Win message
+            SoundUtils.playSound(players, StandardSounds.GOAL_MET_MAJOR, 1, 1);
+            if (players.size() > 1) {
+                Chat.sendAlert(ChatType.GAME_SUCCESS, "The winners of this round were " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
+            } else {
+                Chat.sendAlert(ChatType.GAME_SUCCESS, "The winner of this round was " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
+            }
+
             MinigameService.getInstance().endRound();
         }
     }

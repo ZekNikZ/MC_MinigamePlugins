@@ -1,8 +1,19 @@
 package io.zkz.mc.minigameplugins.minigamemanager.round;
 
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class Round {
+    private final String mapName;
+
+    protected Round() {
+        this.mapName = null;
+    }
+
+    protected Round(String mapName) {
+        this.mapName = mapName;
+    }
+
     /**
      * Run when round is selected. Designed for setting up spawnpoints, etc.
      */
@@ -64,5 +75,9 @@ public abstract class Round {
      */
     public void triggerRoundEnd() {
         MinigameService.getInstance().endRound();
+    }
+
+    public @Nullable String getMapName() {
+        return this.mapName;
     }
 }

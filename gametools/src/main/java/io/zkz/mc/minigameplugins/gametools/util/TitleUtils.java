@@ -71,7 +71,7 @@ public class TitleUtils {
         PENDING_MESSAGES.put(bukkitPlayer, messageTask);
     }
 
-    private static void cancelPendingMessages(@NotNull Player bukkitPlayer) {
+    public static void cancelPendingMessages(@NotNull Player bukkitPlayer) {
         if (PENDING_MESSAGES.containsKey(bukkitPlayer)) {
             PENDING_MESSAGES.get(bukkitPlayer).cancel();
         }

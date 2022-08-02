@@ -16,7 +16,8 @@ public class TNTRunRound extends Round {
     private final BlockVector3 spawnLocation;
     private final int deathYLevel;
 
-    public TNTRunRound(BlockVector3 arenaMin, BlockVector3 arenaMax, BlockVector3 spawnLocation, int deathYLevel) {
+    public TNTRunRound(BlockVector3 arenaMin, BlockVector3 arenaMax, BlockVector3 spawnLocation, int deathYLevel, String mapName) {
+        super(mapName);
         this.arenaMin = arenaMin;
         this.arenaMax = arenaMax;
         this.spawnLocation = spawnLocation;
@@ -50,13 +51,13 @@ public class TNTRunRound extends Round {
     }
 
     public void resetArena() {
-        WorldEditService we = WorldEditService.getInstance();
-        World world = we.wrapWorld(Bukkit.getWorlds().get(0));
-
-        Region region = we.createCuboidRegion(BlockVector3.at(-50, 99, -50), BlockVector3.at(50, 99, 50));
-        we.fillRegion(world, region, we.createPattern(Material.TNT));
-
-        region = we.createCuboidRegion(BlockVector3.at(-50, 100, -50), BlockVector3.at(50, 100, 50));
-        we.fillRegion(world, region, we.createPattern(Material.GRAVEL));
+//        WorldEditService we = WorldEditService.getInstance();
+//        World world = we.wrapWorld(Bukkit.getWorlds().get(0));
+//
+//        Region region = we.createCuboidRegion(BlockVector3.at(-50, 99, -50), BlockVector3.at(50, 99, 50));
+//        we.fillRegion(world, region, we.createPattern(Material.TNT));
+//
+//        region = we.createCuboidRegion(BlockVector3.at(-50, 100, -50), BlockVector3.at(50, 100, 50));
+//        we.fillRegion(world, region, we.createPattern(Material.GRAVEL));
     }
 }

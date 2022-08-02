@@ -6,9 +6,8 @@ import static io.zkz.mc.minigameplugins.gametools.util.Constants.*;
 import static org.bukkit.ChatColor.*;
 
 class Constants {
-    private static final String INFO_CHAR = YELLOW + "⯈" + RESET;
-    private static final String POINT_CHAR = YELLOW + "★" + RESET;
-
+    private static final String INFO_CHAR = YELLOW + "\u2666" + RESET;
+    private static final String POINT_CHAR = YELLOW + "\u2605" + RESET;
     public static final String INFO_PREFIX = "[" + INFO_CHAR + "] ";
     public static final String POINT_PREFIX = "[+%points%" + POINT_CHAR + "] ";
     public static final String GAME_PREFIX = "[" + GOLD + BOLD + "%name%" + RESET + "] ";
@@ -36,12 +35,12 @@ public enum ChatType {
         POINT_PREFIX + GREEN + BOLD + "%message%"
     ),
     ELIMINATION(
-        "[" + RED + "\uD83D\uDC80" + RESET + "] " + GRAY + "%message%",
-        POINT_PREFIX + "[" + RED + "\uD83D\uDC80" + RESET + "] " + "%message%"
+        GRAY + "[" + RED + "\u2620" + GRAY + "] " + GRAY + "%message%",
+        POINT_PREFIX + GRAY + "[" + RED + "\u2620" + GRAY + "] " + RESET + "%message%"
     ),
     TEAM_ELIMINATION(
-        "[" + RED + "\uD83D\uDC80\uD83D\uDC80\uD83D\uDC80" + RESET + "] " + "%message%",
-        POINT_PREFIX + "[" + RED + "\uD83D\uDC80\uD83D\uDC80\uD83D\uDC80" + RESET + "] " + "%message%"
+        "[" + RED + "\u2620\u2620\u2620" + RESET + "] " + "%message%",
+        POINT_PREFIX + "[" + RED + "\u2620\u2620\u2620" + RESET + "] " + "%message%"
     ),
     GAME_INFO(
         GAME_PREFIX + "%message%",

@@ -6,6 +6,7 @@ import org.json.simple.JSONObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -118,6 +119,18 @@ public class TypedJSONObject<T> extends HashMap<String, T> implements Map<String
 
     public JSONArray getArray(String key) {
         return (JSONArray) this.get(key);
+    }
+
+    public <R> TypedJSONArray<R> getArray(String key, Class<R> clazz) {
+        return new TypedJSONArray<>((JSONArray) this.get(key), clazz);
+    }
+
+    public List<Object> getList(String key) {
+        return (List<Object>) this.get(key);
+    }
+
+    public <R> List<R> getList(String key, Class<R> clazz) {
+        return (List<R>) this.get(key);
     }
 
     public JSONObject getObject(String key) {
