@@ -1,13 +1,15 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
+import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.UUID;
 
-public class ScoreService extends MinigameManagerService {
+public class ScoreService extends PluginService<MinigameManagerPlugin> {
     private static final ScoreService INSTANCE = new ScoreService();
 
     public static ScoreService getInstance() {

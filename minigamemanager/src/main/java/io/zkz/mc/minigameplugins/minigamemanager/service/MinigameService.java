@@ -6,6 +6,7 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -13,6 +14,7 @@ import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
@@ -33,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class MinigameService extends MinigameManagerService {
+public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private static final MinigameService INSTANCE = new MinigameService();
 
     public static MinigameService getInstance() {
