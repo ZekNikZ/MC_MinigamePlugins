@@ -6,12 +6,14 @@ import io.zkz.mc.minigameplugins.gametools.http.HTTPService;
 import io.zkz.mc.minigameplugins.gametools.http.ResourcePackHandler;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Pair;
 import io.zkz.mc.minigameplugins.gametools.util.ZipFileUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -37,7 +39,8 @@ public class ResourcePackService extends GameToolsService {
     private Path resourcesPath;
     private Path resourcePackPath;
     private byte[] hash;
-    private boolean enabled = false;
+    // TODO: temporarily always enabled for the scoreboard stuff
+    private boolean enabled = true;
     private int nextCharId = 0;
     private final List<Pair<Integer, Integer>> charData = new ArrayList<>();
 
@@ -96,16 +99,27 @@ public class ResourcePackService extends GameToolsService {
         if (this.nextCharId == 0) {
             return;
         }
+        TypedJSONArray<JSONObject> providers = new TypedJSONArray<>(IntStream.range(0, this.charData.size()).mapToObj(i -> new JSONObject(Map.of(
+            "type", "bitmap",
+            "file", "minecraft:custom/custom_character_" + i + ".png",
+            "ascent", this.charData.get(i).key(),
+            "height", this.charData.get(i).value(),
+            "chars", new TypedJSONArray<>(List.of(StringEscapeUtils.escapeJava("" + (char) ('\uE000' + i))))
+        ))).toList());
+        JSONObject baseFontFile = JSONUtils.readJSONObject(this.getPlugin().getResourceAsStream("resources/assets/minecraft/font/default.json"));
+        providers.addAll(((List<JSONObject>) baseFontFile.get("providers")).stream().map(obj -> new JSONObject(Map.of(
+            "type", obj.get("type"),
+            "file", obj.get("file"),
+            "ascent", obj.get("ascent"),
+            "height", obj.get("height"),
+            "chars", ((List<String>) obj.get("chars")).stream().map(StringEscapeUtils::escapeJava).toList()
+        ))).toList());
         String fontData = new JSONObject(Map.of(
-            "providers", new TypedJSONArray<>(IntStream.range(0, this.charData.size()).mapToObj(i -> new JSONObject(Map.of(
-                "type", "bitmap",
-                "file", "minecraft:custom/custom_character_" + i + ".png",
-                "ascent", this.charData.get(i).key(),
-                "height", this.charData.get(i).value(),
-                "chars",  new TypedJSONArray<>(List.of(StringEscapeUtils.escapeJava("" + (char) ('\uE000' + i))))
-            ))).toList())
+            "providers", providers
         )).toJSONString().replace("\\\\", "\\").replace("\\/", "/");
         this.addMiscResource("assets/minecraft/font/default.json", new ByteArrayInputStream(fontData.getBytes(StandardCharsets.US_ASCII)));
+        this.addMiscResource("assets/space/textures/font/space_nosplit.png", this.getPlugin().getResourceAsStream("resources/assets/space/textures/font/space_nosplit.png"));
+        this.addMiscResource("assets/space/textures/font/space_split.png", this.getPlugin().getResourceAsStream("resources/assets/space/textures/font/space_split.png"));
     }
 
     private void compressResourcePack() {

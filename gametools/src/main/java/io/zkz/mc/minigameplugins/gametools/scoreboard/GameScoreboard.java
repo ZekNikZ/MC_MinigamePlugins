@@ -9,9 +9,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Wrapper around a Bukkit scoreboard to allow additional functionality.
@@ -46,8 +44,8 @@ public class GameScoreboard {
     private final Scoreboard scoreboard;
     private final Objective objective;
     private final List<ScoreboardEntry> entries = new ArrayList<>();
+    private final Map<String, ScoreboardEntry> mappedEntries = new HashMap<>();
     private final List<String> strings = new ArrayList<>(15);
-    private int teamCounter = 0;
     private String title;
 
     protected GameScoreboard(String title) {
@@ -81,6 +79,17 @@ public class GameScoreboard {
         this.entries.add(entry);
         entry.setScoreboard(this);
         this.redraw();
+        return entry;
+    }
+
+    public <T extends ScoreboardEntry> T addEntry(String id, T entry) {
+        if (this.entries.size() >= 15) {
+            throw new IndexOutOfBoundsException("A scoreboard can only have 15 entries.");
+        }
+        this.entries.add(entry);
+        entry.setScoreboard(this);
+        this.redraw();
+        this.mappedEntries.put(id, entry);
         return entry;
     }
 
@@ -131,6 +140,10 @@ public class GameScoreboard {
         }
 
         team.setSuffix(str);
+    }
+
+    public ScoreboardEntry getEntry(String id) {
+        return this.mappedEntries.get(id);
     }
 
     private void setupTeam(int pos) {

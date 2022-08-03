@@ -43,6 +43,7 @@ import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class TNTRunService extends PluginService<TNTRunPlugin> {
@@ -111,18 +112,14 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         });
 
         // In game scoreboard
-        minigame.registerScoreboard(MinigameState.IN_GAME, () -> {
-            GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
-
+        BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
             scoreboard.addSpace();
-            scoreboard.addEntry("Round " + (MinigameService.getInstance().getCurrentRoundIndex() + 1) + " of " + MinigameService.getInstance().getRoundCount());
-            scoreboard.addEntry(new ValueEntry<>("Map: " + ChatColor.YELLOW + "%s", this.getCurrentRound().getMapName()));
-            scoreboard.addSpace();
-            scoreboard.addEntry(new ObservableValueEntry<>("Remaining players: " + ChatColor.YELLOW + "%s", this.alivePlayerCount));
+            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
             scoreboard.addSpace();
 
-            ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
-        });
+        };
+        minigame.registerScoreboard(MinigameState.IN_GAME, scoreboardModifier);
+        minigame.registerScoreboard(MinigameState.PAUSED, scoreboardModifier);
     }
 
     @Override
