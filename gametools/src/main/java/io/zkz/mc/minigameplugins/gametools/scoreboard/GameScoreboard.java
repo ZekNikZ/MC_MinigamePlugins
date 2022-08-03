@@ -17,6 +17,29 @@ import java.util.Objects;
  * Wrapper around a Bukkit scoreboard to allow additional functionality.
  */
 public class GameScoreboard {
+    private static final String[] INVISIBLE_STRINGS = new String[]{
+        "\uF811\uF831\uF811\uF831\uF811\uF831",
+        "\uF811\uF831\uF811\uF831\uF831\uF811",
+        "\uF811\uF831\uF811\uF811\uF831\uF831",
+        "\uF811\uF831\uF831\uF811\uF811\uF831",
+        "\uF811\uF831\uF831\uF811\uF831\uF811",
+        "\uF811\uF831\uF831\uF831\uF811\uF811",
+        "\uF811\uF811\uF831\uF831\uF811\uF831",
+        "\uF811\uF811\uF831\uF831\uF831\uF811",
+        "\uF811\uF811\uF831\uF811\uF831\uF831",
+        "\uF811\uF811\uF811\uF831\uF831\uF831",
+        "\uF831\uF811\uF811\uF831\uF811\uF831",
+        "\uF831\uF811\uF811\uF831\uF831\uF811",
+        "\uF831\uF811\uF811\uF811\uF831\uF831",
+        "\uF831\uF811\uF831\uF811\uF811\uF831",
+        "\uF831\uF811\uF831\uF811\uF831\uF811",
+        "\uF831\uF811\uF831\uF831\uF811\uF811",
+        "\uF831\uF831\uF811\uF811\uF811\uF831",
+        "\uF831\uF831\uF811\uF811\uF831\uF811",
+        "\uF831\uF831\uF811\uF831\uF811\uF811",
+        "\uF831\uF831\uF831\uF811\uF811\uF811",
+    };
+
     private static int nextId = 0;
     private final int id;
 
@@ -24,7 +47,6 @@ public class GameScoreboard {
     private final Objective objective;
     private final List<ScoreboardEntry> entries = new ArrayList<>();
     private final List<String> strings = new ArrayList<>(15);
-    private final List<Team> teams = new ArrayList<>(15);
     private int teamCounter = 0;
     private String title;
 
@@ -38,7 +60,6 @@ public class GameScoreboard {
 
         for (int i = 0; i < 15; i++) {
             strings.add(null);
-            teams.add(null);
         }
 
         this.redraw();
@@ -54,16 +75,17 @@ public class GameScoreboard {
     }
 
     public <T extends ScoreboardEntry> T addEntry(T entry) {
+        if (this.entries.size() >= 15) {
+            throw new IndexOutOfBoundsException("A scoreboard can only have 15 entries.");
+        }
         this.entries.add(entry);
+        entry.setScoreboard(this);
         this.redraw();
         return entry;
     }
 
     public StringEntry addEntry(String entry) {
-        StringEntry se = new StringEntry(this, entry);
-        this.entries.add(se);
-        this.redraw();
-        return se;
+        return this.addEntry(new StringEntry(entry));
     }
 
     public void redraw() {
@@ -79,56 +101,49 @@ public class GameScoreboard {
     }
 
     public void addSpace() {
-        this.addEntry(new SpaceEntry(this));
+        this.addEntry(new SpaceEntry());
     }
 
     public void setString(int pos, String str) {
+        if (pos < 0 || pos >= 15) {
+            throw new IndexOutOfBoundsException("Scoreboard position must be between 0 and 15");
+        }
+
         String existing = this.strings.get(pos);
-        if (pos >= 15 || Objects.equals(existing, str)) {
+        if (Objects.equals(existing, str)) {
             return;
         }
 
-        if (existing != null) {
-            this.scoreboard.resetScores(existing);
+        if (str == null) {
+            this.strings.set(pos, null);
+            this.scoreboard.resetScores(INVISIBLE_STRINGS[pos]);
+            return;
         }
 
         this.strings.set(pos, str);
-        this.objective.getScore(str).setScore(15 - pos);
+        this.objective.getScore(INVISIBLE_STRINGS[pos]).setScore(15 - pos);
 
-        if (this.teams.get(pos) != null) {
-            this.teams.get(pos).addEntry(str);
+        Team team = this.scoreboard.getTeam("" + pos);
+        if (team == null) {
+            this.setupTeam(pos);
+            team = this.scoreboard.getTeam("" + pos);
+            team.addEntry(INVISIBLE_STRINGS[pos]);
         }
+
+        team.setSuffix(str);
     }
 
-    public Team setTeam(int pos, Team team) {
-        if (pos >= 15) {
-            return null;
+    private void setupTeam(int pos) {
+        Team existingTeam = this.scoreboard.getTeam("" + pos);
+        if (existingTeam != null) {
+            existingTeam.unregister();
         }
 
-        this.teams.set(pos, team);
-
-        if (this.strings.get(pos) != null) {
-            if (this.scoreboard.getTeam(team.getName()) == null) {
-                Team newTeam = this.scoreboard.registerNewTeam(team.getName());
-                newTeam.setSuffix(team.getSuffix());
-                newTeam.setPrefix(team.getPrefix());
-                newTeam.setDisplayName(team.getDisplayName());
-                return newTeam;
-            } else {
-                team.addEntry(this.strings.get(pos));
-                return null;
-            }
-        }
-
-        return null;
+        this.scoreboard.registerNewTeam("" + pos);
     }
 
     public int getId() {
         return this.id;
-    }
-
-    public Team registerNewTeam() {
-        return this.scoreboard.registerNewTeam("" + (teamCounter++));
     }
 
     public void unregisterTeam(Team team) {

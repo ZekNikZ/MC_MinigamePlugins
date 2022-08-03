@@ -46,7 +46,7 @@ public class MinigameService extends MinigameManagerService {
                 GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
 
                 scoreboard.addSpace();
-                scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                scoreboard.addEntry(new ValueEntry<>("State: " + ChatColor.YELLOW + "%s", currentState.toString()));
                 if (getInstance().getRoundCount() > 1) {
                     scoreboard.addEntry("Round " + (getInstance().getCurrentRoundIndex() + 1) + " of " + getInstance().getRoundCount());
                 }
@@ -58,11 +58,11 @@ public class MinigameService extends MinigameManagerService {
                 GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(ChatConstantsService.getInstance().getScoreboardTitle());
 
                 scoreboard.addSpace();
-                scoreboard.addEntry(new ValueEntry<>(scoreboard, "State: ", currentState.toString()).setValueColor(ChatColor.YELLOW));
+                scoreboard.addEntry(new ValueEntry<>("State: " + ChatColor.YELLOW + "%s", currentState.toString()));
                 if (getInstance().getRoundCount() > 1) {
                     scoreboard.addEntry("Round " + (getInstance().getCurrentRoundIndex() + 1) + " of " + getInstance().getRoundCount());
                 }
-                scoreboard.addEntry(new TimerEntry(scoreboard, "Time: ", getInstance().timer).setValueColor(ChatColor.YELLOW));
+                scoreboard.addEntry(new TimerEntry("Time: " + ChatColor.YELLOW + "%s", getInstance().timer));
                 scoreboard.addSpace();
 
                 ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);

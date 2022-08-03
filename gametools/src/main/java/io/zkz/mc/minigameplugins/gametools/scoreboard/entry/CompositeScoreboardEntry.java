@@ -8,10 +8,6 @@ import java.util.List;
 public class CompositeScoreboardEntry extends ScoreboardEntry {
     public List<ScoreboardEntry> children = new ArrayList<>();
 
-    public CompositeScoreboardEntry(GameScoreboard scoreboard) {
-        super(scoreboard);
-    }
-
     public List<ScoreboardEntry> getChildren() {
         return this.children;
     }
@@ -44,5 +40,11 @@ public class CompositeScoreboardEntry extends ScoreboardEntry {
             entry.render(pos);
             pos += entry.getRowCount();
         }
+    }
+
+    @Override
+    public void setScoreboard(GameScoreboard scoreboard) {
+        super.setScoreboard(scoreboard);
+        this.children.forEach(entry -> entry.setScoreboard(scoreboard));
     }
 }

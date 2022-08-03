@@ -116,9 +116,9 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
 
             scoreboard.addSpace();
             scoreboard.addEntry("Round " + (MinigameService.getInstance().getCurrentRoundIndex() + 1) + " of " + MinigameService.getInstance().getRoundCount());
-            scoreboard.addEntry(new ValueEntry<>(scoreboard, "Map: ", this.getCurrentRound().getMapName()).setValueColor(ChatColor.YELLOW));
+            scoreboard.addEntry(new ValueEntry<>("Map: " + ChatColor.YELLOW + "%s", this.getCurrentRound().getMapName()));
             scoreboard.addSpace();
-            scoreboard.addEntry(new ObservableValueEntry<>(scoreboard, "Remaining players: ", this.alivePlayerCount).setValueColor(ChatColor.YELLOW));
+            scoreboard.addEntry(new ObservableValueEntry<>("Remaining players: " + ChatColor.YELLOW + "%s", this.alivePlayerCount));
             scoreboard.addSpace();
 
             ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
