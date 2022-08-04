@@ -21,7 +21,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> {
     private final List<ScoreEntry> entries = new ArrayList<>();
 
     public void earnPoints(UUID playerId, String reason, double points) {
-        ScoreEntry entry = new ScoreEntry(playerId, ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason, points);
+        ScoreEntry entry = new ScoreEntry(playerId, ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason, points, MinigameService.getInstance().getPointMultiplier());
         this.entries.add(entry);
     }
 
@@ -92,5 +92,10 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> {
         return this.entries.stream()
             .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
             .collect(Collectors.groupingBy(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()), Collectors.summingDouble(ScoreEntry::points)));
+    }
+
+    public Map<GameTeam, Double> getEventTeamScoreSummary() {
+        // TODO: implement
+        return this.getGameTeamScoreSummary();
     }
 }

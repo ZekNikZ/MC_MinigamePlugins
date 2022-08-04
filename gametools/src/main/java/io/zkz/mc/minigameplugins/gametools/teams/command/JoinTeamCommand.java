@@ -57,7 +57,7 @@ public class JoinTeamCommand extends AbstractCommandExecutor {
             }
 
             TeamService.getInstance().joinTeam(player, team);
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Added player '" + playerName + "' to team '" + team.getName() + "'.");
+            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Added player '" + playerName + "' to team '" + team.getDisplayName() + "'.");
         });
 
         return true;

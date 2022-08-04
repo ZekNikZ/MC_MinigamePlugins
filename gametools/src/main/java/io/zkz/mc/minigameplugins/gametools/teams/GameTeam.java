@@ -47,6 +47,10 @@ public class GameTeam {
         return this.name;
     }
 
+    public String getDisplayName() {
+        return this.formatCode + this.prefix + " " + this.name + ChatColor.RESET;
+    }
+
     void setName(String name) {
         this.name = name;
         this.updateMinecraftTeam();

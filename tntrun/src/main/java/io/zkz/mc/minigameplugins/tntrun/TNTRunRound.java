@@ -1,14 +1,18 @@
 package io.zkz.mc.minigameplugins.tntrun;
 
 import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldedit.regions.Region;
-import com.sk89q.worldedit.world.World;
-import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
+import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.tntrun.service.TNTRunService;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 
 public class TNTRunRound extends Round {
     private final BlockVector3 arenaMin;
@@ -31,7 +35,24 @@ public class TNTRunRound extends Round {
 
     @Override
     public void onPreRound() {
-        Bukkit.getOnlinePlayers().forEach(player -> player.teleport(new Location(Bukkit.getWorlds().get(0), this.getSpawnLocation().getX(), this.getSpawnLocation().getY(), this.getSpawnLocation().getZ())));
+        BukkitUtils.forEachPlayer(player -> {
+            player.teleport(new Location(Bukkit.getWorlds().get(0), this.getSpawnLocation().getX(), this.getSpawnLocation().getY(), this.getSpawnLocation().getZ()));
+            player.getInventory().clear();
+        });
+    }
+
+    @Override
+    public void onEnd() {
+        SoundUtils.broadcastSound(StandardSounds.GAME_OVER, 10, 1);
+    }
+
+    @Override
+    public void onPostRound() {
+        BukkitUtils.forEachPlayer(player -> {
+            double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
+            Chat.sendMessage(player, " ");
+            Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
+        });
     }
 
     public BlockVector3 getArenaMax() {
@@ -51,13 +72,6 @@ public class TNTRunRound extends Round {
     }
 
     public void resetArena() {
-//        WorldEditService we = WorldEditService.getInstance();
-//        World world = we.wrapWorld(Bukkit.getWorlds().get(0));
-//
-//        Region region = we.createCuboidRegion(BlockVector3.at(-50, 99, -50), BlockVector3.at(50, 99, 50));
-//        we.fillRegion(world, region, we.createPattern(Material.TNT));
-//
-//        region = we.createCuboidRegion(BlockVector3.at(-50, 100, -50), BlockVector3.at(50, 100, 50));
-//        we.fillRegion(world, region, we.createPattern(Material.GRAVEL));
+
     }
 }

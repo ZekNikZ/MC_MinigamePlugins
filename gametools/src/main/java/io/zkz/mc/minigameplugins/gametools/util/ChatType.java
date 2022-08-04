@@ -2,16 +2,8 @@ package io.zkz.mc.minigameplugins.gametools.util;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 
-import static io.zkz.mc.minigameplugins.gametools.util.Constants.*;
+import static io.zkz.mc.minigameplugins.gametools.util.Chat.Constants.*;
 import static org.bukkit.ChatColor.*;
-
-class Constants {
-    private static final String INFO_CHAR = YELLOW + "\u2666" + RESET;
-    private static final String POINT_CHAR = YELLOW + "\u2605" + RESET;
-    public static final String INFO_PREFIX = "[" + INFO_CHAR + "] ";
-    public static final String POINT_PREFIX = "[+%points%" + POINT_CHAR + "] ";
-    public static final String GAME_PREFIX = "[" + GOLD + BOLD + "%name%" + RESET + "] ";
-}
 
 public enum ChatType {
     ALERT(

@@ -25,6 +25,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
+import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -102,7 +103,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             }
             case POST_ROUND -> {
                 addRoundInformation(scoreboard);
-                scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "%s", getInstance().timer));
+                if (getInstance().timer != null) {
+                    scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "%s", getInstance().timer));
+                }
                 addTeamInformation(scoreboard, team);
             }
             case POST_GAME -> {
@@ -111,6 +114,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 addTeamInformation(scoreboard, team);
             }
         }
+
+        getInstance().scoreboardModifiers.get(currentState).forEach(consumer -> consumer.accept(currentState, scoreboard));
 
         getInstance().scoreboard = scoreboard;
         ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
@@ -135,7 +140,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         scoreboard.addEntry(" 4. D");
     }
 
-    private float getPointMultiplier() {
+    public float getPointMultiplier() {
         // TODO: use this
         return 1.0f;
     }
@@ -232,7 +237,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.addCleanupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onUnpause());
 
         // POST_GAME
-        this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L, TimeUnit.MILLISECONDS, this::endGame)));
+        this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
+        this.addTask(MinigameState.POST_GAME, new ScoreSummaryTask());
         // TODO: send back to hub
     }
 
@@ -261,7 +267,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             this.stateTasks.get(this.state).forEach(t -> {
                 if (!t.isScheduled()) {
                     t.start(this.getPlugin());
-                    this.getLogger().info("Started task with ID " + t.getTaskId());
+                    this.getLogger().info("Started task with ID " + t.getTaskId() + " of type " + t.getClass().getName());
                 }
             });
             IPlayerState playerState = this.statePlayerStates.get(this.state);
@@ -387,6 +393,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
             this.setState(MinigameState.RULES);
         }
+    }
+
+    public Collection<GameTeam> getGameTeams() {
+        return TeamService.getInstance().getAllTeams().stream().filter(team -> team != DefaultTeams.SPECTATOR).toList();
     }
 
     public Collection<UUID> getPlayers() {

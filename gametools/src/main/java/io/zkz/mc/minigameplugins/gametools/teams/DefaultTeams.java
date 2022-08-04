@@ -29,67 +29,67 @@ public class DefaultTeams {
     static {
         SPECTATOR = new GameTeam("spectators", "Spectators", "SPEC");
         
-        BLACK = new GameTeam("black", "Black", "BLACK");
+        BLACK = new GameTeam("black", "Black Team", "\u24b7");
         BLACK.setFormatCode(ChatColor.BLACK);
         BLACK.setColor(Color.BLACK);
         
-        NAVY = new GameTeam("navy", "Navy", "NAVY");
+        NAVY = new GameTeam("navy", "Navy Team", "\u24dd");
         NAVY.setFormatCode(ChatColor.DARK_BLUE);
         NAVY.setColor(Color.BLUE.darker().darker());
 
-        GREEN = new GameTeam("green", "Green", "GREEN");
+        GREEN = new GameTeam("green", "Green Team", "\u24bc");
         GREEN.setFormatCode(ChatColor.DARK_GREEN);
         GREEN.setColor(Color.GREEN.darker().darker());
 
-        CYAN = new GameTeam("cyan", "Cyan", "CYAN");
+        CYAN = new GameTeam("cyan", "Cyan Team", "\u24d2");
         CYAN.setFormatCode(ChatColor.DARK_AQUA);
         CYAN.setColor(Color.CYAN.darker().darker());
 
-        DARK_RED = new GameTeam("dark_red", "Dark Red", "DARK_RED");
+        DARK_RED = new GameTeam("dark_red", "Crimson Team", "\u24d2");
         DARK_RED.setFormatCode(ChatColor.DARK_RED);
         DARK_RED.setColor(Color.RED.darker().darker());
 
-        PURPLE = new GameTeam("purple", "Purple", "PURPLE");
+        PURPLE = new GameTeam("purple", "Purple Team", "\u24c5");
         PURPLE.setFormatCode(ChatColor.DARK_PURPLE);
         PURPLE.setColor(Color.MAGENTA.darker().darker());
 
-        GOLD = new GameTeam("gold", "Gold", "GOLD");
+        GOLD = new GameTeam("gold", "Gold Team", "\u24bc");
         GOLD.setFormatCode(ChatColor.GOLD);
         GOLD.setColor(Color.YELLOW.darker().darker());
 
-        GRAY = new GameTeam("gray", "Gray", "GRAY");
+        GRAY = new GameTeam("gray", "Gray Team", "\u24bc");
         GRAY.setFormatCode(ChatColor.GRAY);
         GRAY.setColor(Color.GRAY);
 
-        DARK_GRAY = new GameTeam("dark_gray", "Dark Gray", "DARK_GRAY");
+        DARK_GRAY = new GameTeam("dark_gray", "Ash Team", "\u24d0");
         DARK_GRAY.setFormatCode(ChatColor.DARK_GRAY);
         DARK_GRAY.setColor(Color.DARK_GRAY);
 
-        BLUE = new GameTeam("blue", "Blue", "BLUE");
+        BLUE = new GameTeam("blue", "Blue Team", "\u24b7");
         BLUE.setFormatCode(ChatColor.BLUE);
         BLUE.setColor(Color.BLUE);
 
-        LIME = new GameTeam("lime", "Lime", "LIME");
+        LIME = new GameTeam("lime", "Lime Team", "\u24db");
         LIME.setFormatCode(ChatColor.GREEN);
         LIME.setColor(Color.GREEN);
 
-        AQUA = new GameTeam("aqua", "Aqua", "AQUA");
+        AQUA = new GameTeam("aqua", "Aqua Team", "\u24d0");
         AQUA.setFormatCode(ChatColor.AQUA);
         AQUA.setColor(Color.CYAN);
 
-        RED = new GameTeam("red", "Red", "RED");
+        RED = new GameTeam("red", "Red Team", "\u24c7");
         RED.setFormatCode(ChatColor.RED);
         RED.setColor(Color.RED);
 
-        MAGENTA = new GameTeam("magenta", "Magenta", "MAGENTA");
+        MAGENTA = new GameTeam("magenta", "Magenta Team", "\u24dc");
         MAGENTA.setFormatCode(ChatColor.LIGHT_PURPLE);
         MAGENTA.setColor(Color.MAGENTA);
 
-        YELLOW = new GameTeam("yellow", "Yellow", "YELLOW");
+        YELLOW = new GameTeam("yellow", "Yellow Team", "\u24e8");
         YELLOW.setFormatCode(ChatColor.YELLOW);
         YELLOW.setColor(Color.YELLOW);
 
-        WHITE = new GameTeam("white", "White", "WHITE");
+        WHITE = new GameTeam("white", "White Team", "\u24e6");
         WHITE.setFormatCode(ChatColor.WHITE);
         WHITE.setColor(Color.WHITE);
     }

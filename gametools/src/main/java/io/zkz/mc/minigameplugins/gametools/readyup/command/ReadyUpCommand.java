@@ -39,9 +39,9 @@ public class ReadyUpCommand extends ArgumentCommandExecutor {
         }
 
         if (!ReadyUpService.getInstance().recordReady(player)) {
-            Chat.sendAlert(ChatType.WARNING, "Nothing is waiting for you to be ready.");
+            Chat.sendAlert(player, ChatType.WARNING, "Nothing is waiting for you to be ready.");
         } else {
-            Chat.sendAlert(ChatType.ACTIVE_INFO, "You are now ready!");
+            Chat.sendAlert(player, ChatType.ACTIVE_INFO, "You are now ready!");
         }
 
         return true;

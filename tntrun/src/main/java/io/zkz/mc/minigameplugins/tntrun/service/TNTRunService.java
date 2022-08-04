@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.tntrun.service;
 
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
@@ -62,7 +63,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("Spleef");
+        ChatConstantsService.getInstance().setMinigameName("TNT Run");
 
         // Rules slides
         char slide1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 200, 200);
@@ -115,9 +116,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
             scoreboard.addSpace();
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
-            scoreboard.addSpace();
-
         };
+        minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
         minigame.registerScoreboard(MinigameState.IN_GAME, scoreboardModifier);
         minigame.registerScoreboard(MinigameState.PAUSED, scoreboardModifier);
     }
@@ -222,7 +222,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         // Team elimination message
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
         if (this.alivePlayers.stream().noneMatch(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId) == team)) {
-            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getName() + " was eliminated.");
+            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getDisplayName() + " was eliminated.");
         }
 
         // Last player messages
@@ -263,9 +263,9 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
             // Win message
             SoundUtils.playSound(players, StandardSounds.GOAL_MET_MAJOR, 1, 1);
             if (players.size() > 1) {
-                Chat.sendAlert(ChatType.GAME_SUCCESS, "The winners of this round were " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
+                Chat.sendAlert(ChatType.GAME_INFO, "The winners of this round were " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
             } else {
-                Chat.sendAlert(ChatType.GAME_SUCCESS, "The winner of this round was " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
+                Chat.sendAlert(ChatType.GAME_INFO, "The winner of this round was " + players.stream().map(Player::getDisplayName).collect(Collectors.joining(" and ")));
             }
 
             MinigameService.getInstance().endRound();
@@ -276,7 +276,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     private void onPlayerJoin(PlayerJoinEvent event) {
         MinigameState currentState = MinigameService.getInstance().getCurrentState();
 
-        event.getPlayer().teleport(new Location(Bukkit.getWorlds().get(0), 0, 101, 0));
+        BlockVector3 vec = this.getCurrentRound().getSpawnLocation();
+        event.getPlayer().teleport(new Location(Bukkit.getWorlds().get(0), vec.getX(), vec.getY(), vec.getZ()));
 
         if (currentState == MinigameState.IN_GAME && this.alivePlayers.contains(event.getPlayer().getUniqueId())) {
             this.setDead(event.getPlayer());

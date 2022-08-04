@@ -139,7 +139,7 @@ public class ScoreboardService extends GameToolsService {
                 oldTeam.unregister();
             }
             Team team = scoreboard.registerNewTeam(gameTeam.getId());
-            team.setPrefix("" + gameTeam.getFormatCode() + ChatColor.BOLD + gameTeam.getPrefix() + ChatColor.RESET + gameTeam.getFormatCode() + " ");
+            team.setPrefix("" + gameTeam.getFormatCode() + gameTeam.getPrefix() + " ");
             team.setSuffix("" + ChatColor.RESET);
             team.setCanSeeFriendlyInvisibles(true);
         });
@@ -178,7 +178,8 @@ public class ScoreboardService extends GameToolsService {
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerJoin(PlayerJoinEvent event) {
         this.updatePlayerScoreboard(event.getPlayer());
-        this.updateGlobalPlayerTeams();
+        this.setupGlobalTeams();
+//        this.updateGlobalPlayerTeams();
     }
 
     @EventHandler
@@ -207,6 +208,7 @@ public class ScoreboardService extends GameToolsService {
             .forEach(this::updatePlayerScoreboard);
 
         // Update player colors on scoreboards
-        this.updateGlobalPlayerTeams();
+        this.setupGlobalTeams();
+//        this.updateGlobalPlayerTeams();
     }
 }

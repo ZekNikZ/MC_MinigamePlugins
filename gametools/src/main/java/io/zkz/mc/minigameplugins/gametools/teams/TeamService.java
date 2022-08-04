@@ -275,23 +275,22 @@ public class TeamService extends GameToolsService {
     private void onPlayerJoin(PlayerJoinEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
-            event.setJoinMessage("" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " " + event.getPlayer().getName() + ChatColor.YELLOW + " joined the game.");
+            event.getPlayer().setDisplayName("" + team.getFormatCode() + team.getPrefix() + " " + event.getPlayer().getName() + ChatColor.RESET);
         }
+
+        event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getDisplayName() + ChatColor.YELLOW + " joined the game.");
     }
 
     @EventHandler
     private void onPlayerLeave(PlayerQuitEvent event) {
-        GameTeam team = this.getTeamOfPlayer(event.getPlayer());
-        if (team != null) {
-            event.setQuitMessage("" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " " + event.getPlayer().getName() + ChatColor.YELLOW + " left the game.");
-        }
+        event.setQuitMessage(ChatColor.YELLOW + event.getPlayer().getDisplayName() + ChatColor.YELLOW + " left the game.");
     }
 
     @EventHandler
     private void onPlayerChat(AsyncPlayerChatEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
-            event.setFormat("<" + team.getFormatCode() + ChatColor.BOLD + team.getPrefix() + ChatColor.RESET + team.getFormatCode() + " %1$s" + ChatColor.RESET + "> %2$s");
+            event.setFormat("%1$s" + ChatColor.RESET + ": %2$s");
         }
     }
 
