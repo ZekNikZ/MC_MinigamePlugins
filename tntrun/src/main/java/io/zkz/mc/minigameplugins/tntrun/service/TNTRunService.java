@@ -158,7 +158,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     @Override
     public void onEnable() {
         // Register rounds
-        MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
+//        MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
+        MinigameService.getInstance().registerRounds(this.rounds.get(0));
         MinigameService.getInstance().randomizeRoundOrder();
     }
 

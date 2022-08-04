@@ -10,6 +10,7 @@ import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
+import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
@@ -53,6 +54,9 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         this.register(new TeamCommands());
         this.register(new ReadyUpCommands());
         this.register(new MiscCommands());
+
+        // Misc
+        StringUtils.init(this);
     }
 
     @Override

@@ -32,7 +32,6 @@ public class ScoreSummaryTask extends GameTask {
 
     @Override
     public void run() {
-        MinigameService.getInstance().getPlugin().getLogger().info("HERE");
         Chat.sendMessage(" ");
         switch (this.slideNum) {
             case 0 -> {
@@ -121,11 +120,16 @@ public class ScoreSummaryTask extends GameTask {
             .sorted(Comparator.comparing(ScoreboardEntry::points).reversed())
             .limit(numToDisplay)
             .forEach(entry -> {
+                String placementStr = StringUtils.padOnLeftWithPixels("" + placement.getAndIncrement(), 20) + ". ";
+                String entryNameStr = StringUtils.padOnRightWithPixels(entry.name() + ChatColor.RESET, 128);
+                String pointsStr;
                 if (entry.multiplier() == 1) {
-                    Chat.sendMessageFormatted(players, "%2s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR, placement.getAndIncrement(), StringUtils.padOnRightWithPixels(entry.name(), 128), entry.points());
+                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + Chat.Constants.POINT_CHAR).formatted(entry.points()), 45);
                 } else {
-                    Chat.sendMessageFormatted(players, "%2s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR + " (%.1f" + Chat.Constants.POINT_CHAR + " \u00d7 %.1f)", placement.getAndIncrement(), StringUtils.padOnRightWithPixels(entry.name(), 128), entry.points() * entry.multiplier(), entry.points(), entry.multiplier());
+                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + Chat.Constants.POINT_CHAR).formatted(entry.points() * entry.multiplier()), 45)
+                        + (" (%.1f" + Chat.Constants.POINT_CHAR + " \u00d7 %.1f)").formatted(entry.points(), entry.multiplier());
                 }
+                Chat.sendMessage(players, placementStr + entryNameStr + pointsStr);
             });
         SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
     }

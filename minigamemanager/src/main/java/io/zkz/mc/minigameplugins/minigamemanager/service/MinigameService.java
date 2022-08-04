@@ -398,13 +398,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public Collection<GameTeam> getGameTeams() {
-        return TeamService.getInstance().getAllTeams().stream().filter(team -> team != DefaultTeams.SPECTATOR).toList();
+        return TeamService.getInstance().getAllTeams().stream().filter(team -> !Objects.equals(team, DefaultTeams.SPECTATOR)).toList();
     }
 
     public Collection<UUID> getPlayers() {
         Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
         return players.stream()
-            .filter(uuid -> TeamService.getInstance().getTeamOfPlayer(uuid) != DefaultTeams.SPECTATOR)
+            .filter(uuid -> !Objects.equals(TeamService.getInstance().getTeamOfPlayer(uuid), DefaultTeams.SPECTATOR))
             .toList();
     }
 
@@ -438,7 +438,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private void endGame() {
         // TODO: score summary
-        Bukkit.shutdown();
+//        Bukkit.shutdown();
     }
 
     /**
@@ -462,7 +462,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         }
 
         // Apply spectator player state
-        if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == DefaultTeams.SPECTATOR) {
+        if (Objects.equals(TeamService.getInstance().getTeamOfPlayer(event.getPlayer()), DefaultTeams.SPECTATOR)) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
             return;
         }
