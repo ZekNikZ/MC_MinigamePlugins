@@ -1,6 +1,5 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
@@ -18,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-class ReadyUpSession {
+public class ReadyUpSession {
     private final int sessionId;
     private final Map<UUID, Boolean> readyPlayers = new ConcurrentHashMap<>();
     private final Runnable onAllReady;

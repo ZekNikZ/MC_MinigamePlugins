@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.minigamemanager.service;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
+import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
@@ -29,10 +30,10 @@ import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +67,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
                 scoreboard.addEntry("Waiting for players...");
                 scoreboard.addSpace();
-                scoreboard.addEntry("playerCount", new ValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players: %s/" + ChatColor.RESET + getInstance().getPlayers().size(), 0));
+                scoreboard.addEntry("playerCount", new ValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players: " + ChatColor.RESET + "%s/" + getInstance().getPlayers().size(), 0));
             }
             case RULES -> {
                 addRoundInformation(scoreboard);
@@ -198,7 +199,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.addTask(MinigameState.RULES, new RulesTask());
 
         // WAITING_TO_BEGIN
-        this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady));
+        this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady, this::handlePlayerReady));
 
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
@@ -390,6 +391,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private void waitForPlayers() {
         Collection<UUID> players = this.getPlayers();
+        ((ValueEntry<Integer>) this.scoreboard.getEntry("playerCount")).setValue((int) players.stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count());
         if (players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
             this.setState(MinigameState.RULES);
         }
@@ -408,6 +410,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private void handlePlayersReady() {
         this.setState(MinigameState.PRE_ROUND);
+    }
+
+    private void handlePlayerReady(Player player, ReadyUpSession session) {
+        ((ValueEntry<Integer>) this.scoreboard.getEntry("playerCount")).setValue((int) session.getReadyPlayerCount());
     }
 
     public void pauseGame() {

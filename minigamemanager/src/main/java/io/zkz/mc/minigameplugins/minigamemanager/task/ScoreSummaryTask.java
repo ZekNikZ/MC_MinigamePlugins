@@ -7,6 +7,7 @@ import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.Bukkit;
@@ -121,9 +122,9 @@ public class ScoreSummaryTask extends GameTask {
             .limit(numToDisplay)
             .forEach(entry -> {
                 if (entry.multiplier() == 1) {
-                    Chat.sendMessageFormatted(players, "%s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR, placement.getAndIncrement(), entry.name(), entry.points());
+                    Chat.sendMessageFormatted(players, "%2s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR, placement.getAndIncrement(), StringUtils.padOnRightWithPixels(entry.name(), 128), entry.points());
                 } else {
-                    Chat.sendMessageFormatted(players, "%s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR + " (%.1f" + Chat.Constants.POINT_CHAR + " \u00d7 %.1f)", placement.getAndIncrement(), entry.name(), entry.points() * entry.multiplier(), entry.points(), entry.multiplier());
+                    Chat.sendMessageFormatted(players, "%2s. %s " + ChatColor.RESET + "%.1f" + Chat.Constants.POINT_CHAR + " (%.1f" + Chat.Constants.POINT_CHAR + " \u00d7 %.1f)", placement.getAndIncrement(), StringUtils.padOnRightWithPixels(entry.name(), 128), entry.points() * entry.multiplier(), entry.points(), entry.multiplier());
                 }
             });
         SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
