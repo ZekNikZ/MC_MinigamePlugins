@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Collection;
 
-import static org.bukkit.ChatColor.*;
+import static net.md_5.bungee.api.ChatColor.*;
 
 public class Chat {
     public static class Constants {

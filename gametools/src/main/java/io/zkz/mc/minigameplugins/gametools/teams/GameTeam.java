@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.Team;
 
 import java.awt.*;
@@ -11,11 +11,11 @@ public class GameTeam {
     private String id;
     private String name;
     private String prefix;
-    private ChatColor formatCode;
+    private String formatCode;
     private Color color;
 
     public GameTeam() {
-        this.formatCode = ChatColor.RESET;
+        this.formatCode = "" + ChatColor.RESET;
         this.color = Color.WHITE;
     }
 
@@ -26,11 +26,15 @@ public class GameTeam {
         this.setName(name);
     }
 
-    public ChatColor getFormatCode() {
+    public String getFormatCode() {
         return this.formatCode;
     }
 
     public void setFormatCode(ChatColor formatCode) {
+        this.setFormatCode("" + formatCode);
+    }
+
+    public void setFormatCode(String formatCode) {
         this.formatCode = formatCode;
         this.updateMinecraftTeam();
     }

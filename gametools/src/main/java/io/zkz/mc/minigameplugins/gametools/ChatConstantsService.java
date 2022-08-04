@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 
 public class ChatConstantsService extends GameToolsService {
     private static final ChatConstantsService INSTANCE = new ChatConstantsService();

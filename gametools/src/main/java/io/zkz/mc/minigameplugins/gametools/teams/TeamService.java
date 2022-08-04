@@ -3,13 +3,12 @@ package io.zkz.mc.minigameplugins.gametools.teams;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
-import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -345,7 +344,7 @@ public class TeamService extends GameToolsService {
                     resultSet.getString("teamName"),
                     resultSet.getString("teamPrefix")
                 );
-                team.setFormatCode(ChatColor.getByChar(resultSet.getString("teamFormatCode")));
+                team.setFormatCode(resultSet.getString("teamFormatCode"));
                 team.setColor(new Color(resultSet.getInt("teamColor")));
                 this.createTeam(team, true);
             }
@@ -380,7 +379,7 @@ public class TeamService extends GameToolsService {
                 statement.setString(1, team.getId());
                 statement.setString(2, team.getName());
                 statement.setString(3, team.getPrefix());
-                statement.setString(4, String.valueOf(team.getFormatCode().getChar()));
+                statement.setString(4, String.valueOf(team.getFormatCode()));
                 statement.setInt(5, team.getColor().getRGB());
                 statement.addBatch();
             }

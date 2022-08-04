@@ -3,7 +3,6 @@ package io.zkz.mc.minigameplugins.gametools;
 import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 

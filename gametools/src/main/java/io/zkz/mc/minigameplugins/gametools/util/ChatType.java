@@ -3,7 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.util;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 
 import static io.zkz.mc.minigameplugins.gametools.util.Chat.Constants.*;
-import static org.bukkit.ChatColor.*;
+import static net.md_5.bungee.api.ChatColor.*;
 
 public enum ChatType {
     ALERT(

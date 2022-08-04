@@ -3,7 +3,6 @@ package io.zkz.mc.minigameplugins.gametools.data;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
-import org.bukkit.ChatColor;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;

@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 
 import java.awt.*;
 import java.util.logging.Level;
