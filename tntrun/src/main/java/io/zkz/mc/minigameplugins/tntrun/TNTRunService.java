@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.tntrun.service;
+package io.zkz.mc.minigameplugins.tntrun;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
@@ -25,9 +25,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
-import io.zkz.mc.minigameplugins.tntrun.Points;
-import io.zkz.mc.minigameplugins.tntrun.TNTRunPlugin;
-import io.zkz.mc.minigameplugins.tntrun.TNTRunRound;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.world.phys.AxisAlignedBB;
 import org.bukkit.*;
@@ -97,6 +94,9 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
             this.alivePlayerCount.set(minigame.getPlayers().size());
         });
 
+        // State tasks
+        minigame.addTask(MinigameState.IN_GAME, FloorRemovalTask::new);
+
         // State change titles
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
@@ -158,21 +158,12 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     @Override
     public void onEnable() {
         // Register rounds
-//        MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
-        MinigameService.getInstance().registerRounds(this.rounds.get(0));
+        MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
         MinigameService.getInstance().randomizeRoundOrder();
     }
 
     public TNTRunRound getCurrentRound() {
         return (TNTRunRound) MinigameService.getInstance().getCurrentRound();
-    }
-
-    private void scheduleBlockForRemoval(Location location) {
-        final double seconds = 0.45;
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
-            location.getWorld().setBlockData(location, Material.AIR.createBlockData());
-            location.getWorld().setBlockData(location.clone().add(0, -1, 0), Material.AIR.createBlockData());
-        }, (long) (seconds * 20));
     }
 
     public void setupArena(TNTRunRound round) {
@@ -202,7 +193,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         WorldSyncUtils.setGameRuleValue(GameRule.DO_MOB_SPAWNING, false);
     }
 
-    private void setDead(Player player) {
+    void setDead(Player player) {
         player.teleport(new Location(Bukkit.getWorlds().get(0), this.getCurrentRound().getSpawnLocation().getX(), this.getCurrentRound().getSpawnLocation().getY(), this.getCurrentRound().getSpawnLocation().getZ()));
         player.setGameMode(GameMode.SPECTATOR);
         SoundUtils.broadcastSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
@@ -213,7 +204,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
 
         // Chat message
         Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
-        Collection<? extends Player> pointsPlayers = this.alivePlayers.stream().map(Bukkit::getPlayer).toList();
+        Collection<? extends Player> pointsPlayers = this.getAlivePlayers();
         noPointsPlayers.removeAll(pointsPlayers);
         Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " fell and was eliminated.");
         SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
@@ -254,7 +245,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
 
         // Check if round is over
         if (TeamService.getInstance().allSameTeam(this.alivePlayers)) {
-            Collection<? extends Player> players = this.alivePlayers.stream().map(Bukkit::getPlayer).toList();
+            Collection<? extends Player> players = this.getAlivePlayers();
 
             // Award first place points
             ScoreService.getInstance().earnPointsUUID(this.alivePlayers, "first place", Points.FIRST_PLACE);
@@ -312,46 +303,10 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
 
         if (event.getTo().getY() < this.getCurrentRound().getDeathYLevel()) {
             this.setDead(event.getPlayer());
-            return;
         }
+    }
 
-        // First, check if the player is just simply on a block
-        Player player = event.getPlayer();
-        Location blockOn = player.getLocation().add(new Vector(0, -0.1, 0));
-        if (!blockOn.isWorldLoaded()) {
-            return;
-        }
-        if (blockOn.getBlock().getType() == Material.SAND || blockOn.getBlock().getType() == Material.GRAVEL) {
-            this.scheduleBlockForRemoval(blockOn);
-            return;
-        }
-
-        // Otherwise, find the block the player is crouching on
-        final AxisAlignedBB playerBB = NMSUtils.getEntityBoundingBox(player).d(0, -0.1, 0);
-        Map<Block, AxisAlignedBB> blockBoxes = new HashMap<>();
-        ArrayList<Block> supportingBlocks = new ArrayList<>();
-        final Location cornerLoc = player.getLocation().clone().add(-1, -1, -1);
-        for (int x = 0; x < 3; x++) {
-            for (int z = 0; z < 3; z++) {
-                Block block = cornerLoc.clone().add(x, 0, z).getBlock();
-                if (block.getType() != Material.AIR) {
-                    AxisAlignedBB boundingBox = NMSUtils.getBlockBoundingBox(block);
-                    blockBoxes.put(block, boundingBox);
-                }
-            }
-        }
-        blockBoxes.forEach((block, blockBB) -> {
-            if (playerBB.c(blockBB)) {
-                supportingBlocks.add(block);
-            }
-        });
-
-        // Schedule blocks for removal
-        for (Block block : supportingBlocks) {
-            if (block.getType() == Material.SAND || block.getType() == Material.GRAVEL) {
-                this.scheduleBlockForRemoval(block.getLocation());
-                break; // ensure only one block gets removed
-            }
-        }
+    public Collection<? extends Player> getAlivePlayers() {
+        return this.alivePlayers.stream().map(Bukkit::getPlayer).toList();
     }
 }

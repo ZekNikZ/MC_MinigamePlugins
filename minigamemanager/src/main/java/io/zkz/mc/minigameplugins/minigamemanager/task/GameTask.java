@@ -1,22 +1,30 @@
 package io.zkz.mc.minigameplugins.minigamemanager.task;
 
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.Objects;
+
 public abstract class GameTask extends BukkitRunnable {
+    private static int nextInternalTaskId = 0;
+    private final int internalTaskId;
+
     private final boolean isRepeating;
     private final int delay;
     private final int period;
     private BukkitTask task = null;
 
     public GameTask(int delay, int period) {
+        this.internalTaskId = nextInternalTaskId++;
         this.isRepeating = true;
         this.delay = delay;
         this.period = period;
     }
 
     public GameTask(int delay) {
+        this.internalTaskId = nextInternalTaskId++;
         this.isRepeating = false;
         this.delay = delay;
         this.period = -1;
@@ -34,6 +42,7 @@ public abstract class GameTask extends BukkitRunnable {
     public synchronized void cancel() throws IllegalStateException {
         super.cancel();
         this.task = null;
+        MinigameService.getInstance().removeRunningTask(this);
     }
 
     public synchronized int getTaskId() {
@@ -46,5 +55,17 @@ public abstract class GameTask extends BukkitRunnable {
 
     public synchronized boolean isScheduled() {
         return this.task != null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GameTask task)) return false;
+        return this.internalTaskId == task.internalTaskId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.internalTaskId);
     }
 }

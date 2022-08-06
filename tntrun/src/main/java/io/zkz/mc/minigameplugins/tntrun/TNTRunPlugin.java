@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.tntrun;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
-import io.zkz.mc.minigameplugins.tntrun.service.TNTRunService;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;

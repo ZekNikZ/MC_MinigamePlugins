@@ -9,10 +9,10 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
-import io.zkz.mc.minigameplugins.tntrun.service.TNTRunService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 
 public class TNTRunRound extends Round {
     private final BlockVector3 arenaMin;
@@ -73,5 +73,10 @@ public class TNTRunRound extends Round {
 
     public void resetArena() {
 
+    }
+
+    @Override
+    public @NotNull String getMapName() {
+        return super.getMapName();
     }
 }

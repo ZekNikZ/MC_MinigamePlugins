@@ -38,6 +38,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class MinigameService extends PluginService<MinigameManagerPlugin> {
@@ -158,10 +159,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private MinigameState state = MinigameState.SERVER_STARTING;
     private final Map<MinigameState, List<Runnable>> stateSetupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
-    private final Map<MinigameState, List<GameTask>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
+    private final Map<MinigameState, List<Supplier<GameTask>>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, IPlayerState> statePlayerStates = new HashMap<>();
     private final Map<MinigameState, MinigameScoreboard> scoreboards = new HashMap<>();
     private final Map<MinigameState, List<BiConsumer<MinigameState, GameScoreboard>>> scoreboardModifiers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
+    private final Set<GameTask> runningTasks = new HashSet<>();
     private int preRoundDelay = 200;
     private int postRoundDelay = 200;
     private int postGameDelay = 200;
@@ -188,7 +190,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // ==================
 
         // WAITING_FOR_PLAYERS
-        this.addTask(MinigameState.WAITING_FOR_PLAYERS, new GameTask(1, 20) {
+        this.addTask(MinigameState.WAITING_FOR_PLAYERS, () -> new GameTask(1, 20) {
             @Override
             public void run() {
                 waitForPlayers();
@@ -196,7 +198,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         });
 
         // RULES
-        this.addTask(MinigameState.RULES, new RulesTask());
+        this.addTask(MinigameState.RULES, RulesTask::new);
 
         // WAITING_TO_BEGIN
         this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady, this::handlePlayerReady));
@@ -239,8 +241,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         // POST_GAME
         this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
-        this.addTask(MinigameState.POST_GAME, new ScoreSummaryTask());
+        this.addTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
         // TODO: send back to hub
+    }
+
+    public void removeRunningTask(GameTask task) {
+        this.runningTasks.remove(task);
     }
 
     private void changeTimer(AbstractTimer timer) {
@@ -260,16 +266,17 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         BukkitUtils.dispatchEvent(preEvent);
         if (!preEvent.isCancelled()) {
             if (this.state != null) {
-                this.stateTasks.get(this.state).forEach(BukkitRunnable::cancel);
+                this.runningTasks.forEach(BukkitRunnable::cancel);
+                this.runningTasks.clear();
                 this.stateCleanupHandlers.get(this.state).forEach(Runnable::run);
             }
             this.state = newState;
             this.stateSetupHandlers.get(newState).forEach(Runnable::run);
             this.stateTasks.get(this.state).forEach(t -> {
-                if (!t.isScheduled()) {
-                    t.start(this.getPlugin());
-                    this.getLogger().info("Started task with ID " + t.getTaskId() + " of type " + t.getClass().getName());
-                }
+                GameTask task = t.get();
+                task.start(this.getPlugin());
+                this.getLogger().info("Started task with ID " + task.getTaskId() + " of type " + t.getClass().getName());
+                this.runningTasks.add(task);
             });
             IPlayerState playerState = this.statePlayerStates.get(this.state);
             if (playerState != null) {
@@ -291,8 +298,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.stateCleanupHandlers.get(state).add(handler);
     }
 
-    public void addTask(MinigameState state, GameTask task) {
-        this.stateTasks.get(state).add(task);
+    public void addTask(MinigameState state, Supplier<GameTask> taskSupplier) {
+        this.stateTasks.get(state).add(taskSupplier);
     }
 
     public void randomizeRoundOrder() {
