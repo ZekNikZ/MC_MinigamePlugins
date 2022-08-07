@@ -12,6 +12,8 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 public class TNTRunRound extends Round {
@@ -38,6 +40,8 @@ public class TNTRunRound extends Round {
         BukkitUtils.forEachPlayer(player -> {
             player.teleport(new Location(Bukkit.getWorlds().get(0), this.getSpawnLocation().getX(), this.getSpawnLocation().getY(), this.getSpawnLocation().getZ()));
             player.getInventory().clear();
+            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 10, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 1000000, 1, false, false));
         });
     }
 

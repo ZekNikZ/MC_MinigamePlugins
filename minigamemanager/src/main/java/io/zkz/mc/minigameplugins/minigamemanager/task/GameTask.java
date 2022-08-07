@@ -40,9 +40,15 @@ public abstract class GameTask extends BukkitRunnable {
 
     @Override
     public synchronized void cancel() throws IllegalStateException {
+        this.cancel(true);
+    }
+
+    public synchronized void cancel(boolean removeReference) throws IllegalStateException {
         super.cancel();
         this.task = null;
-        MinigameService.getInstance().removeRunningTask(this);
+        if (removeReference) {
+            MinigameService.getInstance().removeRunningTask(this);
+        }
     }
 
     public synchronized int getTaskId() {

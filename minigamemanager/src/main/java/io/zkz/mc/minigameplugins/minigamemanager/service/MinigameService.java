@@ -22,6 +22,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameScoreboard;
+import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamScoresScoreboardEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
@@ -33,7 +34,6 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -133,13 +133,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     private static void addTeamInformation(GameScoreboard scoreboard, GameTeam team) {
-        // TODO: implement
         scoreboard.addSpace();
-        scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game Coins: " + ChatColor.RESET + "(" + ChatColor.YELLOW + getInstance().getPointMultiplier() + "x" + ChatColor.RESET + ")");
-        scoreboard.addEntry(" 1. A");
-        scoreboard.addEntry(" 2. B");
-        scoreboard.addEntry(" 3. C");
-        scoreboard.addEntry(" 4. D");
+        scoreboard.addEntry(new TeamScoresScoreboardEntry(team));
     }
 
     public float getPointMultiplier() {
@@ -242,7 +237,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // POST_GAME
         this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
         this.addTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
-        // TODO: send back to hub
     }
 
     public void removeRunningTask(GameTask task) {
@@ -266,7 +260,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         BukkitUtils.dispatchEvent(preEvent);
         if (!preEvent.isCancelled()) {
             if (this.state != null) {
-                this.runningTasks.forEach(BukkitRunnable::cancel);
+                this.runningTasks.forEach(task -> task.cancel(false));
                 this.runningTasks.clear();
                 this.stateCleanupHandlers.get(this.state).forEach(Runnable::run);
             }
@@ -444,7 +438,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     private void endGame() {
-        // TODO: score summary
+        // TODO: send back to hub
 //        Bukkit.shutdown();
     }
 

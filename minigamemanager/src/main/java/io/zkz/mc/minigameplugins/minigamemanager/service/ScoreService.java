@@ -7,8 +7,11 @@ import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.IObservable;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
+import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,9 +25,27 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
     private final List<ScoreEntry> entries = new ArrayList<>();
 
+    private final Map<UUID, Double> roundPlayerScores = new HashMap<>();
+    private final Map<GameTeam, Double> roundTeamScores = new HashMap<>();
+
+    private final Map<UUID, Double> gamePlayerScores = new HashMap<>();
+    private final Map<GameTeam, Double> gameTeamScores = new HashMap<>();
+
     public void earnPoints(UUID playerId, String reason, double points) {
         ScoreEntry entry = new ScoreEntry(playerId, ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason, points, MinigameService.getInstance().getPointMultiplier());
         this.entries.add(entry);
+
+        // Player score
+        this.roundPlayerScores.putIfAbsent(playerId, 0.0);
+        this.gamePlayerScores.putIfAbsent(playerId, 0.0);
+        this.roundPlayerScores.compute(playerId, (p, s) -> s + points);
+        this.gamePlayerScores.compute(playerId, (p, s) -> s + points);
+
+        // Team score
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
+        this.roundTeamScores.compute(team, (t, s) -> s + points);
+        this.gameTeamScores.compute(team, (t, s) -> s + points);
+
         this.notifyObservers();
     }
 
@@ -41,10 +62,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     }
 
     public Map<UUID, Double> getRoundPlayerScoreSummary() {
-        return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
-            .filter(entry -> entry.round() == MinigameService.getInstance().getCurrentRoundIndex())
-            .collect(Collectors.groupingBy(ScoreEntry::playerId, Collectors.summingDouble(ScoreEntry::points)));
+        return this.roundPlayerScores;
     }
 
     public List<ScoreEntry> getRoundEntries(Player player) {
@@ -64,16 +82,11 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     }
 
     public Map<GameTeam, Double> getRoundTeamScoreSummary() {
-        return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
-            .filter(entry -> entry.round() == MinigameService.getInstance().getCurrentRoundIndex())
-            .collect(Collectors.groupingBy(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()), Collectors.summingDouble(ScoreEntry::points)));
+        return this.roundTeamScores;
     }
 
     public Map<UUID, Double> getGamePlayerScoreSummary() {
-        return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
-            .collect(Collectors.groupingBy(ScoreEntry::playerId, Collectors.summingDouble(ScoreEntry::points)));
+        return this.gamePlayerScores;
     }
 
     public List<ScoreEntry> getGameEntries(Player player) {
@@ -85,6 +98,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     }
 
     public Map<UUID, Double> getGameTeamMemberScoreSummary(GameTeam team) {
+        // TODO: probably not very efficient to be computing this so often, cache it
         return this.entries.stream()
             .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
             .filter(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()) == team)
@@ -92,14 +106,11 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     }
 
     public Map<GameTeam, Double> getGameTeamScoreSummary() {
-        // TODO: probably not very efficient to be computing this so often, cache it
-        return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
-            .collect(Collectors.groupingBy(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()), Collectors.summingDouble(ScoreEntry::points)));
+        return this.gameTeamScores;
     }
 
     public Map<GameTeam, Double> getEventTeamScoreSummary() {
-        // TODO: implement
+        // TODO: implement properly
         return this.getGameTeamScoreSummary();
     }
 
@@ -122,5 +133,29 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     @Override
     public Collection<IObserver> getListeners() {
         return this.listeners;
+    }
+
+    @EventHandler
+    private void onStateChange(StateChangeEvent event) {
+        if (event.getNewState() == MinigameState.PRE_ROUND) {
+            this.resetRoundScores();
+        } else if (event.getNewState() == MinigameState.SETUP) {
+            this.resetGameScores();
+        }
+    }
+
+    private void resetRoundScores() {
+        this.roundPlayerScores.clear();
+
+        this.roundTeamScores.clear();
+        MinigameService.getInstance().getGameTeams().forEach(team -> this.roundTeamScores.put(team, 0.0));
+
+    }
+
+    private void resetGameScores() {
+        this.gamePlayerScores.clear();
+
+        this.gameTeamScores.clear();
+        MinigameService.getInstance().getGameTeams().forEach(team -> this.gameTeamScores.put(team, 0.0));
     }
 }
