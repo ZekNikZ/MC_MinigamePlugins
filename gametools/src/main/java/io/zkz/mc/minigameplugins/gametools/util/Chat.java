@@ -9,7 +9,7 @@ import static net.md_5.bungee.api.ChatColor.*;
 
 public class Chat {
     public static class Constants {
-        public static final String INFO_CHAR = YELLOW + "\u2666" + RESET;
+        public static final String INFO_CHAR = YELLOW + "\u25B6" + RESET;
         public static final String POINT_CHAR = YELLOW + "\u2605" + RESET;
         public static final String INFO_PREFIX = "[" + INFO_CHAR + "] ";
         public static final String POINT_PREFIX = "[+%points%" + POINT_CHAR + "] ";

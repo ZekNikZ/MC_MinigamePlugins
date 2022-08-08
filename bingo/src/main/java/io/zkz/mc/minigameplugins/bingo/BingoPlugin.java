@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.bingo;
 
+import io.zkz.mc.minigameplugins.bingo.command.BingoCommands;
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
@@ -23,6 +24,10 @@ public class BingoPlugin extends GTPlugin<BingoPlugin> {
 
     public BingoPlugin() {
         // Services
+        this.register(new BingoService());
+
+        // Commands
+        this.register(new BingoCommands());
     }
 
     @Override

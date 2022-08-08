@@ -36,6 +36,9 @@ public abstract class AbstractTimer {
     protected void onPause() {
     }
 
+    protected void onUnpause() {
+    }
+
     protected abstract void onStop();
 
     public AbstractTimer start() {
@@ -59,6 +62,18 @@ public abstract class AbstractTimer {
             Bukkit.getScheduler().cancelTask(this.taskId);
             this.taskId = -1;
             this.onPause();
+        }
+    }
+
+    public void unpause() {
+        if (this.taskId == -1) {
+            this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
+                this.plugin,
+                this::update,
+                this.refreshRate,
+                this.refreshRate
+            );
+            this.onUnpause();
         }
     }
 

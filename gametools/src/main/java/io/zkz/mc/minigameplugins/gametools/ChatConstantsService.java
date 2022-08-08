@@ -21,12 +21,12 @@ public class ChatConstantsService extends GameToolsService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
 
     }
 
     @Override
-    public void onDisable() {
+    protected void onDisable() {
 
     }
 

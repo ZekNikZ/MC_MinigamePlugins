@@ -26,16 +26,15 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
-import net.minecraft.world.phys.AxisAlignedBB;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.util.Vector;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -70,8 +69,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         minigame.setPostGameDelay(600);
 
         // Player states
-        BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE);
-        BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR);
+        BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+        BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
@@ -99,15 +98,15 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
 
         // State change titles
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
-            SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+            SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Round starts in 20 seconds", ChatColor.GOLD + "Find a good starting position!", 10, 70, 20);
         });
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
-            SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+            SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Round over!", 10, 70, 20);
         });
         minigame.addSetupHandler(MinigameState.POST_GAME, () -> {
-            SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+            SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Game over!", ChatColor.GOLD + "Check the chat for score information.", 10, 70, 20);
         });
 
@@ -156,7 +155,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         // Register rounds
         MinigameService.getInstance().registerRounds(this.rounds.toArray(TNTRunRound[]::new));
         MinigameService.getInstance().randomizeRoundOrder();
@@ -196,7 +195,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     void setDead(Player player) {
         player.teleport(new Location(Bukkit.getWorlds().get(0), this.getCurrentRound().getSpawnLocation().getX(), this.getCurrentRound().getSpawnLocation().getY(), this.getCurrentRound().getSpawnLocation().getZ()));
         player.setGameMode(GameMode.SPECTATOR);
-        SoundUtils.broadcastSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
+        SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
         this.alivePlayers.remove(player.getUniqueId());
 
         // Assign points to alive players

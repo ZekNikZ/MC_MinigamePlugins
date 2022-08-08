@@ -35,7 +35,7 @@ public class ScoreboardService extends GameToolsService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         this.setupGlobalTeams();
     }
 

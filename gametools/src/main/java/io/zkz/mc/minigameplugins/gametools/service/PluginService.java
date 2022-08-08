@@ -37,13 +37,13 @@ public abstract class PluginService<T extends JavaPlugin> implements Listener {
     /**
      * Setup code to run when the plugin is enabled. Ran AFTER {@link #loadAllData()} is called.
      */
-    public void onEnable() {
+    protected void onEnable() {
     }
 
     /**
      * Setup code to run when the plugin is disabled. Ran BEFORE {@link #saveAllData()} is called.
      */
-    public void onDisable() {
+    protected void onDisable() {
     }
 
     protected Collection<AbstractDataManager<?>> getDataManagers() {

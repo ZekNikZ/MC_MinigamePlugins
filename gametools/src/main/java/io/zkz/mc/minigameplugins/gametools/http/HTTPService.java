@@ -39,7 +39,7 @@ public class HTTPService extends GameToolsService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
             if (!this.enabled) {
                 return;
@@ -59,7 +59,7 @@ public class HTTPService extends GameToolsService {
     }
 
     @Override
-    public void onDisable() {
+    protected void onDisable() {
         if (this.server != null) {
             this.server.stop(0);
             this.getLogger().info("Shut down HTTP server");

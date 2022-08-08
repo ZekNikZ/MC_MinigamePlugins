@@ -32,11 +32,11 @@ public enum MinigameState {
     /**
      * In-game - players are currently playing
      */
-    IN_GAME("In game"),
+    IN_GAME("In game", true),
     /**
      * Paused - game is paused, lock players in place, etc.
      */
-    PAUSED("Paused"),
+    PAUSED("Paused", true),
     /**
      * Post-round cleanup - round is over
      */
@@ -47,9 +47,19 @@ public enum MinigameState {
     POST_GAME("Game over");
 
     private final String stateString;
+    private final boolean isInGame;
 
     MinigameState(String stateString) {
+        this(stateString, false);
+    }
+
+    MinigameState(String stateString, boolean isInGame) {
         this.stateString = stateString;
+        this.isInGame = isInGame;
+    }
+
+    public boolean isInGame() {
+        return this.isInGame;
     }
 
     @Override

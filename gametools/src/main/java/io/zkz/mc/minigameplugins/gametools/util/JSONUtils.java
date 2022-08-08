@@ -2,6 +2,9 @@ package io.zkz.mc.minigameplugins.gametools.util;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class JSONUtils {
@@ -22,6 +26,26 @@ public class JSONUtils {
             (long) vec.getX(),
             (long) vec.getY(),
             (long) vec.getZ()
+        );
+    }
+
+    public static Map<String, Object> toJSON(Location loc) {
+        return Map.of(
+            "world", loc.getWorld().getName(),
+            "pos", List.of(
+                (long) loc.getBlockX(),
+                (long) loc.getBlockY(),
+                (long) loc.getBlockZ()
+            )
+        );
+    }
+
+    public static Location readLocation(JSONObject json) {
+        TypedJSONObject<Object> rawLoc = new TypedJSONObject<>(json, Object.class);
+        List<Long> pos = rawLoc.getList("pos", Long.class);
+        return new Location(
+            Bukkit.getWorld(rawLoc.getString("world")),
+            pos.get(0), pos.get(1), pos.get(2)
         );
     }
 

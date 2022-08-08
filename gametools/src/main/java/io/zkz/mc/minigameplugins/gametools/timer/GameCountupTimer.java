@@ -2,6 +2,8 @@ package io.zkz.mc.minigameplugins.gametools.timer;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+
+// TODO: update timer value upon pause
 public class GameCountupTimer extends AbstractTimer {
     private long startTime;
 

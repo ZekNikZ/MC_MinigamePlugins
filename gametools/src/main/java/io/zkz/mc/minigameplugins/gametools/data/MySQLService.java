@@ -63,7 +63,7 @@ public class MySQLService extends GameToolsService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         // Load data source
         this.dataSource = new MysqlDataSource();
         this.dataSource.setServerName(this.config.host());

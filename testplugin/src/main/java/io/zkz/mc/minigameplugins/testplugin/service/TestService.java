@@ -46,7 +46,7 @@ public class TestService extends TestPluginService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         GameScoreboard globalScoreboard = ScoreboardService.getInstance().createNewScoreboard("Testing");
 
         globalScoreboard.addEntry("Test 1");

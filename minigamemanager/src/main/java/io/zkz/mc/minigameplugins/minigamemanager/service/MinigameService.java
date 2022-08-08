@@ -34,6 +34,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -174,7 +175,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         // Setup
         this.setState(MinigameState.LOADING);
 
@@ -205,7 +206,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 @Override
                 protected void onUpdate() {
                     if (getCurrentTimeMillis() <= 5000) {
-                        SoundUtils.broadcastSound(StandardSounds.TIMER_TICK, 1, 1);
+                        SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
                     }
 
                     super.onUpdate();
@@ -243,7 +244,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.runningTasks.remove(task);
     }
 
-    private void changeTimer(AbstractTimer timer) {
+    public void changeTimer(AbstractTimer timer) {
         if (this.timer != null) {
             this.timer.stop();
         }
@@ -477,5 +478,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public int getRoundCount() {
         return this.rounds.size();
+    }
+
+    public @Nullable AbstractTimer getTimer() {
+        return this.timer;
     }
 }

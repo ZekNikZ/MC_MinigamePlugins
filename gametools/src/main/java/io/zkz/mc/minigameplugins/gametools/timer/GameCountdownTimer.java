@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.TimeUnit;
 
+// TODO: update timer value upon pause
 public class GameCountdownTimer extends AbstractTimer {
     private final long timerValueMillis;
     private long startTime;

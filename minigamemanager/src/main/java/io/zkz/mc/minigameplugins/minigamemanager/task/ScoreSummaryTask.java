@@ -131,7 +131,7 @@ public class ScoreSummaryTask extends GameTask {
                 }
                 Chat.sendMessage(players, placementStr + entryNameStr + pointsStr);
             });
-        SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+        SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
     }
 
     private void displayScoreboard(Collection<ScoreboardEntry> entries, int numToDisplay) {

@@ -6,7 +6,6 @@ import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class RulesTask extends GameTask {
             return;
         }
 
-        SoundUtils.broadcastSound(StandardSounds.ALERT_INFO, 1, 1);
+        SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
         BukkitUtils.forEachPlayer(player -> TitleUtils.sendActionBarMessage(player, "" + this.slides.get(this.currentIndex), 20, MinigameService.getInstance().getPlugin()));
 
         this.currentIndex++;

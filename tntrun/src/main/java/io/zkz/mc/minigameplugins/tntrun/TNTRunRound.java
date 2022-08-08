@@ -47,7 +47,7 @@ public class TNTRunRound extends Round {
 
     @Override
     public void onEnd() {
-        SoundUtils.broadcastSound(StandardSounds.GAME_OVER, 10, 1);
+        SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
     }
 
     @Override

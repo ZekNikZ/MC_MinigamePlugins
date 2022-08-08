@@ -55,7 +55,7 @@ public class ResourcePackService extends GameToolsService {
     }
 
     @Override
-    public void onEnable() {
+    protected void onEnable() {
         // Clean up existing resources
         try {
             if (!Files.exists(this.resourcesPath.getParent())) {
