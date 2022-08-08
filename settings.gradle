@@ -6,3 +6,4 @@ include 'minigamemanager'
 include 'testplugin'
 
 include 'tntrun'
+include 'bingo'

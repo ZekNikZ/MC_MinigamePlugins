@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.tntrun;
+package io.zkz.mc.minigameplugins.bingo;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
@@ -9,21 +9,20 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.util.logging.Logger;
 
-@Plugin(name = "TNTRun", version = "1.0")
-@Description("TNT Run")
+@Plugin(name = "Bingo", version = "2.0")
+@Description("Bingo")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
 @Dependency("MinigameManager")
-public class TNTRunPlugin extends GTPlugin<TNTRunPlugin> {
+public class BingoPlugin extends GTPlugin<BingoPlugin> {
     private static Logger logger;
     public static Logger logger() {
         return logger;
     }
 
-    public TNTRunPlugin() {
+    public BingoPlugin() {
         // Services
-        register(TNTRunService.getInstance());
     }
 
     @Override

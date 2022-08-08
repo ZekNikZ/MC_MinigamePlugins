@@ -10,7 +10,7 @@ import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
-@Plugin(name = "MinigameManager", version = "0.1")
+@Plugin(name = "MinigameManager", version = "1.0")
 @Description("A plugin to manage minigame states")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
