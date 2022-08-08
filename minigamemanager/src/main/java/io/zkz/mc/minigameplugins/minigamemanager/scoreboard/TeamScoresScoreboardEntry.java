@@ -7,6 +7,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -21,50 +22,37 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
         ScoreService.getInstance().addListener(this);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void render(int pos) {
+        // Header
         this.getScoreboard().setString(pos, "" + ChatColor.AQUA + ChatColor.BOLD + "Game Points: " + ChatColor.RESET + "(" + ChatColor.YELLOW + MinigameService.getInstance().getPointMultiplier() + "x" + ChatColor.RESET + ")");
+
+        // Get team placements
         List<Map.Entry<GameTeam, Double>> entries = ScoreService.getInstance().getGameTeamScoreSummary().entrySet().stream()
-            .sorted(Comparator.comparing(e -> ((Map.Entry<GameTeam, Double>) e).getValue()).reversed())
+            .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
             .toList();
-        final int placement = IntStream.range(0, entries.size())
-            .filter(i -> entries.get(i).getKey().equals(this.team))
-            .findFirst().orElse(0);
-        final int beforeNum;
-        final int afterNum;
-        final boolean displayTeam;
-        if (placement == 0) { // team is in first place
-            beforeNum = 0;
-            afterNum = 3;
-            displayTeam = false;
-        } else if (placement == entries.size() - 1) { // team is in last place
-            beforeNum = 2;
-            afterNum = 0;
-            displayTeam = true;
-        } else { // team is in the middle
-            beforeNum = 1;
-            afterNum = 1;
-            displayTeam = true;
+        int placement = 0;
+        final int totalNumTeams = entries.size();
+        for (int i = 0; i < totalNumTeams; i++) {
+            if (entries.get(i).getKey().equals(this.team)) {
+                placement = i;
+                break;
+            }
         }
 
-        // Display first place
-        this.displayScore(pos + 1, 0, entries.get(0));
+        // Determine which teams to display
+        List<Integer> placements;
+        if (placement == 0) { // team is in first place
+            placements = List.of(0, 1, 2, 3);
+        } else if (placement == totalNumTeams - 1) { // team is in last place
+            placements = List.of(0, totalNumTeams - 3, totalNumTeams - 2,totalNumTeams - 1);
+        } else { // team is in the middle
+            placements = List.of(0, placement - 1, placement, placement + 1);
+        }
 
-        // Display rest
+        // Write to scoreboard
         AtomicInteger i = new AtomicInteger(1);
-        entries.stream()
-            .skip(placement - beforeNum)
-            .limit(beforeNum + afterNum + 1 + (displayTeam ? 0 : 1))
-            .forEach(entry -> {
-                if (!displayTeam && entry.getKey().equals(team)) {
-                    return;
-                }
-
-                this.displayScore(pos + 1 + i.get(), i.get(), entry);
-
-                i.incrementAndGet();
-            });
+        placements.forEach(place -> this.displayScore(pos + i.getAndIncrement(), place, entries.get(place)));
     }
 
     private void displayScore(int scoreboardPos, int placement, Map.Entry<GameTeam, Double> entry) {
