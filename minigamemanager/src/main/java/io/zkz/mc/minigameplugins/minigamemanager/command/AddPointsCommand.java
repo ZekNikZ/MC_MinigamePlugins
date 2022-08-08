@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
     name = AddPointsCommand.COMMAND_NAME,
     desc = "Add points to a given team",
     usage = "/" + AddPointsCommand.COMMAND_NAME + " <teamID> <points> [reason]",
-    permission = TeamCommands.Permissions.TEAM_CREATE
+    permission = MinigameCommands.Permissions.ADD_POINTS
 ))
 @Permissions(
-    @Permission(name = TeamCommands.Permissions.TEAM_CREATE, desc = "Create teams")
+    @Permission(name = MinigameCommands.Permissions.ADD_POINTS, desc = "Add points")
 )
 public class AddPointsCommand extends AbstractCommandExecutor {
     static final String COMMAND_NAME = "addpoints";

@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
-import io.zkz.mc.minigameplugins.minigamemanager.command.Commands;
+import io.zkz.mc.minigameplugins.minigamemanager.command.MinigameCommands;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
@@ -9,8 +9,6 @@ import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
-
-import java.util.logging.Logger;
 
 @Plugin(name = "MinigameManager", version = "0.1")
 @Description("A plugin to manage minigame states")
@@ -24,7 +22,7 @@ public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
         this.register(ScoreService.getInstance());
 
         // Commands
-        this.register(new Commands());
+        this.register(new MinigameCommands());
     }
 
     @Override

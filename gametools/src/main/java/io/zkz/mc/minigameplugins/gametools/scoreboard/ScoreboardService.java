@@ -18,6 +18,7 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
+// TODO: reduce how often vanilla scoreboard team and team entries are updated
 public class ScoreboardService extends GameToolsService {
     private static final ScoreboardService INSTANCE = new ScoreboardService();
 
@@ -43,6 +44,10 @@ public class ScoreboardService extends GameToolsService {
             this.globalScoreboard.cleanup();
         }
 
+        if (scoreboard != null) {
+            this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
+            this.updateGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
+        }
         this.globalScoreboard = scoreboard;
 
         Bukkit.getOnlinePlayers().forEach(this::updatePlayerScoreboard);
@@ -55,6 +60,8 @@ public class ScoreboardService extends GameToolsService {
         }
 
         if (scoreboard != null) {
+            this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
+            this.updateGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
             this.teamScoreboards.put(teamId, scoreboard);
         } else {
             this.teamScoreboards.remove(teamId);
@@ -70,6 +77,8 @@ public class ScoreboardService extends GameToolsService {
         }
 
         if (scoreboard != null) {
+            this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
+            this.updateGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
             this.playerScoreboards.put(uuid, scoreboard);
         } else {
             this.playerScoreboards.remove(uuid);
