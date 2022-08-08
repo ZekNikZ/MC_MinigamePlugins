@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
+import io.zkz.mc.minigameplugins.minigamemanager.command.Commands;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
@@ -21,6 +22,9 @@ public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
         // Services
         this.register(MinigameService.getInstance());
         this.register(ScoreService.getInstance());
+
+        // Commands
+        this.register(new Commands());
     }
 
     @Override

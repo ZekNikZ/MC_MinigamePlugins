@@ -117,7 +117,7 @@ public class ScoreSummaryTask extends GameTask {
     private void displayScoreboard(Collection<? extends Player> players, Collection<ScoreboardEntry> entries, int numToDisplay) {
         AtomicInteger placement = new AtomicInteger(1);
         entries.stream()
-            .sorted(Comparator.comparing(ScoreboardEntry::points).reversed())
+            .sorted(Comparator.comparing(ScoreboardEntry::points).reversed().thenComparing(ScoreboardEntry::name))
             .limit(numToDisplay)
             .forEach(entry -> {
                 String placementStr = StringUtils.padOnLeftWithPixels("" + placement.getAndIncrement(), 20) + ". ";

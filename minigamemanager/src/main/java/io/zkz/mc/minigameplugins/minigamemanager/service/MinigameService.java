@@ -120,7 +120,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         getInstance().scoreboardModifiers.get(currentState).forEach(consumer -> consumer.accept(currentState, scoreboard));
 
         getInstance().scoreboard = scoreboard;
-        ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+        ScoreboardService.getInstance().setTeamScoreboard(team.getId(), scoreboard);
     };
 
     private static void addRoundInformation(GameScoreboard scoreboard) {

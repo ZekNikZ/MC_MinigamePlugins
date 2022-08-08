@@ -12,6 +12,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,6 +44,17 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
         // Team score
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
+        this.roundTeamScores.compute(team, (t, s) -> s + points);
+        this.gameTeamScores.compute(team, (t, s) -> s + points);
+
+        this.notifyObservers();
+    }
+
+    public void earnPoints(GameTeam team, @Nullable String reason, double points) {
+        ScoreEntry entry = new ScoreEntry(new UUID(0,0), ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason != null ? reason : "", points, MinigameService.getInstance().getPointMultiplier());
+        this.entries.add(entry);
+
+        // Team score
         this.roundTeamScores.compute(team, (t, s) -> s + points);
         this.gameTeamScores.compute(team, (t, s) -> s + points);
 

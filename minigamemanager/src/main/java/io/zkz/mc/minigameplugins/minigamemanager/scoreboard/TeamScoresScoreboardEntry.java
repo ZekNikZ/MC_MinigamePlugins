@@ -2,7 +2,9 @@ package io.zkz.mc.minigameplugins.minigamemanager.scoreboard;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
+import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
@@ -12,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObserver<ScoreService> {
@@ -29,7 +32,7 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
 
         // Get team placements
         List<Map.Entry<GameTeam, Double>> entries = ScoreService.getInstance().getGameTeamScoreSummary().entrySet().stream()
-            .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+            .sorted(Comparator.comparing((Function<Map.Entry<GameTeam, Double>, Double>) Map.Entry::getValue).reversed().thenComparing(entry -> entry.getKey().getDisplayName()))
             .toList();
         int placement = 0;
         final int totalNumTeams = entries.size();
@@ -42,7 +45,7 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
 
         // Determine which teams to display
         List<Integer> placements;
-        if (placement == 0) { // team is in first place
+        if (placement <= 1) { // team is in first place
             placements = List.of(0, 1, 2, 3);
         } else if (placement == totalNumTeams - 1) { // team is in last place
             placements = List.of(0, totalNumTeams - 3, totalNumTeams - 2,totalNumTeams - 1);
@@ -56,7 +59,11 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
     }
 
     private void displayScore(int scoreboardPos, int placement, Map.Entry<GameTeam, Double> entry) {
-        this.getScoreboard().setString(scoreboardPos, " " + (placement + 1) + ". " + entry.getKey().getDisplayName() + " - " + entry.getValue());
+        // TODO: truncate this
+        String placementStr = StringUtils.padOnLeftWithPixels("" + (placement + 1) + ". ", 20);
+        String nameStr = StringUtils.padOnRightWithPixels(entry.getKey().getDisplayName(), 100);
+        String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + Chat.Constants.POINT_CHAR, 45);
+        this.getScoreboard().setString(scoreboardPos, placementStr + nameStr + pointsStr);
     }
 
     @Override
