@@ -49,8 +49,7 @@ public class BingoCardMapRenderer extends MapRenderer {
                 // Get item image
                 BufferedImage image = null;
                 if (items != null) {
-                    if (
-                        currentRound.getPointsForItem(items.get(i)) == 0) {
+                    if (currentRound.getPointsForItem(items.get(i)) == 0) {
                         image = MapImageLoader.getGrayscale(items.get(i).getKey().getKey());
                     } else {
                         image = MapImageLoader.get(items.get(i).getKey().getKey());
@@ -89,7 +88,7 @@ public class BingoCardMapRenderer extends MapRenderer {
                     currentRound.getCollectorsOfItem(items.get(i)).stream()
                         .map(GameTeam::getColor)
                         .map(MapPalette::matchColor)
-                        .collect(Collectors.toList());
+                        .toList();
                 switch (colors.size()) {
                     case 4:
                         MapUtils.fill(

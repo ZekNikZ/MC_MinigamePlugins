@@ -1,6 +1,5 @@
 package io.zkz.mc.minigameplugins.bingo;
 
-import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import io.zkz.mc.minigameplugins.bingo.card.BingoCard;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
@@ -53,13 +52,9 @@ public class BingoRound extends Round {
     @Override
     public void onSetup() {
         // TODO: remove
-        this.card.randomizeItems();
+//        this.card.randomizeItems();
 
-        Set<Material> uniqueItems = new HashSet<>(this.card.getItems());
-
-        this.possiblePoints = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> Points.INITIAL_POINTS));
-        this.teamCollectionOrder = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> new ArrayList<>()));
-        this.teamCollections = TeamService.getInstance().getAllTeams().stream().collect(Collectors.toMap(GameTeam::getId, t -> new HashSet<>()));
+        this.setupCollections();
 
         // Setup lobby
         SchematicService.getInstance().loadSchematic(BingoRound.class.getResourceAsStream("/lobby.schem"), this.spawnLocation);
@@ -69,6 +64,7 @@ public class BingoRound extends Round {
         WorldSyncUtils.setGameRuleValue(GameRule.DO_WEATHER_CYCLE, false);
         WorldSyncUtils.setGameRuleValue(GameRule.KEEP_INVENTORY, true);
         WorldSyncUtils.setGameRuleValue(GameRule.FALL_DAMAGE, false);
+        WorldSyncUtils.setGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         WorldSyncUtils.setWorldBorderCenter(this.spawnLocation.getBlockX(), this.spawnLocation.getBlockZ());
         WorldSyncUtils.setWorldBorderSize(1500);
         WorldSyncUtils.setDifficulty(Difficulty.NORMAL);
@@ -201,6 +197,10 @@ public class BingoRound extends Round {
     }
 
     public List<GameTeam> getCollectorsOfItem(Material material) {
+        if (this.teamCollectionOrder.get(material) == null) {
+            return List.of();
+        }
+
         return this.teamCollectionOrder.get(material).stream().map(TeamService.getInstance()::getTeam).collect(Collectors.toList());
     }
 
@@ -267,5 +267,17 @@ public class BingoRound extends Round {
 
     public Location getSpawnLocation() {
         return this.spawnLocation;
+    }
+
+    public void randomizeCard() {
+        this.card.randomizeItems();
+        this.setupCollections();
+    }
+
+    private void setupCollections() {
+        Set<Material> uniqueItems = new HashSet<>(this.card.getItems());
+        this.possiblePoints = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> Points.INITIAL_POINTS));
+        this.teamCollectionOrder = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> new ArrayList<>()));
+        this.teamCollections = TeamService.getInstance().getAllTeams().stream().collect(Collectors.toMap(GameTeam::getId, t -> new HashSet<>()));
     }
 }
