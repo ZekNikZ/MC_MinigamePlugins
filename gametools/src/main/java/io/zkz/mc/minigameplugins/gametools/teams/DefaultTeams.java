@@ -28,70 +28,87 @@ public class DefaultTeams {
 
     static {
         SPECTATOR = new GameTeam("spectators", "Spectators", "SPEC");
-        
-        BLACK = new GameTeam("black", "Black Team", "\u24b7");
-        BLACK.setFormatCode(ChatColor.BLACK);
-        BLACK.setColor(Color.BLACK);
-        
-        NAVY = new GameTeam("navy", "Navy Team", "\u24dd");
-        NAVY.setFormatCode(ChatColor.DARK_BLUE);
-        NAVY.setColor(Color.BLUE.darker().darker());
+        SPECTATOR.setScoreboardColor(org.bukkit.ChatColor.BLACK);
 
-        GREEN = new GameTeam("green", "Green Team", "\u24bc");
-        GREEN.setFormatCode(ChatColor.DARK_GREEN);
-        GREEN.setColor(Color.GREEN.darker().darker());
+        BLACK = new GameTeam("black", "Black Team", "\u24b7")
+            .setScoreboardColor(org.bukkit.ChatColor.BLACK)
+            .setFormatCode(ChatColor.BLACK)
+            .setColor(Color.BLACK);
 
-        CYAN = new GameTeam("cyan", "Cyan Team", "\u24d2");
-        CYAN.setFormatCode(ChatColor.DARK_AQUA);
-        CYAN.setColor(Color.CYAN.darker().darker());
+        NAVY = new GameTeam("navy", "Navy Team", "\u24dd")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_BLUE)
+            .setFormatCode(ChatColor.DARK_BLUE)
+            .setColor(Color.BLUE.darker().darker());
 
-        DARK_RED = new GameTeam("dark_red", "Crimson Team", "\u24d2");
-        DARK_RED.setFormatCode(ChatColor.DARK_RED);
-        DARK_RED.setColor(Color.RED.darker().darker());
+        GREEN = new GameTeam("green", "Green Team", "\u24bc")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_GREEN)
+            .setFormatCode(ChatColor.DARK_GREEN)
+            .setColor(Color.GREEN.darker().darker());
 
-        PURPLE = new GameTeam("purple", "Purple Team", "\u24c5");
-        PURPLE.setFormatCode(ChatColor.DARK_PURPLE);
-        PURPLE.setColor(Color.MAGENTA.darker().darker());
+        CYAN = new GameTeam("cyan", "Cyan Team", "\u24d2")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_AQUA)
+            .setFormatCode(ChatColor.DARK_AQUA)
+            .setColor(Color.CYAN.darker().darker());
 
-        GOLD = new GameTeam("gold", "Gold Team", "\u24bc");
-        GOLD.setFormatCode(ChatColor.GOLD);
-        GOLD.setColor(Color.YELLOW.darker().darker());
+        DARK_RED = new GameTeam("dark_red", "Crimson Team", "\u24d2")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_RED)
+            .setFormatCode(ChatColor.DARK_RED)
+            .setColor(Color.RED.darker().darker());
 
-        GRAY = new GameTeam("gray", "Gray Team", "\u24bc");
-        GRAY.setFormatCode(ChatColor.GRAY);
-        GRAY.setColor(Color.GRAY);
+        PURPLE = new GameTeam("purple", "Purple Team", "\u24c5")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_PURPLE)
+            .setFormatCode(ChatColor.DARK_PURPLE)
+            .setColor(Color.MAGENTA.darker().darker());
 
-        DARK_GRAY = new GameTeam("dark_gray", "Ash Team", "\u24d0");
-        DARK_GRAY.setFormatCode(ChatColor.DARK_GRAY);
-        DARK_GRAY.setColor(Color.DARK_GRAY);
+        GOLD = new GameTeam("gold", "Gold Team", "\u24bc")
+            .setScoreboardColor(org.bukkit.ChatColor.GOLD)
+            .setFormatCode(ChatColor.GOLD)
+            .setColor(Color.YELLOW.darker().darker());
 
-        BLUE = new GameTeam("blue", "Blue Team", "\u24b7");
-        BLUE.setFormatCode(ChatColor.BLUE);
-        BLUE.setColor(Color.BLUE);
+        GRAY = new GameTeam("gray", "Gray Team", "\u24bc")
+            .setScoreboardColor(org.bukkit.ChatColor.GRAY)
+            .setFormatCode(ChatColor.GRAY)
+            .setColor(Color.GRAY);
 
-        LIME = new GameTeam("lime", "Lime Team", "\u24db");
-        LIME.setFormatCode(ChatColor.GREEN);
-        LIME.setColor(Color.GREEN);
+        DARK_GRAY = new GameTeam("dark_gray", "Ash Team", "\u24d0")
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
+            .setFormatCode(ChatColor.DARK_GRAY)
+            .setColor(Color.DARK_GRAY);
 
-        AQUA = new GameTeam("aqua", "Aqua Team", "\u24d0");
-        AQUA.setFormatCode(ChatColor.AQUA);
-        AQUA.setColor(Color.CYAN);
+        BLUE = new GameTeam("blue", "Blue Team", "\u24b7")
+            .setScoreboardColor(org.bukkit.ChatColor.BLUE)
+            .setFormatCode(ChatColor.BLUE)
+            .setColor(Color.BLUE);
 
-        RED = new GameTeam("red", "Red Team", "\u24c7");
-        RED.setFormatCode(ChatColor.RED);
-        RED.setColor(Color.RED);
+        LIME = new GameTeam("lime", "Lime Team", "\u24db")
+            .setScoreboardColor(org.bukkit.ChatColor.GREEN)
+            .setFormatCode(ChatColor.GREEN)
+            .setColor(Color.GREEN);
 
-        MAGENTA = new GameTeam("magenta", "Magenta Team", "\u24dc");
-        MAGENTA.setFormatCode(ChatColor.LIGHT_PURPLE);
-        MAGENTA.setColor(Color.MAGENTA);
+        AQUA = new GameTeam("aqua", "Aqua Team", "\u24d0")
+            .setScoreboardColor(org.bukkit.ChatColor.AQUA)
+            .setFormatCode(ChatColor.AQUA)
+            .setColor(Color.CYAN);
 
-        YELLOW = new GameTeam("yellow", "Yellow Team", "\u24e8");
-        YELLOW.setFormatCode(ChatColor.YELLOW);
-        YELLOW.setColor(Color.YELLOW);
+        RED = new GameTeam("red", "Red Team", "\u24c7")
+            .setScoreboardColor(org.bukkit.ChatColor.RED)
+            .setFormatCode(ChatColor.RED)
+            .setColor(Color.RED);
 
-        WHITE = new GameTeam("white", "White Team", "\u24e6");
-        WHITE.setFormatCode(ChatColor.WHITE);
-        WHITE.setColor(Color.WHITE);
+        MAGENTA = new GameTeam("magenta", "Magenta Team", "\u24dc")
+            .setScoreboardColor(org.bukkit.ChatColor.LIGHT_PURPLE)
+            .setFormatCode(ChatColor.LIGHT_PURPLE)
+            .setColor(Color.MAGENTA);
+
+        YELLOW = new GameTeam("yellow", "Yellow Team", "\u24e8")
+            .setScoreboardColor(org.bukkit.ChatColor.YELLOW)
+            .setFormatCode(ChatColor.YELLOW)
+            .setColor(Color.YELLOW);
+
+        WHITE = new GameTeam("white", "White Team", "\u24e6")
+            .setScoreboardColor(org.bukkit.ChatColor.WHITE)
+            .setFormatCode(ChatColor.WHITE)
+            .setColor(Color.WHITE);
     }
 
     public static void addAll() {

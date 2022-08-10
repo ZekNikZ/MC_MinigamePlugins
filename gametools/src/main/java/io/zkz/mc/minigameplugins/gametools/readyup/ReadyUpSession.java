@@ -76,9 +76,9 @@ public class ReadyUpSession {
 
             GameTeam playerTeam = TeamService.getInstance().getTeamOfPlayer(player);
             if (playerTeam != null) {
-                Chat.sendAlert(ChatType.PASSIVE_INFO, "" + playerTeam.getFormatCode() + ChatColor.BOLD + playerTeam.getPrefix() + " " + playerTeam.getFormatCode() + player.getDisplayName() + ChatColor.RESET + " is ready!");
+                Chat.sendAlert(player, ChatType.PASSIVE_INFO, "" + playerTeam.getFormatCode() + ChatColor.BOLD + playerTeam.getPrefix() + " " + playerTeam.getFormatCode() + player.getDisplayName() + ChatColor.RESET + " is ready!");
             } else {
-                Chat.sendAlert(ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
+                Chat.sendAlert(player, ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
             }
         });
 

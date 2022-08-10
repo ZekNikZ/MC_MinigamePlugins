@@ -4,8 +4,9 @@ ext {
   junitVersion = '5.7.0'
   spigotVersion = '1.19.2-R0.1-SNAPSHOT'
   protocolLibVersion = '5.0.0-SNAPSHOT'
-  worldeditVersion = '7.2.11-SNAPSHOT'
+  worldeditVersion = '7.2.12-SNAPSHOT'
   worldguardVersion = '7.0.8-SNAPSHOT'
+  smartInvsVersion = '1.2.7'
 }
 
 allprojects {

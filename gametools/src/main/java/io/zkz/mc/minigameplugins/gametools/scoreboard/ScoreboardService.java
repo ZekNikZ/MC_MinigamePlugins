@@ -149,6 +149,7 @@ public class ScoreboardService extends GameToolsService {
             }
             Team team = scoreboard.registerNewTeam(gameTeam.getId());
             team.setPrefix("" + gameTeam.getFormatCode() + gameTeam.getPrefix() + " ");
+            team.setColor(gameTeam.getScoreboardColor() != null ? gameTeam.getScoreboardColor() : org.bukkit.ChatColor.WHITE);
             team.setSuffix("" + ChatColor.RESET);
             team.setCanSeeFriendlyInvisibles(true);
         });

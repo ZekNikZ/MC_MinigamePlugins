@@ -5,6 +5,7 @@ import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -120,7 +121,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         getInstance().scoreboardModifiers.get(currentState).forEach(consumer -> consumer.accept(currentState, scoreboard));
 
-        getInstance().scoreboard = scoreboard;
         ScoreboardService.getInstance().setTeamScoreboard(team.getId(), scoreboard);
     };
 
@@ -167,7 +167,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private final List<Character> rulesSlides = new ArrayList<>();
     private int currentRound = -1;
     private AbstractTimer timer;
-    private GameScoreboard scoreboard;
     private int gameNumber = 0;
 
     public void setGameNumber(int gameNumber) {
@@ -391,9 +390,15 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.setState(MinigameState.WAITING_FOR_PLAYERS);
     }
 
+    @SuppressWarnings("unchecked")
     private void waitForPlayers() {
         Collection<UUID> players = this.getPlayers();
-        ((ValueEntry<Integer>) this.scoreboard.getEntry("playerCount")).setValue((int) players.stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count());
+        ScoreboardService.getInstance().getAllScoreboards().forEach(scoreboard -> {
+            ValueEntry<Integer> entry = ((ValueEntry<Integer>) scoreboard.getEntry("playerCount"));
+            if (entry != null) {
+                entry.setValue((int) players.stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count());
+            }
+        });
         if (players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
             this.setState(MinigameState.RULES);
         }
@@ -414,8 +419,14 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.setState(MinigameState.PRE_ROUND);
     }
 
+    @SuppressWarnings("unchecked")
     private void handlePlayerReady(Player player, ReadyUpSession session) {
-        ((ValueEntry<Integer>) this.scoreboard.getEntry("playerCount")).setValue((int) session.getReadyPlayerCount());
+        ScoreboardService.getInstance().getAllScoreboards().forEach(scoreboard -> {
+            ValueEntry<Integer> entry = ((ValueEntry<Integer>) scoreboard.getEntry("playerCount"));
+            if (entry != null) {
+                entry.setValue((int) session.getReadyPlayerCount());
+            }
+        });
     }
 
     public void pauseGame() {

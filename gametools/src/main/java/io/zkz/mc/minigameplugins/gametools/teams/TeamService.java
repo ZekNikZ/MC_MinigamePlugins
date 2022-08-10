@@ -274,7 +274,7 @@ public class TeamService extends GameToolsService {
     private void onPlayerJoin(PlayerJoinEvent event) {
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
-            event.getPlayer().setDisplayName("" + team.getFormatCode() + team.getPrefix() + " " + event.getPlayer().getName() + ChatColor.RESET);
+            event.getPlayer().setDisplayName(ChatColor.RESET + team.getFormatCode() + team.getPrefix() + " " + event.getPlayer().getName() + ChatColor.RESET);
         }
 
         event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getDisplayName() + ChatColor.YELLOW + " joined the game.");
@@ -344,6 +344,7 @@ public class TeamService extends GameToolsService {
                     resultSet.getString("teamName"),
                     resultSet.getString("teamPrefix")
                 );
+                team.setScoreboardColor(org.bukkit.ChatColor.getByChar("teamScoreboardColor"));
                 team.setFormatCode(resultSet.getString("teamFormatCode"));
                 team.setColor(new Color(resultSet.getInt("teamColor")));
                 this.createTeam(team, true);
@@ -371,7 +372,7 @@ public class TeamService extends GameToolsService {
 
     private void createTeamsInDB(Connection conn, List<GameTeam> teams) {
         try (PreparedStatement statement = conn.prepareStatement(
-            "INSERT INTO gt_teams (teamId, teamName, teamPrefix, teamFormatCode, teamColor) VALUES (?, ?, ?, ?, ?);"
+            "INSERT INTO gt_teams (teamId, teamName, teamPrefix, teamFormatCode, teamColor, teamScoreboardColor) VALUES (?, ?, ?, ?, ?, ?);"
         )) {
             conn.setAutoCommit(false);
 
@@ -381,6 +382,7 @@ public class TeamService extends GameToolsService {
                 statement.setString(3, team.getPrefix());
                 statement.setString(4, String.valueOf(team.getFormatCode()));
                 statement.setInt(5, team.getColor().getRGB());
+                statement.setString(6, String.valueOf(team.getScoreboardColor().getChar()));
                 statement.addBatch();
             }
             statement.executeBatch();

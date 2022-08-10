@@ -70,7 +70,7 @@ public class ReadyUpService extends GameToolsService {
     }
 
     private void displayInitialReadyMessage(Player player) {
-        Chat.sendAlert(ChatType.GAME_INFO, "Are you ready? Type " + ChatColor.AQUA + "/ready" + ChatColor.RESET + " to confirm.");
+        Chat.sendAlert(player, ChatType.GAME_INFO, "Are you ready? Type " + ChatColor.AQUA + "/ready" + ChatColor.RESET + " to confirm.");
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
     }
 

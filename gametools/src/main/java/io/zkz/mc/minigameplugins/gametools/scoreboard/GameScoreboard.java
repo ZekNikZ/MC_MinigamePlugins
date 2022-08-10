@@ -8,6 +8,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -142,7 +143,7 @@ public class GameScoreboard {
         team.setSuffix(str);
     }
 
-    public ScoreboardEntry getEntry(String id) {
+    public @Nullable ScoreboardEntry getEntry(String id) {
         return this.mappedEntries.get(id);
     }
 

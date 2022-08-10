@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class ItemStackBuilder {
     private final ItemStack stack;
@@ -57,6 +58,13 @@ public class ItemStackBuilder {
     }
 
     public ItemStackBuilder meta(ItemMeta meta) {
+        this.stack.setItemMeta(meta);
+        return this;
+    }
+
+    public ItemStackBuilder meta(Consumer<ItemMeta> metaModifier) {
+        ItemMeta meta = this.stack.getItemMeta();
+        metaModifier.accept(meta);
         this.stack.setItemMeta(meta);
         return this;
     }
@@ -142,7 +150,7 @@ public class ItemStackBuilder {
         }
 
         if (this.unbreakable != null) {
-//            meta.setUnbreakable(this.unbreakable);
+            meta.setUnbreakable(this.unbreakable);
         }
 
         stack.setItemMeta(meta);

@@ -5,6 +5,10 @@ import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
+import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.function.mask.BlockMask;
+import com.sk89q.worldedit.function.mask.BlockTypeMask;
+import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.function.pattern.RandomPattern;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -13,9 +17,11 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.factory.CuboidRegionFactory;
 import com.sk89q.worldedit.regions.factory.SphereRegionFactory;
 import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.block.BlockType;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import org.bukkit.Material;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class WorldEditService extends GameToolsService {
@@ -50,6 +56,10 @@ public class WorldEditService extends GameToolsService {
         return BukkitAdapter.adapt(mat.createBlockData());
     }
 
+    public Mask createMask(Extent extent, Material... mats) {
+        return new BlockTypeMask(extent, Arrays.stream(mats).map(mat -> BukkitAdapter.adapt(mat.createBlockData()).getBlockType()).toArray(BlockType[]::new));
+    }
+
     public Pattern createRandomPattern(Map<Material, Double> materials) {
         RandomPattern pattern = new RandomPattern();
         materials.forEach((mat, weight) -> pattern.add(BukkitAdapter.adapt(mat.createBlockData()), weight));
@@ -76,7 +86,25 @@ public class WorldEditService extends GameToolsService {
         }
     }
 
+    public void replaceRegion(Region region, Mask mask, Pattern pattern) {
+        this.fillRegion(region.getWorld(), region, pattern);
+    }
+
+    public void replaceRegion(World world, Region region, Mask mask, Pattern pattern) {
+        try (EditSession session = this.createEditSession(world)) {
+            session.setMask(mask);
+            session.setBlocks(region, pattern);
+        } catch (MaxChangedBlocksException e) {
+            this.getLogger().warning("Max blocks changed in fill attempt");
+        }
+    }
+
+
     public World wrapWorld(org.bukkit.World world) {
         return new BukkitWorld(world);
+    }
+
+    public BlockVector3 wrapLocation(org.bukkit.Location location) {
+        return BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 }

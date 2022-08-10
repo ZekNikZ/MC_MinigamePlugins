@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.bingo;
 
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
+import io.zkz.mc.minigameplugins.bingo.menu.BingoCardMenu;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
@@ -26,11 +27,16 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.PlayerInventory;
@@ -60,19 +66,20 @@ public class BingoService extends PluginService<BingoPlugin> {
         MinigameService minigame = MinigameService.getInstance();
 
         ChatConstantsService.getInstance().setMinigameName("Bingo");
+        ChatConstantsService.getInstance().setMinigameName("Bingo");
 
         // Rules slides
         char slide1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 200, 200);
         char slide2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 200, 200);
         minigame.registerRulesSlides(slide1, slide2);
-        minigame.setPreRoundDelay(400);
-        minigame.setPostRoundDelay(400);
+        minigame.setPreRoundDelay(900);
+        minigame.setPostRoundDelay(600);
         minigame.setPostGameDelay(600);
 
         // Player states
         BasicPlayerState survivalMode = new BasicPlayerState(GameMode.SURVIVAL, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
-        BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+        BasicPlayerState creativeMode = new BasicPlayerState(GameMode.CREATIVE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
@@ -84,7 +91,7 @@ public class BingoService extends PluginService<BingoPlugin> {
         minigame.registerPlayerState(survivalMode,
             MinigameState.IN_GAME
         );
-        minigame.registerPlayerState(spectatorMode,
+        minigame.registerPlayerState(creativeMode,
             MinigameState.POST_ROUND,
             MinigameState.POST_GAME
         );
@@ -105,7 +112,7 @@ public class BingoService extends PluginService<BingoPlugin> {
                         // intentionally empty
                     } else if (minAlert == 6 && secondsRemaining <= minAlert * 60L) {
                         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                        Chat.sendAlert(ChatType.WARNING, "6 minutes remaining..");
+                        Chat.sendAlert(ChatType.WARNING, "6 minutes remaining...");
                         minAlert = 2;
                     } else if (secondsRemaining <= minAlert * 60L) {
                         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
@@ -116,7 +123,7 @@ public class BingoService extends PluginService<BingoPlugin> {
                         Chat.sendAlert(ChatType.WARNING, "30 seconds remaining.");
                         secAlert = 10;
                     } else if (secondsRemaining <= secAlert) {
-                        SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
+                        SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
                         Chat.sendAlert(ChatType.WARNING, secAlert + " second" + (secAlert == 1 ? "" : "s") + " remaining.");
                         --secAlert;
                     }
@@ -165,7 +172,7 @@ public class BingoService extends PluginService<BingoPlugin> {
 
     private JSONObject saveData() {
         return new JSONObject(Map.of(
-            "arenas", new TypedJSONArray<>(this.rounds.stream().map(BingoRound::toJSON))
+            "arenas", new TypedJSONArray<>(this.rounds.stream().map(BingoRound::toJSON).toList())
         ));
     }
 
@@ -194,6 +201,7 @@ public class BingoService extends PluginService<BingoPlugin> {
         } else {
             event.getPlayer().getInventory().clear();
         }
+        event.getPlayer().teleport(((BingoRound) MinigameService.getInstance().getCurrentRound()).getSpawnLocation());
     }
 
     @EventHandler
@@ -233,7 +241,7 @@ public class BingoService extends PluginService<BingoPlugin> {
             event.setCancelled(true);
             event.getBlock().setType(Material.AIR);
         } else if (event.getBlock().getType() == Material.COPPER_ORE || event.getBlock().getType() == Material.DEEPSLATE_COPPER_ORE) {
-            event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), ISB.stack(Material.GOLD_INGOT));
+            event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), ISB.stack(Material.COPPER_INGOT));
             event.setCancelled(true);
             event.getBlock().setType(Material.AIR);
         }
@@ -244,5 +252,31 @@ public class BingoService extends PluginService<BingoPlugin> {
         Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         }, 1);
+    }
+
+    @EventHandler
+    private void onHeldItemChange(PlayerItemHeldEvent event) {
+        PlayerInventory inventory = event.getPlayer().getInventory();
+        if (inventory.getItemInMainHand().getEnchantmentLevel(Enchantment.DIG_SPEED) < 3 && isTool(inventory.getItemInMainHand().getType())) {
+            inventory.getItemInMainHand().addEnchantment(Enchantment.DIG_SPEED, 3);
+        }
+    }
+    
+    private boolean isTool(Material material) {
+        return switch (material) {
+            case WOODEN_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE, WOODEN_HOE, IRON_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE, WOODEN_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL, NETHERITE_SHOVEL, WOODEN_PICKAXE, IRON_PICKAXE, GOLDEN_PICKAXE, DIAMOND_PICKAXE, NETHERITE_PICKAXE -> true;
+            default -> false;
+        };
+    }
+
+    @EventHandler
+    private void onOpenMenu(PlayerInteractEvent event) {
+        if (!(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
+            return;
+        }
+        if (event.getItem() == null || event.getItem().getType() != Material.NETHER_STAR) {
+            return;
+        }
+        BingoCardMenu.open(event.getPlayer());
     }
 }

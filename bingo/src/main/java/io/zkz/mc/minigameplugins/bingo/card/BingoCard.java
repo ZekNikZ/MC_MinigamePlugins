@@ -15,6 +15,13 @@ public class BingoCard {
         this.items = ListUtils.of(Collections.nCopies(25, Material.AIR));
     }
 
+    public BingoCard(List<String> items) {
+        this();
+        for (int i = 0; i < items.size() && i < 25; i++) {
+            this.items.set(i, Material.matchMaterial(items.get(i)));
+        }
+    }
+
     public List<Material> getItems() {
         return ListUtils.ofImmutable(this.items);
     }
@@ -40,5 +47,9 @@ public class BingoCard {
             }
         });
         this.randomizeOrder();
+    }
+
+    public List<String> toJSON() {
+        return this.getItems().stream().map(material -> material.getKey().toString()).toList();
     }
 }

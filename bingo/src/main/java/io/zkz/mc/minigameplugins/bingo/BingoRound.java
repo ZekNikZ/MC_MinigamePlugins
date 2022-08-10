@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.bingo;
 
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.Region;
 import io.zkz.mc.minigameplugins.bingo.card.BingoCard;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMapRenderer;
@@ -11,6 +13,8 @@ import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.*;
+import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
+import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
@@ -22,8 +26,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.map.MapView;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -41,7 +43,7 @@ public class BingoRound extends Round {
     }
 
     public BingoRound(TypedJSONObject<Object> json) {
-        this.card = new BingoCard();
+        this.card = new BingoCard(json.getList("card", String.class));
         this.spawnLocation = JSONUtils.readLocation(json.getObject("spawn"));
         this.possiblePoints = new HashMap<>();
         this.teamCollectionOrder = new HashMap<>();
@@ -50,11 +52,17 @@ public class BingoRound extends Round {
 
     @Override
     public void onSetup() {
-        this.possiblePoints = this.card.getItems().stream().collect(Collectors.toMap(m -> m, m -> Points.INITIAL_POINTS));
-        this.teamCollectionOrder = this.card.getItems().stream().collect(Collectors.toMap(m -> m, m -> new ArrayList<>()));
+        // TODO: remove
+        this.card.randomizeItems();
+
+        Set<Material> uniqueItems = new HashSet<>(this.card.getItems());
+
+        this.possiblePoints = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> Points.INITIAL_POINTS));
+        this.teamCollectionOrder = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> new ArrayList<>()));
         this.teamCollections = TeamService.getInstance().getAllTeams().stream().collect(Collectors.toMap(GameTeam::getId, t -> new HashSet<>()));
 
-        // TODO: setup lobby
+        // Setup lobby
+        SchematicService.getInstance().loadSchematic(BingoRound.class.getResourceAsStream("/lobby.schem"), this.spawnLocation);
 
         // Gamerules
         WorldSyncUtils.setGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE, false);
@@ -71,7 +79,7 @@ public class BingoRound extends Round {
     @Override
     public void onPreRound() {
         // Create the map
-        MapView mapView = Bukkit.createMap(Bukkit.getWorlds().get(0));
+        MapView mapView = Bukkit.createMap(this.spawnLocation.getWorld());
         mapView.getRenderers().clear();
         mapView.setTrackingPosition(false);
         mapView.addRenderer(new BingoCardMapRenderer());
@@ -99,6 +107,10 @@ public class BingoRound extends Round {
                     ISB.material(Material.IRON_SHOVEL)
                         .addEnchantment(Enchantment.DIG_SPEED, 3)
                         .unbreakable()
+                        .build(),
+                    ISB.material(Material.NETHER_STAR)
+                        .name("Bingo Crystal")
+                        .lore("Right-click this to view the", "bingo card or teleport.")
                         .build()
                 );
 
@@ -152,9 +164,24 @@ public class BingoRound extends Round {
             });
     }
 
+    @Override
+    public void onStart() {
+        WorldEditService we = WorldEditService.getInstance();
+
+        // Remove barriers
+        Region region = we.createCuboidRegion(we.wrapLocation(this.spawnLocation), 10);
+        we.replaceRegion(
+            we.wrapWorld(this.spawnLocation.getWorld()),
+            region,
+            we.createMask(we.wrapWorld(this.spawnLocation.getWorld()), Material.BARRIER),
+            we.createPattern(Material.AIR)
+        );
+    }
+
     public JSONObject toJSON() {
         return new JSONObject(Map.of(
-            "spawn", JSONUtils.toJSON(this.spawnLocation)
+            "spawn", JSONUtils.toJSON(this.spawnLocation),
+            "card", this.card.toJSON()
         ));
     }
 
@@ -228,7 +255,7 @@ public class BingoRound extends Round {
             int index = Points.POINT_VALUES.indexOf(val);
             if (index == Points.POINT_VALUES.size() - 1) {
                 SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
-                Chat.sendAlert(ChatType.WARNING, "No more " + Chat.Constants.POINT_CHAR + " available for " + ChatColor.AQUA + "[" + itemName + "]");
+                Chat.sendAlert(ChatType.WARNING, "" + ChatColor.RESET + ChatColor.RED + "No more " + Chat.Constants.POINT_CHAR + ChatColor.RED + " available for " + ChatColor.AQUA + "[" + itemName + "]");
                 return 0;
             } else {
                 return Points.POINT_VALUES.get(index + 1);
@@ -236,5 +263,9 @@ public class BingoRound extends Round {
         });
 
         BingoCardMap.markDirty();
+    }
+
+    public Location getSpawnLocation() {
+        return this.spawnLocation;
     }
 }

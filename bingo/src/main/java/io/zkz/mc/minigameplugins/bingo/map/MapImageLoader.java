@@ -1,6 +1,5 @@
 package io.zkz.mc.minigameplugins.bingo.map;
 
-import io.zkz.mc.minigameplugins.bingo.BingoService;
 import io.zkz.mc.minigameplugins.bingo.card.BingoItem;
 import org.bukkit.Material;
 
@@ -31,7 +30,7 @@ public class MapImageLoader {
 
             String key = mat.getKey().getKey();
 
-            InputStream in = BingoService.getInstance().getPlugin().getResourceAsStream(IMAGE_FOLDER + key + ".png");
+            InputStream in = MapImageLoader.class.getResourceAsStream(IMAGE_FOLDER + key + ".png");
             if (in == null) {
                 System.err.println("Could not find image for key " + key);
                 continue;

@@ -13,6 +13,7 @@ public class GameTeam {
     private String prefix;
     private String formatCode;
     private Color color;
+    private org.bukkit.ChatColor scoreboardColor;
 
     public GameTeam() {
         this.formatCode = "" + ChatColor.RESET;
@@ -30,21 +31,23 @@ public class GameTeam {
         return this.formatCode;
     }
 
-    public void setFormatCode(ChatColor formatCode) {
-        this.setFormatCode("" + formatCode);
+    public GameTeam setFormatCode(ChatColor formatCode) {
+        return this.setFormatCode(formatCode.toString());
     }
 
-    public void setFormatCode(String formatCode) {
+    public GameTeam setFormatCode(String formatCode) {
         this.formatCode = formatCode;
         this.updateMinecraftTeam();
+        return this;
     }
 
     public String getId() {
         return id;
     }
 
-    private void setId(String id) {
+    private GameTeam setId(String id) {
         this.id = id;
+        return this;
     }
 
     public String getName() {
@@ -55,26 +58,38 @@ public class GameTeam {
         return this.formatCode + this.prefix + " " + this.name + ChatColor.RESET;
     }
 
-    void setName(String name) {
+    public GameTeam setScoreboardColor(org.bukkit.ChatColor color) {
+        this.scoreboardColor = color;
+        return this;
+    }
+
+    public org.bukkit.ChatColor getScoreboardColor() {
+        return this.scoreboardColor;
+    }
+
+    GameTeam setName(String name) {
         this.name = name;
         this.updateMinecraftTeam();
+        return this;
     }
 
     public String getPrefix() {
         return prefix;
     }
 
-    void setPrefix(String prefix) {
+    GameTeam setPrefix(String prefix) {
         this.prefix = prefix;
         this.updateMinecraftTeam();
+        return this;
     }
 
     public Color getColor() {
         return this.color;
     }
 
-    void setColor(Color color) {
+    GameTeam setColor(Color color) {
         this.color = color;
+        return this;
     }
 
     private void updateMinecraftTeam() {

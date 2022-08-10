@@ -17,8 +17,7 @@ public class TypedJSONArray<T> extends ArrayList<T> implements List<T>, JSONAwar
         super();
     }
 
-    @SafeVarargs
-    public TypedJSONArray(T... values) {
+    public TypedJSONArray(T[] values) {
         super(Arrays.asList(values));
     }
 
