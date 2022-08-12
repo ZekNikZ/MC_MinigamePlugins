@@ -153,7 +153,6 @@ public enum BingoItem {
     TUFF(Material.TUFF, ItemGroup.FINDABLE_STONE),
     VINE(Material.VINE, ItemGroup.EXPLORATION),
     WHITE_BANNER(Material.WHITE_BANNER, ItemGroup.EXPLORATION),
-
     ;
 
     private final Material material;

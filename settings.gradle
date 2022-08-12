@@ -3,6 +3,8 @@ rootProject.name = 'minigameplugins'
 include 'gametools'
 include 'minigamemanager'
 
+include 'lobby'
+
 include 'testplugin'
 
 include 'tntrun'
