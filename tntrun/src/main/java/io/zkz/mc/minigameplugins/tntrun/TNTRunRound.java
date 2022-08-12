@@ -42,6 +42,7 @@ public class TNTRunRound extends Round {
             player.getInventory().clear();
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 10, false, false));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 1000000, 1, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 1, false, false));
         });
     }
 

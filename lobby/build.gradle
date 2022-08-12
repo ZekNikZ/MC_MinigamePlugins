@@ -1,7 +1,12 @@
 version "1.0-SNAPSHOT"
 
+repositories {
+    maven { url 'https://dev.ME1312.net/maven' }
+}
+
 dependencies {
     implementation project(':gametools')
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"
     compileOnly "com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}"
+    compileOnly "net.ME1312.SubServers:SubServers.Client.Bukkit:${subserversClientVersion}"
 }

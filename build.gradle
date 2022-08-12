@@ -7,6 +7,7 @@ ext {
   worldeditVersion = '7.2.12-SNAPSHOT'
   worldguardVersion = '7.0.8-SNAPSHOT'
   smartInvsVersion = '1.2.7'
+  subserversClientVersion = '22w24a'
 }
 
 allprojects {

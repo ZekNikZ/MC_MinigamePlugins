@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.lobby;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
+import io.zkz.mc.minigameplugins.lobby.command.LobbyCommands;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
@@ -14,6 +15,9 @@ import java.util.logging.Logger;
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
+@Dependency("WorldEdit")
+@Dependency("WorldGuard")
+@Dependency("SubServers-Client-Bukkit")
 public class LobbyPlugin extends GTPlugin<LobbyPlugin> {
     private static Logger logger;
     public static Logger logger() {
@@ -22,7 +26,11 @@ public class LobbyPlugin extends GTPlugin<LobbyPlugin> {
 
     public LobbyPlugin() {
         // Services
-        register(LobbyService.getInstance());
+        this.register(LobbyService.getInstance());
+        this.register(TournamentManager.getInstance());
+
+        // Commands
+        this.register(new LobbyCommands());
     }
 
     @Override
