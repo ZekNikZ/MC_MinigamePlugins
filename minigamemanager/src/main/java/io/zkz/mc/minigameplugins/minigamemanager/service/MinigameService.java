@@ -5,7 +5,6 @@ import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -29,7 +28,10 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
+import net.ME1312.SubServers.Client.Common.Network.API.SubCreator;
+import net.ME1312.SubServers.Client.Common.Network.API.SubServer;
 import net.md_5.bungee.api.ChatColor;
+import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -454,8 +456,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     private void endGame() {
-        // TODO: send back to hub
-//        Bukkit.shutdown();
+        // Send players back to hub
+        SubAPI.getInstance().getRemotePlayers(players -> {
+            players.forEach((playerId, player) -> {
+                player.transfer("lobby");
+            });
+        });
     }
 
     /**

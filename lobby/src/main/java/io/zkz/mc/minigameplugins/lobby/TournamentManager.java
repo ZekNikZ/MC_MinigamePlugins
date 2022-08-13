@@ -15,16 +15,16 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     public void startMinigameServer(String templateId, Runnable callbackWhenStarted) {
         // Note: this assumes only one host
         SubAPI.getInstance().getHosts(hosts -> {
-            SubCreator creator =  hosts.get("~").getCreator();
+            SubCreator creator = hosts.get("~").getCreator();
             SubCreator.ServerTemplate template = creator.getTemplate(templateId);
             creator.create(templateId, template, Version.fromString("1.19.2"), null, i -> callbackWhenStarted.run());
         });
     }
 
     public void sendPlayersToServer(String minigameId) {
-        SubAPI.getInstance().getSubServer("lobby", subServer -> {
-            subServer.getRemotePlayers(players -> {
-                players.forEach(player -> player.transfer(minigameId));
+        SubAPI.getInstance().getRemotePlayers(players -> {
+            players.forEach((playerId, player) -> {
+                player.transfer(minigameId);
             });
         });
     }

@@ -1,9 +1,5 @@
 version "1.0-SNAPSHOT"
 
-repositories {
-    maven { url 'https://dev.ME1312.net/maven' }
-}
-
 dependencies {
     implementation project(':gametools')
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"

@@ -2,4 +2,5 @@ version "1.0-SNAPSHOT"
 
 dependencies {
     implementation project(':gametools')
+    compileOnly "net.ME1312.SubServers:SubServers.Client.Bukkit:${subserversClientVersion}"
 }

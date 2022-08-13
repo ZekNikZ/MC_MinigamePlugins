@@ -73,13 +73,7 @@ public class ReadyUpSession {
             if (player.equals(p)) {
                 return;
             }
-
-            GameTeam playerTeam = TeamService.getInstance().getTeamOfPlayer(player);
-            if (playerTeam != null) {
-                Chat.sendAlert(player, ChatType.PASSIVE_INFO, "" + playerTeam.getFormatCode() + ChatColor.BOLD + playerTeam.getPrefix() + " " + playerTeam.getFormatCode() + player.getDisplayName() + ChatColor.RESET + " is ready!");
-            } else {
-                Chat.sendAlert(player, ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
-            }
+            Chat.sendAlert(p, ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
         });
 
         // Check if this was the last player
