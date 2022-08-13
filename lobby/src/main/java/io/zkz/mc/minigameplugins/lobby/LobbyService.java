@@ -11,6 +11,7 @@ import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -44,6 +45,7 @@ public class LobbyService extends PluginService<LobbyPlugin> {
         player.teleport(new Location(Bukkit.getWorld("world"), 0, 115, 36, -180, 0));
         player.setHealth(20);
         player.setSaturation(20);
+        player.setGameMode(GameMode.ADVENTURE);
         this.isInParkour.put(player.getUniqueId(), false);
     }
 

@@ -35,6 +35,10 @@ subprojects {
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
     annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
     compileOnly 'org.jetbrains:annotations:16.0.2'
+
+    if (project.hasProperty("resourceMainClass")) {
+      implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    }
   }
 
   test {
@@ -42,10 +46,37 @@ subprojects {
   }
 
   task buildAll(type: Copy) {
+    dependsOn build
     from('build/libs') {
       include "**/*.jar"
     }
     into '../build'
   }
-  buildAll.dependsOn(build)
+
+  task resourceGen(type: JavaExec) {
+    dependsOn build
+    if (project.hasProperty("resourceMainClass")) {
+      mainClass = project.property("resourceMainClass")
+    }
+    classpath = sourceSets.main.runtimeClasspath
+  }
+}
+
+evaluationDependsOnChildren()
+
+task deleteResourceCache(type: Delete) {
+  delete 'build/resources'
+}
+
+task compileResourcePack(type: JavaExec) {
+  dependsOn deleteResourceCache
+
+  subprojects {
+    if (project.hasProperty("resourceMainClass")) {
+      dependsOn project.resourceGen
+    }
+  }
+
+  mainClass = "io.zkz.mc.${rootProject.name}.gametools.resourcepack.ResourceManager"
+  classpath = project('gametools').sourceSets.main.runtimeClasspath
 }

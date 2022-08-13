@@ -308,6 +308,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.rulesSlides.addAll(Arrays.asList(c));
     }
 
+    public void registerRulesSlides(Collection<Character> c) {
+        this.rulesSlides.addAll(c);
+    }
+
     public List<Character> getRulesSlides() {
         return this.rulesSlides;
     }

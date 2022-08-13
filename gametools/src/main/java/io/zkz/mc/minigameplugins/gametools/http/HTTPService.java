@@ -6,7 +6,6 @@ import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import org.bukkit.Bukkit;
 import org.json.simple.JSONObject;
 

@@ -40,9 +40,9 @@ public class TestService extends TestPluginService {
 
     @Override
     protected void setup() {
-        ResourcePackService.getInstance().addBlockTexture("iron_block", this.getPlugin().getResourceAsStream("testblock.png"));
-        char c1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 128, 128);
-        char c2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 128, 128);
+//        ResourcePackService.getInstance().addBlockTexture("iron_block", this.getPlugin().getResourceAsStream("testblock.png"));
+//        char c1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 128, 128);
+//        char c2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 128, 128);
     }
 
     @Override

@@ -10,7 +10,6 @@ import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
-import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -61,9 +60,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         ChatConstantsService.getInstance().setMinigameName("TNT Run");
 
         // Rules slides
-        char slide1 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions.png"), 200, 200);
-        char slide2 = ResourcePackService.getInstance().addCustomCharacterImage(this.getPlugin().getResourceAsStream("testinstructions2.png"), 200, 200);
-        minigame.registerRulesSlides(slide1, slide2);
+        minigame.registerRulesSlides(ResourceAssets.SLIDES);
         minigame.setPreRoundDelay(400);
         minigame.setPostRoundDelay(400);
         minigame.setPostGameDelay(600);
