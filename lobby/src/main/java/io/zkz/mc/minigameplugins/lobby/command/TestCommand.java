@@ -1,8 +1,7 @@
 package io.zkz.mc.minigameplugins.lobby.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
-import io.zkz.mc.minigameplugins.lobby.LobbyService;
-import io.zkz.mc.minigameplugins.lobby.TournamentManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
@@ -25,9 +24,10 @@ public class TestCommand extends ArgumentCommandExecutor {
 
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
-        TournamentManager.getInstance().startMinigameServer("tntrun", () -> {
-            TournamentManager.getInstance().sendPlayersToServer("tntrun");
-        });
+//        TournamentManager.getInstance().startMinigameServer("tntrun", () -> {
+//            TournamentManager.getInstance().sendPlayersToServer("tntrun");
+//        });
+        Bukkit.getServer().reloadData();
         return true;
     }
 }

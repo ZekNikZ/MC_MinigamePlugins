@@ -1,7 +1,5 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
-import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
-import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
