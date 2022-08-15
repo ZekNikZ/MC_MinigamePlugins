@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
@@ -19,6 +21,7 @@ import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
+import io.zkz.mc.minigameplugins.minigamemanager.proxy.ProtocolLibProxy;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameScoreboard;
@@ -28,10 +31,8 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
-import net.ME1312.SubServers.Client.Common.Network.API.SubCreator;
-import net.ME1312.SubServers.Client.Common.Network.API.SubServer;
-import net.md_5.bungee.api.ChatColor;
 import net.ME1312.SubServers.Client.Bukkit.SubAPI;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -170,6 +171,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private int currentRound = -1;
     private AbstractTimer timer;
     private int gameNumber = 0;
+    private boolean automaticShowRules = true;
+    private boolean automaticPreRound = true;
+    private boolean glowingTeammates = true;
 
     public void setGameNumber(int gameNumber) {
         this.gameNumber = gameNumber;
@@ -203,16 +207,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             this.getCurrentRound().onPreRound();
-            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
-                @Override
-                protected void onUpdate() {
-                    if (getCurrentTimeMillis() <= 5000) {
-                        SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
-                    }
-
-                    super.onUpdate();
-                }
-            });
+            if (this.automaticPreRound) {
+                this.startPreRoundTimer();
+            } else {
+                ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::startPreRoundTimer);
+            }
         });
         this.addCleanupHandler(MinigameState.PRE_ROUND, () -> {
             this.changeTimer(null);
@@ -239,6 +238,24 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // POST_GAME
         this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
         this.addTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
+
+        // ProtocolLib stuff
+        if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
+            ProtocolLibProxy.setupGlowing(this.getPlugin());
+        }
+    }
+
+    private void startPreRoundTimer() {
+        this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
+            @Override
+            protected void onUpdate() {
+                if (getCurrentTimeMillis() <= 5000) {
+                    SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
+                }
+
+                super.onUpdate();
+            }
+        });
     }
 
     public void removeRunningTask(GameTask task) {
@@ -405,9 +422,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 entry.setValue((int) players.stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count());
             }
         });
-        if (players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
-            this.setState(MinigameState.RULES);
+        if (this.automaticShowRules && players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
+            this.markDoneWaitingForPlayers();
         }
+    }
+
+    public void markDoneWaitingForPlayers() {
+        this.setState(MinigameState.RULES);
     }
 
     public Collection<GameTeam> getGameTeams() {
@@ -503,5 +524,17 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public @Nullable AbstractTimer getTimer() {
         return this.timer;
+    }
+
+    public void setAutomaticShowRules(boolean automaticShowRules) {
+        this.automaticShowRules = automaticShowRules;
+    }
+
+    public void setAutomaticPreRound(boolean automaticPreRound) {
+        this.automaticPreRound = automaticPreRound;
+    }
+
+    public void setGlowingTeammates(boolean glowingTeammates) {
+        this.glowingTeammates = glowingTeammates;
     }
 }

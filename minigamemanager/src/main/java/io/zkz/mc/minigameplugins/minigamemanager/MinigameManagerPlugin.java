@@ -5,6 +5,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.command.MinigameCommands;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
+import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
@@ -15,6 +16,7 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
+@SoftDependency("ProtocolLib")
 public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
     public MinigameManagerPlugin() {
         // Services
