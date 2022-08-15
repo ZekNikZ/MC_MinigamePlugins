@@ -344,7 +344,7 @@ public class TeamService extends GameToolsService {
                     resultSet.getString("teamName"),
                     resultSet.getString("teamPrefix")
                 );
-                team.setScoreboardColor(org.bukkit.ChatColor.getByChar("teamScoreboardColor"));
+                team.setScoreboardColor(org.bukkit.ChatColor.getByChar(resultSet.getString("teamScoreboardColor")));
                 team.setFormatCode(resultSet.getString("teamFormatCode"));
                 team.setColor(new Color(resultSet.getInt("teamColor")));
                 this.createTeam(team, true);

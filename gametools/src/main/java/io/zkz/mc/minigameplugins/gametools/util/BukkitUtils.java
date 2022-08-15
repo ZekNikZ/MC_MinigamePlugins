@@ -24,4 +24,8 @@ public class BukkitUtils {
     public static void forEachPlayer(Consumer<Player> func) {
         Bukkit.getOnlinePlayers().forEach(func);
     }
+
+    public static void runLater(Runnable runnable, int delay) {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, delay);
+    }
 }
