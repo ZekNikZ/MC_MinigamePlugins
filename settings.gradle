@@ -5,7 +5,7 @@ include 'minigamemanager'
 
 include 'lobby'
 
-include 'testplugin'
+include 'dev'
 
 include 'tntrun'
 include 'bingo'
