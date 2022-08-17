@@ -11,6 +11,7 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Wrapper around a Bukkit scoreboard to allow additional functionality.
@@ -154,6 +155,16 @@ public class GameScoreboard {
         }
 
         this.scoreboard.registerNewTeam("" + pos);
+    }
+
+    public void removeEntry(String id) {
+        ScoreboardEntry scoreboardEntry = this.mappedEntries.get(id);
+        if (scoreboardEntry == null) {
+            return;
+        }
+
+        this.entries.remove(scoreboardEntry);
+        this.redraw();
     }
 
     public int getId() {

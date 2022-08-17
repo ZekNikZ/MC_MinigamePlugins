@@ -9,3 +9,4 @@ include 'testplugin'
 
 include 'tntrun'
 include 'bingo'
+include 'survivalgames'

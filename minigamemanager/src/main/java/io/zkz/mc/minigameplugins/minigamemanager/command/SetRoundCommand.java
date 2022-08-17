@@ -14,13 +14,14 @@ import org.bukkit.plugin.java.annotation.permission.Permissions;
     name = SetRoundCommand.COMMAND_NAME,
     desc = "Set the current round of the minigame",
     usage = "/" + SetRoundCommand.COMMAND_NAME + " <round>",
-    permission = MinigameCommands.Permissions.SET_ROUND
+    permission = SetRoundCommand.PERMISSION
 ))
 @Permissions(
-    @Permission(name = MinigameCommands.Permissions.SET_ROUND, desc = "Set minigame round")
+    @Permission(name = SetRoundCommand.PERMISSION, desc = "Set minigame round")
 )
 public class SetRoundCommand extends ArgumentCommandExecutor {
     static final String COMMAND_NAME = "setround";
+    static final String PERMISSION = "minigamemanager.round.set";
 
     protected SetRoundCommand() {
         super(COMMAND_NAME, 1);

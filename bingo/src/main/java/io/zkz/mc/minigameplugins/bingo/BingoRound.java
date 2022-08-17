@@ -60,11 +60,11 @@ public class BingoRound extends Round {
         SchematicService.getInstance().loadSchematic(BingoRound.class.getResourceAsStream("/lobby.schem"), this.spawnLocation);
 
         // Gamerules
-        WorldSyncUtils.setGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE, false);
-        WorldSyncUtils.setGameRuleValue(GameRule.DO_WEATHER_CYCLE, false);
-        WorldSyncUtils.setGameRuleValue(GameRule.KEEP_INVENTORY, true);
-        WorldSyncUtils.setGameRuleValue(GameRule.FALL_DAMAGE, false);
-        WorldSyncUtils.setGameRuleValue(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+        WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        WorldSyncUtils.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        WorldSyncUtils.setGameRule(GameRule.KEEP_INVENTORY, true);
+        WorldSyncUtils.setGameRule(GameRule.FALL_DAMAGE, false);
+        WorldSyncUtils.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         WorldSyncUtils.setWorldBorderCenter(this.spawnLocation.getBlockX(), this.spawnLocation.getBlockZ());
         WorldSyncUtils.setWorldBorderSize(1500);
         WorldSyncUtils.setDifficulty(Difficulty.NORMAL);

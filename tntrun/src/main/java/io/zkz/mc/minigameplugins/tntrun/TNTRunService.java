@@ -183,10 +183,10 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         // World setup
         WorldSyncUtils.setDifficulty(Difficulty.PEACEFUL);
         WorldSyncUtils.setTime(6000);
-        WorldSyncUtils.setGameRuleValue(GameRule.DO_DAYLIGHT_CYCLE, false);
+        WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         WorldSyncUtils.setWeatherClear();
-        WorldSyncUtils.setGameRuleValue(GameRule.DO_WEATHER_CYCLE, false);
-        WorldSyncUtils.setGameRuleValue(GameRule.DO_MOB_SPAWNING, false);
+        WorldSyncUtils.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        WorldSyncUtils.setGameRule(GameRule.DO_MOB_SPAWNING, false);
     }
 
     void setDead(Player player) {

@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
 @SoftDependency("ProtocolLib")
+@SoftDependency("SubServers-Client-Bukkit")
 public class MinigameManagerPlugin extends GTPlugin<MinigameManagerPlugin> {
     public MinigameManagerPlugin() {
         // Services

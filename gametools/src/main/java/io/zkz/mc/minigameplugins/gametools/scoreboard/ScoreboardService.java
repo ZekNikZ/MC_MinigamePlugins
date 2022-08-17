@@ -55,7 +55,7 @@ public class ScoreboardService extends GameToolsService {
 
     public void setTeamScoreboard(String teamId, GameScoreboard scoreboard) {
         GameScoreboard current = this.teamScoreboards.get(teamId);
-        if (current != null && !this.globalScoreboard.equals(current) && teamScoreboards.values().stream().noneMatch(s -> s.equals(current)) && playerScoreboards.values().stream().noneMatch(s -> s.equals(current))) {
+        if (current != null && !Objects.equals(this.globalScoreboard, current) && teamScoreboards.values().stream().noneMatch(s -> Objects.equals(s, current)) && playerScoreboards.values().stream().noneMatch(s -> Objects.equals(s, current))) {
             current.cleanup();
         }
 

@@ -1,12 +1,11 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -56,7 +55,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
         GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + "MC Tournament 1");
-        scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + ChatConstantsService.getInstance().getMinigameName());
+        scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + ChatConstantsService.getInstance().getMinigameName()));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
                 scoreboard.addSpace();
@@ -91,7 +90,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             }
             case PRE_ROUND -> {
                 addRoundInformation(scoreboard);
-                scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "%s", getInstance().timer));
+                if (getInstance().timer != null) {
+                    scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "%s", getInstance().timer));
+                } else {
+                    scoreboard.addEntry(new StringEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "waiting..."));
+                }
                 addTeamInformation(scoreboard, team);
             }
             case IN_GAME -> {
@@ -112,6 +115,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 addRoundInformation(scoreboard);
                 if (getInstance().timer != null) {
                     scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "%s", getInstance().timer));
+                } else {
+                    scoreboard.addEntry(new StringEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "waiting..."));
                 }
                 addTeamInformation(scoreboard, team);
             }
@@ -173,6 +178,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private int gameNumber = 0;
     private boolean automaticShowRules = true;
     private boolean automaticPreRound = true;
+    private boolean automaticNextRound = true;
     private boolean glowingTeammates = true;
 
     public void setGameNumber(int gameNumber) {
@@ -202,7 +208,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.addTask(MinigameState.RULES, RulesTask::new);
 
         // WAITING_TO_BEGIN
-        this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady, this::handlePlayerReady));
+        this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> {
+            if (this.automaticPreRound) {
+                ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady, this::handlePlayerReady);
+            } else {
+                this.setState(MinigameState.PRE_ROUND);
+            }
+        });
 
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
@@ -217,19 +229,17 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             this.changeTimer(null);
         });
 
-        // POST_ROUND
-        this.addSetupHandler(MinigameState.POST_ROUND, () -> {
-            this.getCurrentRound().onPostRound();
-            if (this.isLastRound()) {
-                BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
-            } else {
-                this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postRoundDelay * 50L, TimeUnit.MILLISECONDS, this::nextRound));
-            }
-        });
-
         // IN_GAME (note: these are registered for different states to prevent paused from triggering them)
         this.addCleanupHandler(MinigameState.PRE_ROUND, () -> this.rounds.get(this.currentRound).onStart());
         this.addSetupHandler(MinigameState.POST_ROUND, () -> this.rounds.get(this.currentRound).onEnd());
+
+        // POST_ROUND
+        this.addSetupHandler(MinigameState.POST_ROUND, () -> {
+            this.getCurrentRound().onPostRound();
+            if (this.automaticNextRound) {
+                this.goToNextRound();
+            }
+        });
 
         // PAUSE
         this.addSetupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onPause());
@@ -245,6 +255,14 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         }
     }
 
+    private void drawScoreboard(MinigameState state) {
+        MinigameScoreboard scoreboard = this.scoreboards.get(state);
+        if (scoreboard == null) {
+            scoreboard = DEFAULT_SCOREBOARD;
+        }
+        scoreboard.setup();
+    }
+
     private void startPreRoundTimer() {
         this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.preRoundDelay * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
             @Override
@@ -256,6 +274,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 super.onUpdate();
             }
         });
+        this.drawScoreboard(MinigameState.PRE_ROUND);
     }
 
     public void removeRunningTask(GameTask task) {
@@ -431,6 +450,14 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.setState(MinigameState.RULES);
     }
 
+    public void goToNextRound() {
+        if (this.isLastRound()) {
+            BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
+        } else {
+            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postRoundDelay * 50L, TimeUnit.MILLISECONDS, this::nextRound));
+        }
+    }
+
     public Collection<GameTeam> getGameTeams() {
         return TeamService.getInstance().getAllTeams().stream().filter(team -> !Objects.equals(team, DefaultTeams.SPECTATOR)).toList();
     }
@@ -491,11 +518,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     @EventHandler
     private void onStateChange(StateChangeEvent.Post event) {
         ScoreboardService.getInstance().resetAllScoreboards();
-        MinigameScoreboard scoreboard = this.scoreboards.get(event.getNewState());
-        if (scoreboard == null) {
-            scoreboard = DEFAULT_SCOREBOARD;
-        }
-        scoreboard.setup();
+        this.drawScoreboard(event.getNewState());
     }
 
     @EventHandler
@@ -532,6 +555,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void setAutomaticPreRound(boolean automaticPreRound) {
         this.automaticPreRound = automaticPreRound;
+    }
+
+    public void setAutomaticNextRound(boolean automaticNextRound) {
+        this.automaticNextRound = automaticNextRound;
     }
 
     public void setGlowingTeammates(boolean glowingTeammates) {

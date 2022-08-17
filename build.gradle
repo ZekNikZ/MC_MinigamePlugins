@@ -8,6 +8,7 @@ ext {
   worldguardVersion = '7.0.8-SNAPSHOT'
   smartInvsVersion = '1.2.7'
   subserversClientVersion = '22w24a'
+  multiverseVersion = '4.3.1'
 }
 
 allprojects {
@@ -28,6 +29,7 @@ subprojects {
     maven { url "https://maven.enginehub.org/repo/" }
     maven { url 'https://dev.ME1312.net/maven' }
     maven { url "https://repo.dmulloy2.net/repository/public/" }
+    maven { url = "https://repo.onarandombox.com/content/groups/public/" }
   }
 
   dependencies {

@@ -9,26 +9,26 @@ import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
-    name = DoneWaitingForPlayersCommand.COMMAND_NAME,
-    desc = "Add points to a given team",
-    usage = "/" + DoneWaitingForPlayersCommand.COMMAND_NAME,
-    permission = DoneWaitingForPlayersCommand.PERMISSION
+    name = NextRoundCommand.COMMAND_NAME,
+    desc = "Go to next round",
+    usage = "/" + NextRoundCommand.COMMAND_NAME,
+    permission = NextRoundCommand.PERMISSION
 ))
 @Permissions(
-    @Permission(name = DoneWaitingForPlayersCommand.PERMISSION, desc = "Done waiting for players")
+    @Permission(name = NextRoundCommand.PERMISSION, desc = "Next round")
 )
-public class DoneWaitingForPlayersCommand extends ArgumentCommandExecutor {
-    static final String COMMAND_NAME = "donewaitingforplayers";
-    static final String PERMISSION = "minigamemanager.state.waiting_for_players.exit";
+public class NextRoundCommand extends ArgumentCommandExecutor {
+    static final String COMMAND_NAME = "nextround";
+    static final String PERMISSION =  "minigamemanager.round.next";
 
-    protected DoneWaitingForPlayersCommand() {
+    protected NextRoundCommand() {
         super(COMMAND_NAME, 0);
     }
 
 
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
-        MinigameService.getInstance().markDoneWaitingForPlayers();
+        MinigameService.getInstance().goToNextRound();
 
         return true;
     }

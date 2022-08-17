@@ -6,7 +6,7 @@ import org.bukkit.GameRule;
 import org.bukkit.World;
 
 public class WorldSyncUtils {
-    public static <T> void setGameRuleValue(GameRule<T> rule, T value) {
+    public static <T> void setGameRule(GameRule<T> rule, T value) {
         Bukkit.getWorlds().forEach(world -> world.setGameRule(rule, value));
     }
 
