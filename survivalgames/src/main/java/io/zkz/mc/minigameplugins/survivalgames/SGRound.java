@@ -14,14 +14,20 @@ import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
+import org.bukkit.loot.Lootable;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
+
+record SGChest(BlockVector3 pos, String lootTable) {}
 
 public class SGRound extends Round {
     private final String templateWorldName;
@@ -30,6 +36,7 @@ public class SGRound extends Round {
     private final BlockVector3 cornLocation;
     private final long cornWorldborderSize;
     private final long mapWorldborderSize;
+    private final List<SGChest> chests;
 
     private final Set<UUID> alivePlayers = new HashSet<>();
     private final Map<UUID, Location> logOutLocations = new HashMap<>();
@@ -43,17 +50,13 @@ public class SGRound extends Round {
         this.cornLocation = JSONUtils.readBlockVector(json.getList("cornLocation", Long.class));
         this.cornWorldborderSize = json.getLong("cornWorldborderSize");
         this.mapWorldborderSize = json.getLong("mapWorldborderSize");
-    }
-
-    public JSONObject toJSON() {
-        return new JSONObject(Map.of(
-            "folder", this.templateWorldName,
-            "name", this.getMapName(),
-            "spawnLocations", this.spawnLocations.stream().map(JSONUtils::toJSON).toList(),
-            "cornLocation", JSONUtils.toJSON(this.cornLocation),
-            "cornWorldborderSize", this.cornWorldborderSize,
-            "mapWorldborderSize", this.mapWorldborderSize
-        ));
+        this.chests = json.getArray("chests").stream().map(obj -> {
+            TypedJSONObject<Object> chest = new TypedJSONObject<>(((JSONObject) obj));
+            return new SGChest(
+                JSONUtils.readBlockVector(chest.getList("pos", Long.class)),
+                chest.getString("lootTable")
+            );
+        }).toList();
     }
 
     @Override
@@ -91,6 +94,15 @@ public class SGRound extends Round {
         for (int i = 0; i < this.alivePlayers.size(); i++) {
             this.assignedSpawnLocations.put(players.get(i), adjustLocation(toLocation(spawnLocations.get(i % spawnLocations.size()), this.actualWorldName)));
         }
+
+        // Chests
+        World world = this.getWorld();
+        this.chests.forEach(chest -> {
+            Block block = world.getBlockAt(chest.pos().getX(), chest.pos().getY(), chest.pos().getZ());
+            Chest state = (Chest) block.getState();
+            state.setLootTable(Bukkit.getLootTable(NamespacedKey.fromString(chest.lootTable())));
+            state.update();
+        });
 
         // Teleport players to spawn locations
         this.getAliveOnlinePlayers().forEach(player -> player.teleport(this.assignedSpawnLocations.get(player.getUniqueId())));
@@ -137,6 +149,11 @@ public class SGRound extends Round {
 
     public Collection<? extends Player> getAliveOnlinePlayers() {
         return this.alivePlayers.stream().map(Bukkit::getPlayer).filter(Objects::nonNull).toList();
+    }
+
+    public Map<GameTeam, Long> getAliveTeams() {
+        return this.getAlivePlayers().stream()
+            .collect(Collectors.groupingBy(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId), Collectors.counting()));
     }
 
     public boolean isAlive(Player player) {

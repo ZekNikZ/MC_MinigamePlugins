@@ -4,7 +4,6 @@ import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry;
@@ -14,8 +13,8 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.*;
-import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
@@ -36,6 +35,9 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+record SGFinalArena(String name, Location spectatorSpawnLocation, Location participantSpawnLocation) {
+}
+
 public class SGService extends PluginService<SGPlugin> {
     private static final SGService INSTANCE = new SGService();
 
@@ -45,6 +47,8 @@ public class SGService extends PluginService<SGPlugin> {
 
     private final List<SGRound> rounds = new ArrayList<>();
     private Location lobbySpawnLocation;
+    private Location gulagSpawnLocation;
+    private final List<SGFinalArena> finalArenas = new ArrayList<>();
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
@@ -116,22 +120,24 @@ public class SGService extends PluginService<SGPlugin> {
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
-            new JSONDataManager<>(this, Path.of("arenas.json"), this::saveData, this::loadData)
+            new JSONDataManager<>(this, Path.of("arenas.json"), null, this::loadData)
         );
     }
 
-    private JSONObject saveData() {
-        return new JSONObject(Map.of(
-            "arenas", new TypedJSONArray<>(this.rounds.stream().map(SGRound::toJSON).toList()),
-            "lobbySpawnLocation", JSONUtils.toJSON(WorldEditService.getInstance().wrapLocation(this.lobbySpawnLocation))
-        ));
-    }
-
     @SuppressWarnings("unchecked")
-    private void loadData(TypedJSONObject<Object> object) {
+    private void loadData(TypedJSONObject<Object> json) {
         this.rounds.clear();
-        this.rounds.addAll(object.getArray("arenas").stream().map(obj -> new SGRound(new TypedJSONObject<Object>((JSONObject) obj))).toList());
-        this.lobbySpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(object.getList("lobbySpawnLocation", Long.class)), "sg_lobby"));
+        this.rounds.addAll(json.getArray("arenas").stream().map(obj -> new SGRound(new TypedJSONObject<Object>((JSONObject) obj))).toList());
+        this.lobbySpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("lobbySpawnLocation", Long.class)), "sg_lobby"));
+        this.gulagSpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("gulagSpawnLocation", Long.class)), "sg_lobby"));
+        this.finalArenas.addAll(json.getArray("finalArenas").stream().map(obj -> {
+            TypedJSONObject<Object> finalArena = new TypedJSONObject<Object>((JSONObject) obj);
+            return new SGFinalArena(
+                finalArena.getString("name"),
+                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("spectatorSpawnLocation", Long.class)), "sg_lobby")),
+                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("participantSpawnLocation", Long.class)), "sg_lobby"))
+            );
+        }).toList());
     }
 
     @Override
@@ -149,25 +155,32 @@ public class SGService extends PluginService<SGPlugin> {
         SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
         this.getCurrentRound().markDead(player);
 
-        // TODO: Assign points to alive players
-//        this.alivePlayers.forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.PLAYER_ELIMINATION));
+        // Assign points to alive players
+        this.getCurrentRound().getAlivePlayers().forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.SURVIVAL));
 
-        // TODO: Elimination chat message
-//        Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
-//        Collection<? extends Player> pointsPlayers = this.getAlivePlayers();
-//        noPointsPlayers.removeAll(pointsPlayers);
-//        Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " fell and was eliminated.");
-//        SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
-//        Chat.sendAlert(pointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " fell and was eliminated.", Points.PLAYER_ELIMINATION);
-
-        // Team elimination message
-//        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-//        if (this.alivePlayers.stream().noneMatch(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId) == team)) {
-//            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getDisplayName() + " was eliminated.");
-//        }
+        // Elimination chat message
+        Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
+        Collection<? extends Player> pointsPlayers = this.getCurrentRound().getAliveOnlinePlayers();
+        noPointsPlayers.removeAll(pointsPlayers);
+        Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " was eliminated.");
+        SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
+        Chat.sendAlert(pointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " was eliminated.", Points.SURVIVAL);
 
         // Player remaining message
-        Chat.sendAlert(ChatType.ALERT, this.getCurrentRound().getAlivePlayers().size() + " players remaining.");
+        if (this.getCurrentRound().getAlivePlayers().size() <= 5) {
+            Chat.sendAlert(ChatType.ALERT, this.getCurrentRound().getAlivePlayers().size() + " players remaining.");
+        }
+
+        // Team elimination message
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+        if (!this.getCurrentRound().isTeamAlive(team)) {
+            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getDisplayName() + " was eliminated.");
+
+            // Team remaining message
+            if (this.getCurrentRound().getAliveTeams().size() <= 5) {
+                Chat.sendAlert(ChatType.ALERT, this.getCurrentRound().getAlivePlayers().size() + " teams remaining.");
+            }
+        }
 
         this.updateGameState();
     }
