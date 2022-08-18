@@ -58,6 +58,7 @@ public class SGService extends PluginService<SGPlugin> {
         MinigameService minigame = MinigameService.getInstance();
         minigame.setAutomaticPreRound(false);
         minigame.setAutomaticShowRules(false);
+        minigame.setAutomaticNextRound(false);
 
         ChatConstantsService.getInstance().setMinigameName("Survival Games");
 
@@ -110,6 +111,7 @@ public class SGService extends PluginService<SGPlugin> {
             scoreboard.removeEntry("gameName");
 
             scoreboard.addSpace();
+            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.aliveTeamCount));
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
         };
         minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
