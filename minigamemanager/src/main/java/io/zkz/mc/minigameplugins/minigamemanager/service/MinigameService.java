@@ -146,20 +146,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         scoreboard.addEntry(new TeamScoresScoreboardEntry(team));
     }
 
-    public float getPointMultiplier() {
-        // TODO: use this
-        return 1.0f;
-    }
-
-    public int getGameNumber() {
-        // TODO: use this
-        return this.gameNumber;
-    }
-
-    public int getMaxGameNumber() {
-        return 6;
-    }
-
     private MinigameState state = MinigameState.SERVER_STARTING;
     private final Map<MinigameState, List<Runnable>> stateSetupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
@@ -176,6 +162,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private int currentRound = -1;
     private AbstractTimer timer;
     private int gameNumber = 0;
+    private double multiplier;
     private boolean automaticShowRules = true;
     private boolean automaticPreRound = true;
     private boolean automaticNextRound = true;
@@ -460,13 +447,16 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public Collection<GameTeam> getGameTeams() {
-        return TeamService.getInstance().getAllTeams().stream().filter(team -> !Objects.equals(team, DefaultTeams.SPECTATOR)).toList();
+        return TeamService.getInstance().getAllTeams().stream().filter(team -> !team.isSpectator()).toList();
     }
 
     public Collection<UUID> getPlayers() {
         Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
         return players.stream()
-            .filter(uuid -> !Objects.equals(TeamService.getInstance().getTeamOfPlayer(uuid), DefaultTeams.SPECTATOR))
+            .filter(uuid -> {
+                GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
+                return team != null && !team.isSpectator();
+            })
             .toList();
     }
 
@@ -522,6 +512,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.drawScoreboard(event.getNewState());
     }
 
+    public void refreshScoreboard() {
+        this.drawScoreboard(this.getCurrentState());
+    }
+
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
         // Ensure new players are spectators
@@ -530,7 +524,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         }
 
         // Apply spectator player state
-        if (Objects.equals(TeamService.getInstance().getTeamOfPlayer(event.getPlayer()), DefaultTeams.SPECTATOR)) {
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
+        if (team == null || team.isSpectator()) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
             return;
         }
@@ -564,5 +559,23 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void setGlowingTeammates(boolean glowingTeammates) {
         this.glowingTeammates = glowingTeammates;
+    }
+
+    public void setPointMultiplier(double multiplier) {
+        this.multiplier = multiplier;
+    }
+
+    public double getPointMultiplier() {
+        // TODO: use this
+        return this.multiplier;
+    }
+
+    public int getGameNumber() {
+        // TODO: use this
+        return this.gameNumber;
+    }
+
+    public int getMaxGameNumber() {
+        return 6;
     }
 }

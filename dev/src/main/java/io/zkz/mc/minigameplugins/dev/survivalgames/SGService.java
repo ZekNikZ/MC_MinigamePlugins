@@ -9,11 +9,15 @@ import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -185,5 +189,25 @@ public class SGService extends PluginService<DevPlugin> {
             }
             event.setCancelled(true);
         });
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent event) {
+        World world = event.getWorld();
+        world.setDifficulty(Difficulty.HARD);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, Boolean.FALSE);
+        world.setStorm(false);
+        world.setThundering(false);
+        world.setWeatherDuration(0);
+        world.setTime(6000);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, Boolean.FALSE);
+        world.setGameRule(GameRule.MOB_GRIEFING, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_TRADER_SPAWNING, Boolean.FALSE);
+    }
+
+    @EventHandler
+    private void onPlayerJoin(PlayerJoinEvent event) {
+        event.getPlayer().setGameMode(GameMode.CREATIVE);
     }
 }

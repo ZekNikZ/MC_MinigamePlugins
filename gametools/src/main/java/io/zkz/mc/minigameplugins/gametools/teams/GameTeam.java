@@ -14,17 +14,19 @@ public class GameTeam {
     private String formatCode;
     private Color color;
     private org.bukkit.ChatColor scoreboardColor;
+    private boolean spectator;
 
     public GameTeam() {
         this.formatCode = "" + ChatColor.RESET;
         this.color = Color.WHITE;
+        this.spectator = false;
     }
 
     public GameTeam(String id, String name, String prefix) {
         this();
         this.prefix = prefix;
-        this.setId(id);
-        this.setName(name);
+        this.setId(id)
+            .setName(name);
     }
 
     public String getFormatCode() {
@@ -92,14 +94,26 @@ public class GameTeam {
         return this;
     }
 
+    public boolean isSpectator() {
+        return this.spectator;
+    }
+
+    public GameTeam setSpectator(boolean spectator) {
+        this.spectator = spectator;
+        return this;
+    }
+
     private void updateMinecraftTeam() {
         Team scoreboardTeam = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(this.getId());
         if (scoreboardTeam == null) {
             return;
         }
-        scoreboardTeam.setPrefix("" + this.getFormatCode() + ChatColor.BOLD + this.getPrefix() + ChatColor.RESET + this.getFormatCode() + " ");
+        scoreboardTeam.setPrefix("" + this.getFormatCode() + this.getPrefix() + ChatColor.RESET + this.getScoreboardColor() + " ");
+        scoreboardTeam.setColor(this.getScoreboardColor() != null ? this.getScoreboardColor() : org.bukkit.ChatColor.WHITE);
         scoreboardTeam.setSuffix("" + ChatColor.RESET);
-        scoreboardTeam.setDisplayName(this.getName());
+        scoreboardTeam.setCanSeeFriendlyInvisibles(true);
+        scoreboardTeam.setAllowFriendlyFire(TeamService.getInstance().getFriendlyFire());
+        scoreboardTeam.setOption(Team.Option.COLLISION_RULE, TeamService.getInstance().getCollisionRule());
     }
 
     @Override

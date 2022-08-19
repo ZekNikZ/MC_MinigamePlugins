@@ -76,6 +76,8 @@ public class ScoreSummaryTask extends GameTask {
                         10
                     ));
                 TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.SPECTATOR.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.GAME_MASTER.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.CASTER.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
             }
             case 2 -> {
                 Chat.sendMessage(ChatColor.BOLD + "The game results:");

@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.teams;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
@@ -14,6 +15,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 import java.sql.Connection;
@@ -24,8 +27,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-// TODO: scoreboard service handles team service events instead of being explicitly called
-
 public class TeamService extends GameToolsService {
     private static final TeamService INSTANCE = new TeamService();
 
@@ -33,8 +34,11 @@ public class TeamService extends GameToolsService {
         return INSTANCE;
     }
 
+
     private final Map<String, GameTeam> teams = new HashMap<>();
     private final Map<UUID, String> players = new HashMap<>();
+    private boolean friendlyFire = false;
+    private Team.OptionStatus collisionRule = Team.OptionStatus.NEVER;
 
     private MySQLDataManager<TeamService> db;
 
@@ -45,6 +49,7 @@ public class TeamService extends GameToolsService {
 
     /**
      * Checks if all of the specified players are on the same team. If an empty collection is passed, true is returned.
+     *
      * @param players the players to query
      * @return whether all of the players are on the same team
      */
@@ -241,6 +246,7 @@ public class TeamService extends GameToolsService {
         return this.getTeamOfPlayer(player.getUniqueId());
     }
 
+    @Nullable
     public GameTeam getTeamOfPlayer(UUID playerId) {
         String team = this.players.get(playerId);
         return team == null ? null : this.teams.get(team);
@@ -268,6 +274,23 @@ public class TeamService extends GameToolsService {
 
     public Collection<UUID> getTrackedPlayers() {
         return this.players.keySet();
+    }
+
+    public void setFriendlyFire(boolean friendlyFire) {
+        this.friendlyFire = friendlyFire;
+        ScoreboardService.getInstance().setupGlobalTeams();
+    }
+
+    public boolean getFriendlyFire() {
+        return this.friendlyFire;
+    }
+
+    public void setCollisionRule(Team.OptionStatus collisionRule) {
+        this.collisionRule = collisionRule;
+    }
+
+    public Team.OptionStatus getCollisionRule() {
+        return this.collisionRule;
     }
 
     @EventHandler
@@ -319,6 +342,18 @@ public class TeamService extends GameToolsService {
 
         // Update database
         this.db.addAction(c -> this.changePlayerTeamInDB(c, event.getPlayers(), event.getNewTeam()));
+
+        // Update display name
+        event.getPlayers().stream()
+            .map(Bukkit::getPlayer)
+            .filter(Objects::nonNull)
+            .forEach(player -> {
+                if (event.getNewTeam() != null) {
+                    player.setDisplayName(ChatColor.RESET + event.getNewTeam().getFormatCode() + event.getNewTeam().getPrefix() + " " + player.getName() + ChatColor.RESET);
+                } else {
+                    player.setDisplayName(player.getName());
+                }
+            });
     }
 
     @Override
@@ -347,6 +382,7 @@ public class TeamService extends GameToolsService {
                 team.setScoreboardColor(org.bukkit.ChatColor.getByChar(resultSet.getString("teamScoreboardColor")));
                 team.setFormatCode(resultSet.getString("teamFormatCode"));
                 team.setColor(new Color(resultSet.getInt("teamColor")));
+                team.setSpectator(resultSet.getBoolean("teamIsSpectator"));
                 this.createTeam(team, true);
             }
         } catch (SQLException e) {
@@ -372,7 +408,7 @@ public class TeamService extends GameToolsService {
 
     private void createTeamsInDB(Connection conn, List<GameTeam> teams) {
         try (PreparedStatement statement = conn.prepareStatement(
-            "INSERT INTO gt_teams (teamId, teamName, teamPrefix, teamFormatCode, teamColor, teamScoreboardColor) VALUES (?, ?, ?, ?, ?, ?);"
+            "INSERT INTO gt_teams (teamId, teamName, teamPrefix, teamFormatCode, teamColor, teamScoreboardColor, teamIsSpectator) VALUES (?, ?, ?, ?, ?, ?, ?);"
         )) {
             conn.setAutoCommit(false);
 
@@ -383,6 +419,7 @@ public class TeamService extends GameToolsService {
                 statement.setString(4, String.valueOf(team.getFormatCode()));
                 statement.setInt(5, team.getColor().getRGB());
                 statement.setString(6, String.valueOf(team.getScoreboardColor().getChar()));
+                statement.setBoolean(7, team.isSpectator());
                 statement.addBatch();
             }
             statement.executeBatch();

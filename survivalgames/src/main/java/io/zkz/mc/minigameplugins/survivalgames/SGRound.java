@@ -2,7 +2,6 @@ package io.zkz.mc.minigameplugins.survivalgames;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
@@ -10,14 +9,12 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
-import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
-import org.bukkit.loot.Lootable;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
@@ -41,6 +38,7 @@ public class SGRound extends Round {
     private final Set<UUID> alivePlayers = new HashSet<>();
     private final Map<UUID, Location> logOutLocations = new HashMap<>();
     private final Map<UUID, Location> assignedSpawnLocations = new HashMap<>();
+    private final Map<UUID, List<UUID>> kills = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public SGRound(TypedJSONObject<Object> json) {
@@ -88,11 +86,28 @@ public class SGRound extends Round {
         SGService.getInstance().updateGameState();
 
         // Assign spawn locations
-        List<BlockVector3> spawnLocations = new ArrayList<>(this.spawnLocations);
-        Collections.shuffle(spawnLocations);
-        List<UUID> players = this.alivePlayers.stream().toList();
-        for (int i = 0; i < this.alivePlayers.size(); i++) {
-            this.assignedSpawnLocations.put(players.get(i), adjustLocation(toLocation(spawnLocations.get(i % spawnLocations.size()), this.actualWorldName)));
+        Random random = new Random();
+        Map<GameTeam, Long> aliveTeams = this.getAliveTeams();
+        int numTeams = aliveTeams.size();
+        int numPlayers = (int) aliveTeams.values().stream().mapToLong(x -> x).sum();
+        int numSpawnLocations = this.spawnLocations.size();
+        int gap = (numSpawnLocations - numPlayers) / numTeams;
+        int gapExtra = (numSpawnLocations - numPlayers) % numTeams;
+        int offset = random.nextInt(numSpawnLocations);
+        var orderedAliveTeams = new ArrayList<>(aliveTeams.entrySet());
+        Collections.shuffle(orderedAliveTeams);
+        int nextPos = 0;
+        for (var entry : orderedAliveTeams) {
+            var playerIdsOnTeam = TeamService.getInstance().getTeamMembers(entry.getKey());
+            for (UUID playerId : playerIdsOnTeam) {
+                this.assignedSpawnLocations.put(playerId, adjustLocation(toLocation(this.spawnLocations.get((nextPos + offset) % numSpawnLocations), this.actualWorldName)));
+                ++nextPos;
+            }
+            nextPos += gap;
+            if (gapExtra > 0) {
+                ++nextPos;
+                --gapExtra;
+            }
         }
 
         // Chests
@@ -182,5 +197,35 @@ public class SGRound extends Round {
 
     public void startSuddenDeath() {
         this.getWorld().getWorldBorder().setSize(this.cornWorldborderSize, 120);
+    }
+
+    public void recordKill(Player player, Player killer) {
+        if (!this.kills.containsKey(player.getUniqueId())) {
+            this.kills.put(player.getUniqueId(), new ArrayList<>());
+        }
+
+        this.kills.get(player.getUniqueId()).add(killer.getUniqueId());
+    }
+
+    public void respawnPlayer(Player player) {
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+
+        // TODO: potentially set gamemode, clear inventory, etc.
+
+        // Mark alive
+        this.alivePlayers.add(player.getUniqueId());
+
+        // Teleport
+        if (this.isTeamAlive(team)) {
+            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().findFirst().get();
+            player.teleport(otherPlayer.getLocation());
+        } else if (this.assignedSpawnLocations.get(player.getUniqueId()) != null) {
+            player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
+        } else {
+            player.teleport(SGService.adjustLocation(SGService.toLocation(this.cornLocation, this.actualWorldName)));
+        }
+
+        // Update game state
+        SGService.getInstance().updateGameState();
     }
 }

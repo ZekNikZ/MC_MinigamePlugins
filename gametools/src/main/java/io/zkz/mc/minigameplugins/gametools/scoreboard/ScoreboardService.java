@@ -152,6 +152,8 @@ public class ScoreboardService extends GameToolsService {
             team.setColor(gameTeam.getScoreboardColor() != null ? gameTeam.getScoreboardColor() : org.bukkit.ChatColor.WHITE);
             team.setSuffix("" + ChatColor.RESET);
             team.setCanSeeFriendlyInvisibles(true);
+            team.setAllowFriendlyFire(TeamService.getInstance().getFriendlyFire());
+            team.setOption(Team.Option.COLLISION_RULE, TeamService.getInstance().getCollisionRule());
         });
     }
 

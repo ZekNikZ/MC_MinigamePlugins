@@ -4,8 +4,9 @@ create table if not exists gt_teams
     teamName            varchar(100) not null,
     teamPrefix          varchar(16)  not null,
     teamFormatCode      varchar(10)  not null,
-    teamScoreboardColor varchar(2)  not null,
+    teamScoreboardColor varchar(2)   not null,
     teamColor           int          not null,
+    teamIsSpectator     boolean   not null,
     primary key (teamId),
     constraint gt_teams_teamId_uindex
         unique (teamId)

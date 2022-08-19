@@ -82,7 +82,7 @@ public class BingoRound extends Round {
 
         // Player setup
         Bukkit.getOnlinePlayers().stream()
-            .filter(player -> !TeamService.getInstance().getTeamOfPlayer(player).equals(DefaultTeams.SPECTATOR))
+            .filter(player -> !TeamService.getInstance().getTeamOfPlayer(player).isSpectator())
             .forEach(player -> {
                 // Tools
                 player.getInventory().clear();

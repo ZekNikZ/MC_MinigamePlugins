@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.survivalgames;
 
 import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.bukkit.event.block.PlaceBlockEvent;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
@@ -18,16 +19,17 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -46,7 +48,7 @@ public class SGService extends PluginService<SGPlugin> {
 
     private final List<SGRound> rounds = new ArrayList<>();
     private Location lobbySpawnLocation;
-//    private Location gulagSpawnLocation;
+    //    private Location gulagSpawnLocation;
     private final List<SGFinalArena> finalArenas = new ArrayList<>();
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
@@ -115,7 +117,7 @@ public class SGService extends PluginService<SGPlugin> {
             scoreboard.removeEntry("gameName");
 
             scoreboard.addSpace();
-            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.aliveTeamCount));
+            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().stream().map(TeamService.getInstance()::getTeamOfPlayer).map(GameTeam::getId).distinct().count(), this.aliveTeamCount));
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
         };
         minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
@@ -220,14 +222,33 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     public void activateSpectatorMode(Player player) {
+        if (this.getCurrentRound().isAlive(player)) {
+            Chat.sendMessage(player, ChatColor.RED + "You cannot spectate while you are still alive!");
+            return;
+        }
+
         player.teleport(Bukkit.getWorld(this.getCurrentRound().getActualWorldName()).getSpawnLocation());
         BukkitUtils.runNextTick(() -> {
             player.setGameMode(GameMode.SPECTATOR);
+            Chat.sendAlert(player, ChatType.ACTIVE_INFO, ChatColor.GOLD + "You are now spectating. Use " + ChatColor.AQUA + "/lobby" + ChatColor.GOLD + " to return to the lobby.");
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
             if (team != null && this.getCurrentRound().isTeamAlive(team)) {
                 player.setSpectatorTarget(this.getCurrentRound().getAliveOnlinePlayers().stream().filter(p -> Objects.equals(TeamService.getInstance().getTeamOfPlayer(p), team)).findFirst().orElse(null));
             }
         });
+    }
+
+    public void deactivateSpectatorMode(Player player) {
+        if (this.getCurrentRound().isAlive(player)) {
+            Chat.sendMessage(player, ChatColor.RED + "You cannot leave the match!");
+            return;
+        }
+
+        if (player.getWorld().getName().equals("sg_lobby")) {
+            return;
+        }
+
+        player.teleport(this.lobbySpawnLocation);
     }
 
     @EventHandler
@@ -311,6 +332,42 @@ public class SGService extends PluginService<SGPlugin> {
             event.setCancelled(true);
             event.getPlayer().setSpectatorTarget(this.getCurrentRound().getAliveOnlinePlayers().stream().filter(p -> Objects.equals(TeamService.getInstance().getTeamOfPlayer(p), team)).findFirst().orElse(null));
         }
+    }
+
+    @EventHandler
+    private void onEntityExplode(EntityExplodeEvent event) {
+        event.blockList().clear();
+    }
+
+    @EventHandler
+    private void onPlaceBlock(BlockPlaceEvent event) {
+        if (event.getBlock().getType() == Material.TNT) {
+            event.getBlock().setType(Material.AIR);
+            event.getBlock().getWorld().spawn(adjustLocation(event.getBlock().getLocation()), TNTPrimed.class);
+        }
+    }
+
+    @EventHandler
+    private void onPlayerKill(PlayerDeathEvent event) {
+        Player killer = event.getEntity().getKiller();
+        if (killer != null) {
+            this.getCurrentRound().recordKill(event.getEntity(), killer);
+        }
+    }
+
+    @EventHandler
+    private void onWorldLoad(WorldLoadEvent event) {
+        World world = event.getWorld();
+        world.setDifficulty(Difficulty.HARD);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, Boolean.FALSE);
+        world.setStorm(false);
+        world.setThundering(false);
+        world.setWeatherDuration(0);
+        world.setTime(6000);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, Boolean.FALSE);
+        world.setGameRule(GameRule.MOB_GRIEFING, Boolean.FALSE);
+        world.setGameRule(GameRule.DO_TRADER_SPAWNING, Boolean.FALSE);
     }
 
     public static Location toLocation(BlockVector3 vec, String world) {

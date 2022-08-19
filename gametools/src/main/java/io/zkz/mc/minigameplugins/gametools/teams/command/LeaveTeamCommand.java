@@ -5,6 +5,7 @@ import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = LeaveTeamCommand.COMMAND_NAME,
@@ -41,7 +43,13 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
         Arrays.stream(args).forEach(playerName -> {
             Player player = Bukkit.getPlayer(playerName);
             if (player == null) {
-                sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "The player '" + playerName + "' is not online.");
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+                if (!offlinePlayer.hasPlayedBefore()) {
+                    sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + playerName + "'.");
+                    return;
+                }
+
+                TeamService.getInstance().leaveTeam(offlinePlayer.getUniqueId());
                 return;
             }
 

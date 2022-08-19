@@ -8,6 +8,8 @@ import java.util.logging.Level;
 
 public class DefaultTeams {
     public static final GameTeam SPECTATOR;
+    public static final GameTeam GAME_MASTER;
+    public static final GameTeam CASTER;
     public static final GameTeam BLACK;
     public static final GameTeam NAVY;
     public static final GameTeam GREEN;
@@ -27,8 +29,23 @@ public class DefaultTeams {
 
 
     static {
-        SPECTATOR = new GameTeam("spectators", "Spectators", "SPEC");
-        SPECTATOR.setScoreboardColor(org.bukkit.ChatColor.BLACK);
+        SPECTATOR = new GameTeam("spectators", "Spectators", ChatColor.DARK_GRAY + "[SPEC]" + ChatColor.GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
+            .setFormatCode(ChatColor.DARK_GRAY)
+            .setColor(Color.DARK_GRAY)
+            .setSpectator(true);
+
+        GAME_MASTER = new GameTeam("game_masters", "Game Masters", ChatColor.GOLD + "[GM]" + ChatColor.GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
+            .setFormatCode(ChatColor.DARK_GRAY)
+            .setColor(Color.DARK_GRAY)
+            .setSpectator(true);
+
+        CASTER = new GameTeam("casters", "Casters", ChatColor.DARK_PURPLE + "[CASTER]" + ChatColor.GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
+            .setFormatCode(ChatColor.DARK_GRAY)
+            .setColor(Color.DARK_GRAY)
+            .setSpectator(true);
 
         BLACK = new GameTeam("black", "Black Team", "\u24b7")
             .setScoreboardColor(org.bukkit.ChatColor.BLACK)
@@ -114,6 +131,8 @@ public class DefaultTeams {
     public static void addAll() {
         try {
             TeamService.getInstance().createTeam(SPECTATOR, true);
+            TeamService.getInstance().createTeam(GAME_MASTER, true);
+            TeamService.getInstance().createTeam(CASTER, true);
             TeamService.getInstance().createTeam(BLACK, true);
             TeamService.getInstance().createTeam(NAVY, true);
             TeamService.getInstance().createTeam(GREEN, true);

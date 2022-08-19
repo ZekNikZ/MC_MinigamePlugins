@@ -28,7 +28,7 @@ public class ProtocolLibProxy {
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     GameTeam otherPlayerTeam = TeamService.getInstance().getTeamOfPlayer(player);
-                    if (player.getGameMode() != GameMode.SPECTATOR && (Objects.equals(otherPlayerTeam, playerTeam) || DefaultTeams.SPECTATOR.equals(playerTeam))) {
+                    if (player.getGameMode() != GameMode.SPECTATOR && (Objects.equals(otherPlayerTeam, playerTeam) || (playerTeam != null && playerTeam.isSpectator()))) {
                         if (player.getEntityId() == event.getPacket().getIntegers().read(0)) {
                             if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
                                 List<WrappedWatchableObject> watchableObjectList = event.getPacket().getWatchableCollectionModifier().read(0);

@@ -212,7 +212,7 @@ public class BingoService extends PluginService<BingoPlugin> {
         }
 
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
-        if (team == null || team.equals(DefaultTeams.SPECTATOR)) {
+        if (team == null || team.isSpectator()) {
             return;
         }
 

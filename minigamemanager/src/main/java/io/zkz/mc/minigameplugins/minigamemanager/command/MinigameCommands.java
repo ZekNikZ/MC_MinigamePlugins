@@ -9,5 +9,6 @@ public class MinigameCommands extends CommandGroup {
         this.register(new SetRoundCommand());
         this.register(new DoneWaitingForPlayersCommand());
         this.register(new NextRoundCommand());
+        this.register(new SetMultiplierCommand());
     }
 }
