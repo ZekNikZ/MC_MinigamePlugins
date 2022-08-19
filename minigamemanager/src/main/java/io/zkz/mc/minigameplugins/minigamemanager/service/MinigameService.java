@@ -236,6 +236,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // POST_ROUND
         this.addSetupHandler(MinigameState.POST_ROUND, () -> {
             this.getCurrentRound().onPostRound();
+            this.changeTimer(null);
             if (this.automaticNextRound) {
                 this.goToNextRound();
             }

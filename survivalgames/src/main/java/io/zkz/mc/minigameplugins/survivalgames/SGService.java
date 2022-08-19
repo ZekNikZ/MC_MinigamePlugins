@@ -33,7 +33,6 @@ import org.json.simple.JSONObject;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 record SGFinalArena(String name, Location spectatorSpawnLocation, Location participantSpawnLocation) {
 }
@@ -47,11 +46,13 @@ public class SGService extends PluginService<SGPlugin> {
 
     private final List<SGRound> rounds = new ArrayList<>();
     private Location lobbySpawnLocation;
-    private Location gulagSpawnLocation;
+//    private Location gulagSpawnLocation;
     private final List<SGFinalArena> finalArenas = new ArrayList<>();
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
+
+    private SGState gameState = null;
 
     @Override
     protected void setup() {
@@ -97,6 +98,9 @@ public class SGService extends PluginService<SGPlugin> {
         //     SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
         //     TitleUtils.broadcastTitle(ChatColor.RED + "Round starts in 20 seconds", ChatColor.GOLD + "Find a good starting position!", 10, 70, 20);
         // });
+        minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
+            this.gameState = SGState.IN_GAME;
+        });
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Round over!", 10, 70, 20);
@@ -131,7 +135,7 @@ public class SGService extends PluginService<SGPlugin> {
         this.rounds.clear();
         this.rounds.addAll(json.getArray("arenas").stream().map(obj -> new SGRound(new TypedJSONObject<Object>((JSONObject) obj))).toList());
         this.lobbySpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("lobbySpawnLocation", Long.class)), "sg_lobby"));
-        this.gulagSpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("gulagSpawnLocation", Long.class)), "sg_lobby"));
+//        this.gulagSpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("gulagSpawnLocation", Long.class)), "sg_lobby"));
         this.finalArenas.addAll(json.getArray("finalArenas").stream().map(obj -> {
             TypedJSONObject<Object> finalArena = new TypedJSONObject<Object>((JSONObject) obj);
             return new SGFinalArena(
@@ -201,12 +205,18 @@ public class SGService extends PluginService<SGPlugin> {
 
     public void updateGameState() {
         // Check teams
-        Map<GameTeam, Long> aliveTeams = this.getCurrentRound().getAlivePlayers().stream()
-            .collect(Collectors.groupingBy(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId), Collectors.counting()));
+        Map<GameTeam, Long> aliveTeams = this.getCurrentRound().getAliveTeams();
+        if (aliveTeams.size() <= 2) {
+            this.roundIsOver();
+        }
 
         // Update scoreboard
         this.alivePlayerCount.set(this.getCurrentRound().getAliveOnlinePlayers().size());
         this.aliveTeamCount.set(aliveTeams.size());
+    }
+
+    private void roundIsOver() {
+        this.gameState = SGState.FINAL_TWO;
     }
 
     public void activateSpectatorMode(Player player) {
