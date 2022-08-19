@@ -2,7 +2,12 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard.entry;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 
+import java.util.Objects;
+
 public abstract class ScoreboardEntry {
+    private static int nextId;
+    private final int thisId = nextId++;
+
     private GameScoreboard scoreboard;
 
     public abstract void render(int pos);
@@ -28,4 +33,17 @@ public abstract class ScoreboardEntry {
     }
 
     public void cleanup() {}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScoreboardEntry that = (ScoreboardEntry) o;
+        return this.thisId == that.thisId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.thisId);
+    }
 }

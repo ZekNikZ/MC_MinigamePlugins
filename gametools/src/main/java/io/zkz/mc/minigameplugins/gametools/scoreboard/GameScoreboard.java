@@ -163,8 +163,25 @@ public class GameScoreboard {
             return;
         }
 
+        scoreboardEntry.cleanup();
         this.entries.remove(scoreboardEntry);
+        this.mappedEntries.remove(id);
         this.redraw();
+    }
+
+    public ScoreboardEntry swapEntry(String id, ScoreboardEntry newEntry) {
+        ScoreboardEntry oldEntry = this.mappedEntries.get(id);
+        if (oldEntry == null) {
+            throw new NullPointerException("No entry with id " + id);
+        }
+
+        oldEntry.cleanup();
+        int i = this.entries.indexOf(oldEntry);
+        this.entries.remove(i);
+        this.mappedEntries.remove(id);
+        this.entries.add(i, newEntry);
+        this.mappedEntries.put(id, newEntry);
+        return oldEntry;
     }
 
     public int getId() {
