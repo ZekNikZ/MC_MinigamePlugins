@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import net.md_5.bungee.api.ChatColor;
@@ -9,23 +10,21 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = LeaveTeamCommand.COMMAND_NAME,
     desc = "Make player(s) leave a team",
     usage = "/" + LeaveTeamCommand.COMMAND_NAME + "[players...]",
-    permission = TeamCommands.Permissions.TEAM_JOIN
+    permission = Permissions.Teams.LEAVE
 ))
-@Permissions(
-    @Permission(name = TeamCommands.Permissions.TEAM_LEAVE, desc = "Leave teams")
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Teams.LEAVE,
+    desc = "Make players leave teams"
+))
 public class LeaveTeamCommand extends AbstractCommandExecutor {
     static final String COMMAND_NAME = "leaveteam";
 

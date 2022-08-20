@@ -2,31 +2,28 @@ package io.zkz.mc.minigameplugins.survivalgames.command;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
+import io.zkz.mc.minigameplugins.survivalgames.Permissions;
 import io.zkz.mc.minigameplugins.survivalgames.SGService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = RespawnCommand.COMMAND_NAME,
     desc = "Respawn a player",
     usage = "/" + RespawnCommand.COMMAND_NAME + "<player>",
-    permission = RespawnCommand.PERMISSION
+    permission = Permissions.Event.RESPAWN
 ))
-@Permissions(@Permission(
-    name = RespawnCommand.PERMISSION,
-    desc = "Respawn a player",
-    defaultValue = PermissionDefault.TRUE
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Event.RESPAWN,
+    desc = "Sudden death"
 ))
 public class RespawnCommand extends ArgumentCommandExecutor {
     static final String COMMAND_NAME = "respawn";
-    static final String PERMISSION = "survivalgames.admin.respawn";
 
     protected RespawnCommand() {
         super(COMMAND_NAME, 1);

@@ -1,12 +1,14 @@
 package io.zkz.mc.minigameplugins.dev.survivalgames;
 
 import com.sk89q.worldedit.math.BlockVector3;
+import io.zkz.mc.minigameplugins.dev.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.annotation.command.Commands;
+import org.bukkit.plugin.java.annotation.permission.Permission;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -15,7 +17,12 @@ import java.util.function.BiConsumer;
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = SGDevCommand.COMMAND_NAME,
     desc = "Dev setup for SG",
-    usage = "/" + SGDevCommand.COMMAND_NAME + " <subcommand>"
+    usage = "/" + SGDevCommand.COMMAND_NAME + " <subcommand>",
+    permission = Permissions.SurvivalGames.ADMIN
+))
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.SurvivalGames.ADMIN,
+    desc = "Admin configuration for survival games"
 ))
 public class SGDevCommand extends AbstractCommandExecutor {
     static final String COMMAND_NAME = "sg";

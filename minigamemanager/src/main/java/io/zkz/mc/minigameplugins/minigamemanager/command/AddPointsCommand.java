@@ -2,14 +2,13 @@ package io.zkz.mc.minigameplugins.minigamemanager.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
+import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -18,14 +17,14 @@ import java.util.stream.Collectors;
     name = AddPointsCommand.COMMAND_NAME,
     desc = "Add points to a given team",
     usage = "/" + AddPointsCommand.COMMAND_NAME + " <teamID> <points> [reason]",
-    permission = AddPointsCommand.PERMISSION
+    permission = Permissions.Score.ADD
 ))
-@Permissions(
-    @Permission(name = AddPointsCommand.PERMISSION, desc = "Add points")
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Score.ADD,
+    desc = "Add points"
+))
 public class AddPointsCommand extends AbstractCommandExecutor {
     static final String COMMAND_NAME = "addpoints";
-    static final String PERMISSION = "minigamemanager.score.add";
 
     protected AddPointsCommand() {
         super(COMMAND_NAME);

@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
+import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.ChatColor;
@@ -8,20 +9,19 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = SetRoundCommand.COMMAND_NAME,
     desc = "Set the current round of the minigame",
     usage = "/" + SetRoundCommand.COMMAND_NAME + " <round>",
-    permission = SetRoundCommand.PERMISSION
+    permission = Permissions.Round.CHANGE
 ))
-@Permissions(
-    @Permission(name = SetRoundCommand.PERMISSION, desc = "Set minigame round")
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Round.CHANGE,
+    desc = "Set minigame round"
+))
 public class SetRoundCommand extends ArgumentCommandExecutor {
     static final String COMMAND_NAME = "setround";
-    static final String PERMISSION = "minigamemanager.round.set";
 
     protected SetRoundCommand() {
         super(COMMAND_NAME, 1);

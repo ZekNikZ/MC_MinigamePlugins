@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.readyup.command;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
@@ -12,17 +13,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = ReadyUpCommand.COMMAND_NAME,
     desc = "Mark yourself as ready",
     usage = "/" + ReadyUpCommand.COMMAND_NAME,
-    permission = ReadyUpCommands.Permissions.READY_UP
+    permission = Permissions.Ready.READY_UP
 ))
-@Permissions(
-    @Permission(name = ReadyUpCommands.Permissions.READY_UP, desc = "Ready up", defaultValue = PermissionDefault.TRUE)
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Ready.READY_UP,
+    desc = "Ready up",
+    defaultValue = PermissionDefault.TRUE
+))
 public class ReadyUpCommand extends ArgumentCommandExecutor {
     static final String COMMAND_NAME = "ready";
 

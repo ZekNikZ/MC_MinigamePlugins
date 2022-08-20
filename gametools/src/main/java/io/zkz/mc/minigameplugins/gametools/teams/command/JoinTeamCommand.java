@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -11,7 +12,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 import java.util.Arrays;
 
@@ -19,11 +19,12 @@ import java.util.Arrays;
     name = JoinTeamCommand.COMMAND_NAME,
     desc = "Make player(s) join a team",
     usage = "/" + JoinTeamCommand.COMMAND_NAME + "<team> [players...]",
-    permission = TeamCommands.Permissions.TEAM_JOIN
+    permission = Permissions.Teams.JOIN
 ))
-@Permissions(
-    @Permission(name = TeamCommands.Permissions.TEAM_JOIN, desc = "Join teams")
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Teams.JOIN,
+    desc = "Make players join teams"
+))
 public class JoinTeamCommand extends AbstractCommandExecutor {
     static final String COMMAND_NAME = "jointeam";
 

@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import net.md_5.bungee.api.ChatColor;
@@ -8,17 +9,17 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.permission.Permissions;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = DefaultTeamsCommand.COMMAND_NAME,
     desc = "Setup default teams",
     usage = "/" + DefaultTeamsCommand.COMMAND_NAME,
-    permission = TeamCommands.Permissions.TEAM_CREATE
+    permission = Permissions.Teams.CREATE
 ))
-@Permissions(
-    @Permission(name = TeamCommands.Permissions.TEAM_CREATE, desc = "Create teams")
-)
+@org.bukkit.plugin.java.annotation.permission.Permissions(@Permission(
+    name = Permissions.Teams.CREATE,
+    desc = "Create teams"
+))
 public class DefaultTeamsCommand extends ArgumentCommandExecutor {
     static final String COMMAND_NAME = "setupdefaultteams";
 
