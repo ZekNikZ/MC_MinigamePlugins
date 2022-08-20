@@ -31,7 +31,7 @@ public class StopSpecCommand extends ArgumentCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
-            SGService.getInstance().activateSpectatorMode(player);
+            SGService.getInstance().deactivateSpectatorMode(player);
         }
 
         return true;

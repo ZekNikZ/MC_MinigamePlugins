@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
 
-record SGChest(BlockVector3 pos, String lootTable) {}
+record SGChest(BlockVector3 pos, String lootTable) {
+}
 
 public class SGRound extends Round {
     private final String templateWorldName;
@@ -189,6 +190,7 @@ public class SGRound extends Round {
 
     public void markDead(Player player) {
         this.alivePlayers.remove(player.getUniqueId());
+        this.logOutLocations.remove(player.getUniqueId());
     }
 
     public boolean isTeamAlive(GameTeam team) {
@@ -222,10 +224,19 @@ public class SGRound extends Round {
         } else if (this.assignedSpawnLocations.get(player.getUniqueId()) != null) {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
         } else {
-            player.teleport(SGService.adjustLocation(SGService.toLocation(this.cornLocation, this.actualWorldName)));
+            player.teleport(this.getCornLocation());
         }
 
         // Update game state
         SGService.getInstance().updateGameState();
+    }
+
+    @Nullable
+    public Location getAssignedSpawnLocation(Player player) {
+        return this.assignedSpawnLocations.get(player.getUniqueId());
+    }
+
+    public Location getCornLocation() {
+        return adjustLocation(toLocation(this.cornLocation, this.actualWorldName));
     }
 }

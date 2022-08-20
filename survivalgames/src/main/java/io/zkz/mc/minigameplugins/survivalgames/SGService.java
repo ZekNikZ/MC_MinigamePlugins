@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.survivalgames;
 
 import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldguard.bukkit.event.block.PlaceBlockEvent;
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
@@ -50,6 +49,7 @@ public class SGService extends PluginService<SGPlugin> {
     private Location lobbySpawnLocation;
     //    private Location gulagSpawnLocation;
     private final List<SGFinalArena> finalArenas = new ArrayList<>();
+    private SGFinalArena currentFinalArena = null;
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
@@ -95,13 +95,19 @@ public class SGService extends PluginService<SGPlugin> {
         minigame.addTask(MinigameState.IN_GAME, SpectatorTask::new);
 
         // State change titles
-        // TODO: find a way to make this work
-        // minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
-        //     SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-        //     TitleUtils.broadcastTitle(ChatColor.RED + "Round starts in 20 seconds", ChatColor.GOLD + "Find a good starting position!", 10, 70, 20);
-        // });
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             this.gameState = SGState.IN_GAME;
+
+            BukkitUtils.forEachPlayer(player -> {
+                BukkitUtils.forEachPlayer(otherPlayer -> {
+                    if (player.equals(otherPlayer)) {
+                        return;
+                    }
+
+                    player.hidePlayer(this.getPlugin(), otherPlayer);
+                    player.showPlayer(this.getPlugin(), otherPlayer);
+                });
+            });
         });
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
@@ -158,6 +164,10 @@ public class SGService extends PluginService<SGPlugin> {
         return (SGRound) MinigameService.getInstance().getCurrentRound();
     }
 
+    public SGFinalArena getCurrentFinalArena() {
+        return this.currentFinalArena;
+    }
+
     private void setDead(Player player) {
         player.teleport(this.lobbySpawnLocation);
         SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
@@ -194,15 +204,44 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     private void setupPlayer(Player player) {
-        if (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
-            player.teleport(this.lobbySpawnLocation);
+        // If in-game and alive, tp to map
+        Location logoutLocation = this.getCurrentRound().getLogoutLocation(player);
+        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(player)) {
+            player.setGameMode(GameMode.SURVIVAL);
+            // If have a logout location
+            if (logoutLocation != null) {
+                player.teleport(logoutLocation);
+            } else {
+                Location assignedSpawnLocation = this.getCurrentRound().getAssignedSpawnLocation(player);
+                if (assignedSpawnLocation != null) {
+                    player.teleport(assignedSpawnLocation);
+                } else {
+                    player.teleport(this.getCurrentRound().getCornLocation());
+                }
+            }
             return;
         }
 
-        Location loc = this.getCurrentRound().getLogoutLocation(player);
-        if (loc != null) {
-            player.teleport(loc);
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+        if (team == null || team.isSpectator()) {
+            player.setGameMode(GameMode.SPECTATOR);
+        } else {
+            player.setGameMode(GameMode.ADVENTURE);
         }
+
+        // If in final 2, tp to arena
+        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.FINAL_TWO) {
+            // if alive
+            if (this.getCurrentRound().isAlive(player)) {
+                player.teleport(this.getCurrentFinalArena().participantSpawnLocation());
+            } else {
+                player.teleport(this.getCurrentFinalArena().spectatorSpawnLocation());
+            }
+            return;
+        }
+
+        // otherwise, tp to lobby
+        player.teleport(this.lobbySpawnLocation);
     }
 
     public void updateGameState() {
@@ -227,6 +266,10 @@ public class SGService extends PluginService<SGPlugin> {
             return;
         }
 
+        if (!player.getWorld().getName().equals("sg_lobby")) {
+            return;
+        }
+
         player.teleport(Bukkit.getWorld(this.getCurrentRound().getActualWorldName()).getSpawnLocation());
         BukkitUtils.runNextTick(() -> {
             player.setGameMode(GameMode.SPECTATOR);
@@ -235,6 +278,14 @@ public class SGService extends PluginService<SGPlugin> {
             if (team != null && this.getCurrentRound().isTeamAlive(team)) {
                 player.setSpectatorTarget(this.getCurrentRound().getAliveOnlinePlayers().stream().filter(p -> Objects.equals(TeamService.getInstance().getTeamOfPlayer(p), team)).findFirst().orElse(null));
             }
+
+            BukkitUtils.forEachPlayer(otherPlayer -> {
+                if (otherPlayer.equals(player)) {
+                    return;
+                }
+
+                otherPlayer.hidePlayer(this.getPlugin(), player);
+            });
         });
     }
 
@@ -249,6 +300,14 @@ public class SGService extends PluginService<SGPlugin> {
         }
 
         player.teleport(this.lobbySpawnLocation);
+
+        BukkitUtils.forEachPlayer(otherPlayer -> {
+            if (otherPlayer.equals(player)) {
+                return;
+            }
+
+            otherPlayer.showPlayer(this.getPlugin(), player);
+        });
     }
 
     @EventHandler
@@ -275,7 +334,9 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        this.setDead(event.getEntity());
+        if (this.gameState == SGState.IN_GAME) {
+            this.setDead(event.getEntity());
+        }
     }
 
     @EventHandler
@@ -295,7 +356,7 @@ public class SGService extends PluginService<SGPlugin> {
     private void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
             if (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
-                event.setCancelled(true);
+                event.setDamage(0);
             }
         }
     }

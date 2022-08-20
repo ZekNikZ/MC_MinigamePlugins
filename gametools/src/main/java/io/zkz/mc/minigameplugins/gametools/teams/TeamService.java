@@ -75,6 +75,15 @@ public class TeamService extends GameToolsService {
         return true;
     }
 
+    public boolean areAllNonSpectatorsOnline() {
+        return this.getTrackedPlayers().stream()
+            .filter(p -> {
+                GameTeam team = this.getTeamOfPlayer(p);
+                return team != null && !team.isSpectator();
+            })
+            .allMatch(p -> Bukkit.getPlayer(p) != null);
+    }
+
     public static class TeamCreationException extends RuntimeException {
         public TeamCreationException(String problem) {
             super("Could not create team: " + problem);

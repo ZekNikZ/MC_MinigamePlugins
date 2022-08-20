@@ -30,21 +30,21 @@ public class DefaultTeams {
 
     static {
         SPECTATOR = new GameTeam("spectators", "Spectators", ChatColor.DARK_GRAY + "[SPEC]" + ChatColor.GRAY)
-            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
-            .setFormatCode(ChatColor.DARK_GRAY)
-            .setColor(Color.DARK_GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.GRAY)
+            .setFormatCode(ChatColor.GRAY)
+            .setColor(Color.GRAY)
             .setSpectator(true);
 
         GAME_MASTER = new GameTeam("game_masters", "Game Masters", ChatColor.GOLD + "[GM]" + ChatColor.GRAY)
-            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
-            .setFormatCode(ChatColor.DARK_GRAY)
-            .setColor(Color.DARK_GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.GRAY)
+            .setFormatCode(ChatColor.GRAY)
+            .setColor(Color.GRAY)
             .setSpectator(true);
 
         CASTER = new GameTeam("casters", "Casters", ChatColor.DARK_PURPLE + "[CASTER]" + ChatColor.GRAY)
-            .setScoreboardColor(org.bukkit.ChatColor.DARK_GRAY)
-            .setFormatCode(ChatColor.DARK_GRAY)
-            .setColor(Color.DARK_GRAY)
+            .setScoreboardColor(org.bukkit.ChatColor.GRAY)
+            .setFormatCode(ChatColor.GRAY)
+            .setColor(Color.GRAY)
             .setSpectator(true);
 
         BLACK = new GameTeam("black", "Black Team", "\u24b7")

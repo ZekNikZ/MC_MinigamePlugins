@@ -197,7 +197,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // WAITING_TO_BEGIN
         this.addSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> {
             if (this.automaticPreRound) {
-                ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::handlePlayersReady, this::handlePlayerReady);
+                ReadyUpService.getInstance().waitForReady(this.getPlayersAndGameMasters(), this::handlePlayersReady, this::handlePlayerReady);
             } else {
                 this.setState(MinigameState.PRE_ROUND);
             }
@@ -206,10 +206,23 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             this.getCurrentRound().onPreRound();
+
+            // Reset glowing
+            BukkitUtils.forEachPlayer(player -> {
+                BukkitUtils.forEachPlayer(otherPlayer -> {
+                    if (player.equals(otherPlayer)) {
+                        return;
+                    }
+
+                    player.hidePlayer(this.getPlugin(), otherPlayer);
+                    player.showPlayer(this.getPlugin(), otherPlayer);
+                });
+            });
+
             if (this.automaticPreRound) {
                 this.startPreRoundTimer();
             } else {
-                ReadyUpService.getInstance().waitForReady(this.getPlayers(), this::startPreRoundTimer);
+                ReadyUpService.getInstance().waitForReady(this.getPlayersAndGameMasters(), this::startPreRoundTimer);
             }
         });
         this.addCleanupHandler(MinigameState.PRE_ROUND, () -> {
@@ -456,6 +469,16 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             .filter(uuid -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
                 return team != null && !team.isSpectator();
+            })
+            .toList();
+    }
+
+    public Collection<UUID> getPlayersAndGameMasters() {
+        Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
+        return players.stream()
+            .filter(uuid -> {
+                GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
+                return team != null && (team.equals(DefaultTeams.GAME_MASTER) || !team.isSpectator());
             })
             .toList();
     }
