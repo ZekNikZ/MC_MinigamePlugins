@@ -49,7 +49,7 @@ public class SGService extends PluginService<SGPlugin> {
     private Location lobbySpawnLocation;
     //    private Location gulagSpawnLocation;
     private final List<SGFinalArena> finalArenas = new ArrayList<>();
-    private SGFinalArena currentFinalArena = null;
+    private int currentFinalArenaIndex = -1;
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
@@ -165,7 +165,7 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     public SGFinalArena getCurrentFinalArena() {
-        return this.currentFinalArena;
+        return this.finalArenas.get(this.currentFinalArenaIndex);
     }
 
     private void setDead(Player player) {
@@ -355,7 +355,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
-            if (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
+            if (this.gameState != SGState.WAITING_FOR_FINAL_ARENA && (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player))) {
                 event.setDamage(0);
             }
         }

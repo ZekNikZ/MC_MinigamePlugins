@@ -9,6 +9,8 @@ public class Permissions {
         private static final String ADMIN_PREFIX = Permissions.ADMIN_PREFIX + "ready.";
 
         public static final String READY_UP = PREFIX + "readyup";
+        public static final String UNDO_READY_UP = ADMIN_PREFIX + "undoreadyup";
+        public static final String STATUS = ADMIN_PREFIX + "status";
     }
 
     public static class Teams {

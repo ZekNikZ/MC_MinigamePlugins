@@ -6,6 +6,7 @@ import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class ReadyUpService extends GameToolsService {
     private static final ReadyUpService INSTANCE = new ReadyUpService();
@@ -69,6 +71,15 @@ public class ReadyUpService extends GameToolsService {
         return success;
     }
 
+    public boolean undoReady(UUID playerId) {
+        boolean success = false;
+        for (ReadyUpSession session : this.sessions.values()) {
+            success |= session.undoReady(playerId);
+        }
+
+        return success;
+    }
+
     private void displayInitialReadyMessage(Player player) {
         Chat.sendAlert(player, ChatType.GAME_INFO, "Are you ready? Type " + ChatColor.AQUA + "/ready" + ChatColor.RESET + " to confirm.");
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
@@ -79,5 +90,13 @@ public class ReadyUpService extends GameToolsService {
         if (this.sessions.values().stream().anyMatch(s -> s.isPlayerTracked(event.getPlayer()))) {
             displayInitialReadyMessage(event.getPlayer());
         }
+    }
+
+    public void sendStatus(CommandSender sender) {
+        this.sessions.forEach((id, session) -> {
+            Chat.sendMessageFormatted(sender, ChatColor.GOLD + "Session %d:", id);
+            Chat.sendMessage(sender, ChatColor.GREEN + " - ready: " + String.join(", ", session.getReadyPlayerNames()));
+            Chat.sendMessage(sender, ChatColor.RED + " - not ready: " + String.join(", ", session.getNotReadyPlayerNames()));
+        });
     }
 }

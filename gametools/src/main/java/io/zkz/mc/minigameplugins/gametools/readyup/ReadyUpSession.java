@@ -8,10 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
@@ -50,6 +47,7 @@ public class ReadyUpSession {
 
     /**
      * Mark a player as ready
+     *
      * @param player the player
      * @return whether or not the player was marked as ready (= whether the player was tracked and not already ready)
      */
@@ -93,5 +91,38 @@ public class ReadyUpSession {
 
     public boolean isPlayerTracked(Player player) {
         return this.readyPlayers.containsKey(player.getUniqueId());
+    }
+
+    public boolean undoReady(UUID playerId) {
+        this.readyPlayers.put(playerId, false);
+        return true;
+    }
+
+    public List<String> getReadyPlayerNames() {
+        return this.readyPlayers.entrySet().stream()
+            .filter(Map.Entry::getValue)
+            .map(entry -> {
+                Player player = Bukkit.getPlayer(entry.getKey());
+                if (player != null) {
+                    return player.getDisplayName();
+                }
+
+                return Bukkit.getOfflinePlayer(entry.getKey()).getName() + ChatColor.DARK_RED + " (offline)";
+            })
+            .toList();
+    }
+
+    public List<String> getNotReadyPlayerNames() {
+        return this.readyPlayers.entrySet().stream()
+            .filter(entry -> !entry.getValue())
+            .map(entry -> {
+                Player player = Bukkit.getPlayer(entry.getKey());
+                if (player != null) {
+                    return player.getDisplayName();
+                }
+
+                return Bukkit.getOfflinePlayer(entry.getKey()).getName() + ChatColor.DARK_RED + " (offline)";
+            })
+            .toList();
     }
 }

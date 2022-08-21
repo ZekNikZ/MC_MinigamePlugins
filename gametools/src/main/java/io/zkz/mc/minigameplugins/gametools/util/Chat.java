@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -16,11 +17,11 @@ public class Chat {
         public static final String GAME_PREFIX = "[" + GOLD + BOLD + "%name%" + RESET + "] ";
     }
 
-    public static void sendMessage(Player player, String message) {
+    public static void sendMessage(CommandSender player, String message) {
         player.sendMessage(message);
     }
 
-    public static void sendMessage(Collection<? extends Player> players, String message) {
+    public static void sendMessage(Collection<? extends CommandSender> players, String message) {
         players.forEach(player -> sendMessage(player, message));
     }
 
@@ -28,11 +29,11 @@ public class Chat {
         sendMessage(Bukkit.getOnlinePlayers(), message);
     }
 
-    public static void sendMessageFormatted(Player player, String message, Object... args) {
+    public static void sendMessageFormatted(CommandSender player, String message, Object... args) {
         player.sendMessage(message.formatted(args));
     }
 
-    public static void sendMessageFormatted(Collection<? extends Player> players, String message, Object... args) {
+    public static void sendMessageFormatted(Collection<? extends CommandSender> players, String message, Object... args) {
         players.forEach(player -> sendMessage(player, message.formatted(args)));
     }
 
@@ -40,19 +41,19 @@ public class Chat {
         sendMessage(Bukkit.getOnlinePlayers(), message.formatted(args));
     }
 
-    public static void sendAlert(Player player, ChatType type, String message, float points) {
+    public static void sendAlert(CommandSender player, ChatType type, String message, float points) {
         sendMessage(player, type.format(message, points));
     }
 
-    public static void sendAlert(Player player, ChatType type, String message) {
+    public static void sendAlert(CommandSender player, ChatType type, String message) {
         sendMessage(player, type.format(message));
     }
 
-    public static void sendAlert(Collection<? extends Player> players, ChatType type, String message, float points) {
+    public static void sendAlert(Collection<? extends CommandSender> players, ChatType type, String message, float points) {
         sendMessage(players, type.format(message, points));
     }
 
-    public static void sendAlert(Collection<? extends Player> players, ChatType type, String message) {
+    public static void sendAlert(Collection<? extends CommandSender> players, ChatType type, String message) {
         sendMessage(players, type.format(message));
     }
 

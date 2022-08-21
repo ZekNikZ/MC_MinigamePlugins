@@ -6,5 +6,7 @@ public class ReadyUpCommands extends CommandGroup {
     @Override
     public void registerCommands() {
         this.register(new ReadyUpCommand());
+        this.register(new UndoReadyUpCommand());
+        this.register(new ReadyStatusCommand());
     }
 }
