@@ -4,7 +4,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Round {
-    private final String mapName;
+    private String mapName;
 
     protected Round() {
         this.mapName = null;
@@ -79,5 +79,9 @@ public abstract class Round {
 
     public @Nullable String getMapName() {
         return this.mapName;
+    }
+
+    public void setMapName(@Nullable String mapName) {
+        this.mapName = mapName;
     }
 }

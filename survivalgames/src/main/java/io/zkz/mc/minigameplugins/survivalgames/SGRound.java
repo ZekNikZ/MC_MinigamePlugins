@@ -8,6 +8,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
@@ -23,9 +24,6 @@ import java.util.stream.Collectors;
 
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
-
-record SGChest(BlockVector3 pos, String lootTable) {
-}
 
 public class SGRound extends Round {
     private final String templateWorldName;
@@ -238,5 +236,11 @@ public class SGRound extends Round {
 
     public Location getCornLocation() {
         return adjustLocation(toLocation(this.cornLocation, this.actualWorldName));
+    }
+
+    public void endRound() {
+        this.triggerRoundEnd();
+        this.alivePlayers.clear();
+        BukkitUtils.forEachPlayer(SGService.getInstance()::setupPlayer);
     }
 }

@@ -9,5 +9,8 @@ public class SGCommands extends CommandGroup {
         this.register(new StopSpecCommand());
         this.register(new SuddenDeathCommand());
         this.register(new RespawnCommand());
+        this.register(new ListFinalArenasCommand());
+        this.register(new SelectFinalArenaCommand());
+        this.register(new DeclareWinnerCommand());
     }
 }

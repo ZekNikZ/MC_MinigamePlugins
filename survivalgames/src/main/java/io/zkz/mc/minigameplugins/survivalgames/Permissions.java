@@ -19,4 +19,13 @@ public class Permissions {
         public static final String SUDDEN_DEATH = ADMIN_PREFIX + "suddendeath";
         public static final String RESPAWN = ADMIN_PREFIX + "respawn";
     }
+
+    public static class FinalArena {
+        private static final String PREFIX = Permissions.PREFIX + "finalarena.";
+        private static final String ADMIN_PREFIX = Permissions.ADMIN_PREFIX + "finalarena.";
+
+        public static final String LIST = ADMIN_PREFIX + "list";
+        public static final String SELECT = ADMIN_PREFIX + "select";
+        public static final String DECLARE_WINNER = ADMIN_PREFIX + "declarewinner";
+    }
 }

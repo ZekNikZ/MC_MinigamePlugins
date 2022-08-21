@@ -12,6 +12,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
@@ -33,10 +34,9 @@ import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-
-record SGFinalArena(String name, Location spectatorSpawnLocation, Location participantSpawnLocation) {
-}
+import java.util.stream.Collectors;
 
 public class SGService extends PluginService<SGPlugin> {
     private static final SGService INSTANCE = new SGService();
@@ -203,7 +203,7 @@ public class SGService extends PluginService<SGPlugin> {
         this.updateGameState();
     }
 
-    private void setupPlayer(Player player) {
+    void setupPlayer(Player player) {
         // If in-game and alive, tp to map
         Location logoutLocation = this.getCurrentRound().getLogoutLocation(player);
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(player)) {
@@ -257,7 +257,10 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     private void roundIsOver() {
-        this.gameState = SGState.FINAL_TWO;
+        this.gameState = SGState.WAITING_FOR_FINAL_ARENA;
+
+        SoundUtils.playSound(StandardSounds.GAME_OVER, 1, 1);
+        TitleUtils.broadcastTitle("" + ChatColor.RED + ChatColor.BOLD + "Phase over!", ChatColor.GOLD + "Finale: " + this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getDisplayName).collect(Collectors.joining(ChatColor.GOLD + " vs. ")));
     }
 
     public void activateSpectatorMode(Player player) {
@@ -308,6 +311,44 @@ public class SGService extends PluginService<SGPlugin> {
 
             otherPlayer.showPlayer(this.getPlugin(), player);
         });
+    }
+
+    public List<SGFinalArena> getFinalArenaLists() {
+        return this.finalArenas;
+    }
+
+    public void selectFinalArena(String name) {
+        // Select the arena
+        for (int i = 0; i < this.finalArenas.size(); i++) {
+            if (this.finalArenas.get(i).name().equalsIgnoreCase(name)) {
+                this.currentFinalArenaIndex = i;
+                return;
+            }
+        }
+
+        // Start timer to TP players
+        MinigameService.getInstance().changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 20, TimeUnit.SECONDS, () -> {
+            this.gameState = SGState.FINAL_TWO;
+            BukkitUtils.forEachPlayer(this::setupPlayer);
+            MinigameService.getInstance().changeTimer(null);
+            this.getCurrentRound().setMapName("Finale: " + this.getCurrentFinalArena().name());
+            MinigameService.getInstance().refreshScoreboard();
+        }));
+        MinigameService.getInstance().refreshScoreboard();
+    }
+
+    public SGState getGameState() {
+        return this.gameState;
+    }
+
+    public void declareWinner(String teamId) {
+        GameTeam team = TeamService.getInstance().getTeam(teamId);
+
+        SoundUtils.playSound(StandardSounds.GAME_OVER, 1, 1);
+        TitleUtils.broadcastTitle("" + ChatColor.RED + ChatColor.BOLD + "Game over!", ChatColor.GOLD + "Winner: " + team);
+        ScoreService.getInstance().earnPoints(team, "winning", 250);
+
+        this.getCurrentRound().endRound();
     }
 
     @EventHandler
