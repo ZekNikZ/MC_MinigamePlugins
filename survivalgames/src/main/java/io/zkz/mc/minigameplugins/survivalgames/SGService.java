@@ -39,6 +39,7 @@ import org.json.simple.JSONObject;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -357,6 +358,29 @@ public class SGService extends PluginService<SGPlugin> {
         this.getCurrentRound().endRound();
     }
 
+    private boolean respawnTeammate(Player player) {
+        if (!this.getCurrentRound().isAlive(player)) {
+            return false;
+        }
+
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+        if (!this.getCurrentRound().isTeamAlive(team)) {
+            return false;
+        }
+
+        AtomicBoolean status = new AtomicBoolean(false);
+        TeamService.getInstance().getOnlineTeamMembers(team).stream()
+            .filter(p -> !p.getUniqueId().equals(player.getUniqueId()))
+            .findFirst().ifPresentOrElse(
+                p -> {
+                    this.getCurrentRound().respawnPlayer(p);
+                    status.set(true);
+                },
+                () -> status.set(false)
+            );
+        return status.get();
+    }
+
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -501,6 +525,22 @@ public class SGService extends PluginService<SGPlugin> {
         if (event.getItem().getType() == Material.BEETROOT_SOUP) {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 1));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 120, 0));
+        }
+    }
+
+    @EventHandler
+    private void onUseRespawnCrystal(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+
+        if (player.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR) {
+            if (this.respawnTeammate(player)) {
+                player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
+                Chat.sendAlert(player, ChatType.SUCCESS, "Your teammate has been respawned!");
+                SoundUtils.playSound(player, StandardSounds.GOAL_MET_MAJOR, 1, 1);
+            } else {
+                Chat.sendAlert(player, ChatType.WARNING, "Your teammate is either still alive or offline!");
+                SoundUtils.playSound(player, StandardSounds.ALERT_ERROR, 1, 1);
+            }
         }
     }
 

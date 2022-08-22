@@ -281,6 +281,10 @@ public class TeamService extends GameToolsService {
             .toList();
     }
 
+    public Collection<Player> getOnlineTeamMembers(GameTeam team) {
+        return this.getOnlineTeamMembers(team.getId());
+    }
+
     public Collection<UUID> getTrackedPlayers() {
         return this.players.keySet();
     }

@@ -9,6 +9,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
@@ -16,6 +17,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
@@ -200,11 +202,38 @@ public class SGRound extends Round {
     }
 
     public void recordKill(Player player, Player killer) {
-        if (!this.kills.containsKey(player.getUniqueId())) {
-            this.kills.put(player.getUniqueId(), new ArrayList<>());
+        UUID playerId = player.getUniqueId();
+        UUID killerId = killer.getUniqueId();
+
+        if (!this.kills.containsKey(killerId)) {
+            this.kills.put(killerId, new ArrayList<>());
         }
 
-        this.kills.get(player.getUniqueId()).add(killer.getUniqueId());
+        this.kills.get(killerId).add(playerId);
+
+        if (this.kills.get(killerId).size() % 3 == 0) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Player killer = Bukkit.getPlayer(killerId);
+                    if (killer == null) {
+                        return;
+                    }
+
+                    var leftover = killer.getInventory().addItem(
+                        ISB.material(Material.NETHER_STAR)
+                            .name(ChatColor.YELLOW + "Respawn Crystal")
+                            .lore("Right-click this to respawn your")
+                            .lore("dead teammate.")
+                            .build()
+                    );
+
+                    if (leftover.isEmpty()) {
+                        this.cancel();
+                    }
+                }
+            }.runTaskTimer(SGService.getInstance().getPlugin(), 1, 1);
+        }
     }
 
     public void respawnPlayer(Player player) {
