@@ -82,8 +82,16 @@ public class ResourceManager {
         }
     }
 
-    public void addBlockTexture(String blockId, InputStream inputStream) {
+    public static void setBlockTexture(String blockId, InputStream inputStream) {
         String location = "assets/minecraft/textures/block/" + blockId;
+        if (!location.contains(".png")) {
+            location += ".png";
+        }
+        addMiscResource(location, inputStream);
+    }
+
+    public static void addItemTexture(String itemId, InputStream inputStream) {
+        String location = "assets/minecraft/textures/item/" + itemId;
         if (!location.contains(".png")) {
             location += ".png";
         }

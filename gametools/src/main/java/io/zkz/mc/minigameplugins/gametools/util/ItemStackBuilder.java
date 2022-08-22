@@ -2,9 +2,11 @@ package io.zkz.mc.minigameplugins.gametools.util;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,6 +116,18 @@ public class ItemStackBuilder {
 
     public ItemStackBuilder unbreakable(boolean unbreakable) {
         this.unbreakable = unbreakable;
+        return this;
+    }
+
+    public ItemStackBuilder skullOwner(OfflinePlayer player) {
+        SkullMeta meta = ((SkullMeta) this.stack.getItemMeta());
+        meta.setOwningPlayer(player);
+        return this;
+    }
+
+    public ItemStackBuilder skullOwner(String name) {
+        SkullMeta meta = ((SkullMeta) this.stack.getItemMeta());
+        meta.setOwner(name);
         return this;
     }
 

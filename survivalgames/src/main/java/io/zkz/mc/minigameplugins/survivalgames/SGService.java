@@ -30,6 +30,10 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -55,6 +59,8 @@ public class SGService extends PluginService<SGPlugin> {
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
 
     private SGState gameState = null;
+    private String skullName = "Angxstupst";
+    private final Map<UUID, BukkitTask> disconnectedPlayers = new HashMap<>();
 
     @Override
     protected void setup() {
@@ -355,16 +361,33 @@ public class SGService extends PluginService<SGPlugin> {
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        this.setupPlayer(player);
+        if (this.disconnectedPlayers.containsKey(player.getUniqueId())) {
+            BukkitTask task = this.disconnectedPlayers.get(player.getUniqueId());
+            if (task == null) {
+                this.setDead(player);
+            } else {
+                task.cancel();
+            }
+            this.disconnectedPlayers.remove(player.getUniqueId());
+        } else {
+            this.setupPlayer(player);
+        }
     }
 
     @EventHandler
     private void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
 
-        if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(player.getUniqueId())) {
+        if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(playerId)) {
             this.getCurrentRound().recordLogoutLocation(player);
-            // TODO: if in-game, set timer for disconnect elimination
+            this.disconnectedPlayers.put(playerId, new BukkitRunnable() {
+                @Override
+                public void run() {
+                    disconnectedPlayers.put(playerId, null);
+                }
+            }.runTaskLater(this.getPlugin(), 1200));
+            Chat.sendAlert(ChatType.WARNING, player.getDisplayName() + ChatColor.RED + " has disconnected, waiting 1 minute before eliminating them...");
         }
     }
 
@@ -375,7 +398,8 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        if (this.gameState == SGState.IN_GAME) {
+        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(event.getEntity())) {
+            event.getDrops().add(ISB.material(Material.PLAYER_HEAD).skullOwner(this.skullName).build());
             this.setDead(event.getEntity());
         }
     }
@@ -470,6 +494,14 @@ public class SGService extends PluginService<SGPlugin> {
         world.setGameRule(GameRule.DO_MOB_SPAWNING, Boolean.FALSE);
         world.setGameRule(GameRule.MOB_GRIEFING, Boolean.FALSE);
         world.setGameRule(GameRule.DO_TRADER_SPAWNING, Boolean.FALSE);
+    }
+
+    @EventHandler
+    private void onEat(PlayerItemConsumeEvent event) {
+        if (event.getItem().getType() == Material.BEETROOT_SOUP) {
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 1));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 120, 0));
+        }
     }
 
     public static Location toLocation(BlockVector3 vec, String world) {

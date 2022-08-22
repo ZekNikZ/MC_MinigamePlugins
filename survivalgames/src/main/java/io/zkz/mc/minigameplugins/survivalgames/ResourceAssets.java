@@ -11,6 +11,8 @@ public class ResourceAssets {
     public static void main(String[] args) {
         addRuleSlide(ResourceManager.addCustomCharacterImage('\uE200', ResourceAssets.class.getResourceAsStream("/testinstructions.png"), 200, 200));
         addRuleSlide(ResourceManager.addCustomCharacterImage('\uE201', ResourceAssets.class.getResourceAsStream("/testinstructions2.png"), 200, 200));
+        ResourceManager.addItemTexture("beetroot_soup", ResourceAssets.class.getResourceAsStream("/beetroot_soup.png"));
+        ResourceManager.addMiscResource("assets/minecraft/lang/en_us.json", ResourceAssets.class.getResourceAsStream("/en_us.json"));
     }
 
     private static void addRuleSlide(char c) {
