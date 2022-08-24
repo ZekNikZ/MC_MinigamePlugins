@@ -18,6 +18,7 @@ public class Permissions {
 
         public static final String SUDDEN_DEATH = ADMIN_PREFIX + "suddendeath";
         public static final String RESPAWN = ADMIN_PREFIX + "respawn";
+        public static final String REFILL_CHESTS = ADMIN_PREFIX + "refillchests";
     }
 
     public static class FinalArena {

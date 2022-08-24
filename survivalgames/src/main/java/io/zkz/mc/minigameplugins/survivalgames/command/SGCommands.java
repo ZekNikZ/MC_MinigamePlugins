@@ -12,5 +12,6 @@ public class SGCommands extends CommandGroup {
         this.register(new ListFinalArenasCommand());
         this.register(new SelectFinalArenaCommand());
         this.register(new DeclareWinnerCommand());
+        this.register(new RefillChestsCommand());
     }
 }
