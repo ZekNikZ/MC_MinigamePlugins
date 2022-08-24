@@ -7,22 +7,18 @@ import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONObject;
 
@@ -42,47 +38,12 @@ public class SGService extends PluginService<DevPlugin> {
     private final List<SGArena> arenas = new ArrayList<>();
     private BlockVector3 lobbySpawnLocation = BlockVector3.ZERO, gulagSpawnLocation = BlockVector3.ZERO;
     private final List<SGFinalArena> finalArenas = new ArrayList<>();
-    private BukkitTask particleTask;
 
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
             new JSONDataManager<>(this, Path.of("arenas.json"), this::saveData, this::loadData)
         );
-    }
-
-    @Override
-    protected void onEnable() {
-//        this.particleTask = new BukkitRunnable() {
-//            @Override
-//            public void run() {
-//                BukkitUtils.forEachPlayer(player -> {
-//                    Location location = player.getLocation();
-//                    World world = location.getWorld();
-//                    SGArena arena = arenas.stream().filter(sgArena -> sgArena.name().equals(world.getName())).findFirst().orElse(null);
-//                    if (arena == null) {
-//                        return;
-//                    }
-//                    final int radius = 10;
-//                    for (int x = location.getBlockX() - radius; x <= location.getBlockX() + radius; x++) {
-//                        for (int y = location.getBlockY() - radius; y <= location.getBlockY() + radius; y++) {
-//                            for (int z = location.getBlockZ() - radius; z <= location.getBlockZ() + radius; z++) {
-//                                Block block = world.getBlockAt(x, y, z);
-//                                BlockVector3 pos = BlockVector3.at(x, y, z);
-//                                if (block.getType() == Material.CHEST && arena.chests().stream().noneMatch(sgChest -> sgChest.pos().equals(pos))) {
-//                                    world.spawnParticle(Particle.BLOCK_MARKER, block.getLocation().add(0.5, 1.5, 0.5), 1, Material.DIAMOND_BLOCK.createBlockData());
-//                                }
-//                            }
-//                        }
-//                    }
-//                });
-//            }
-//        }.runTaskTimer(this.getPlugin(), 60, 60);
-    }
-
-    @Override
-    protected void onDisable() {
-//        this.particleTask.cancel();
     }
 
     @SuppressWarnings("unchecked")
@@ -112,7 +73,9 @@ public class SGService extends PluginService<DevPlugin> {
             return new SGFinalArena(
                 arena.getString("name"),
                 JSONUtils.readBlockVector(arena.getList("spectatorSpawnLocation", Long.class)),
-                JSONUtils.readBlockVector(arena.getList("participantSpawnLocation", Long.class))
+                JSONUtils.readBlockVector(arena.getList("gameMasterSpawnLocation", Long.class)),
+                JSONUtils.readBlockVector(arena.getList("team1SpawnLocation", Long.class)),
+                JSONUtils.readBlockVector(arena.getList("team2SpawnLocation", Long.class))
             );
         }).toList());
     }
@@ -136,7 +99,9 @@ public class SGService extends PluginService<DevPlugin> {
             "finalArenas", new TypedJSONArray<>(this.finalArenas.stream().map(finalArena -> new JSONObject(Map.of(
                 "name", finalArena.name(),
                 "spectatorSpawnLocation", JSONUtils.toJSON(finalArena.spectatorSpawnLocation()),
-                "participantSpawnLocation", JSONUtils.toJSON(finalArena.participantSpawnLocation())
+                "gameMasterSpawnLocation", JSONUtils.toJSON(finalArena.gameMasterSpawnLocation()),
+                "team1SpawnLocation", JSONUtils.toJSON(finalArena.team1SpawnLocation()),
+                "team2SpawnLocation", JSONUtils.toJSON(finalArena.team2SpawnLocation())
             ))).toList())
         ));
     }
@@ -144,6 +109,8 @@ public class SGService extends PluginService<DevPlugin> {
     public void createFinalArena(String name) {
         this.finalArenas.add(new SGFinalArena(
             name,
+            BlockVector3.ZERO,
+            BlockVector3.ZERO,
             BlockVector3.ZERO,
             BlockVector3.ZERO
         ));
@@ -155,23 +122,31 @@ public class SGService extends PluginService<DevPlugin> {
 
     public void listFinalArenas(CommandSender sender) {
         sender.sendMessage("Final arenas:");
-        this.finalArenas.forEach(finalArena -> sender.sendMessage(" - " + finalArena.name() + " - spec=" + finalArena.spectatorSpawnLocation() + " participant=" + finalArena.participantSpawnLocation()));
+        this.finalArenas.forEach(finalArena -> sender.sendMessage(" - " + finalArena.name() + " - spec=" + finalArena.spectatorSpawnLocation() + " gm=" + finalArena.gameMasterSpawnLocation() + " team1=" + finalArena.team1SpawnLocation() + " team2" + finalArena.team2SpawnLocation()));
     }
 
     public void setFinalArenaPosSpec(String name, BlockVector3 location) {
-        this.finalArenas.replaceAll(finalArena -> finalArena.name().equals(name) ? new SGFinalArena(
-            finalArena.name(),
-            location,
-            finalArena.participantSpawnLocation()
-        ) : finalArena);
+        this.finalArenas.stream()
+            .filter(finalArena -> finalArena.name().equals(name))
+            .forEach(finalArena -> finalArena.setSpectatorSpawnLocation(location));
     }
 
-    public void setFinalArenaPosParticipant(String name, BlockVector3 location) {
-        this.finalArenas.replaceAll(finalArena -> finalArena.name().equals(name) ? new SGFinalArena(
-            finalArena.name(),
-            finalArena.spectatorSpawnLocation(),
-            location
-        ) : finalArena);
+    public void setFinalArenaPosGameMaster(String name, BlockVector3 location) {
+        this.finalArenas.stream()
+            .filter(finalArena -> finalArena.name().equals(name))
+            .forEach(finalArena -> finalArena.setGameMasterSpawnLocation(location));
+    }
+
+    public void setFinalArenaPosTeam1(String name, BlockVector3 location) {
+        this.finalArenas.stream()
+            .filter(finalArena -> finalArena.name().equals(name))
+            .forEach(finalArena -> finalArena.setTeam1SpawnLocation(location));
+    }
+
+    public void setFinalArenaPosTeam2(String name, BlockVector3 location) {
+        this.finalArenas.stream()
+            .filter(finalArena -> finalArena.name().equals(name))
+            .forEach(finalArena -> finalArena.setTeam2SpawnLocation(location));
     }
 
     public void clearMapSpawns(String map) {

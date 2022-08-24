@@ -56,17 +56,29 @@ public class SGDevCommand extends AbstractCommandExecutor {
             }
 
             if (args.length != 1) {
-                sender.sendMessage("Usage: /sg setfinalarenapos <spectator|participant>");
+                sender.sendMessage("Usage: /sg setfinalarenapos <spec|gm|team1|team2>");
                 return;
             }
 
             BlockVector3 pos = WorldEditService.getInstance().wrapLocation(player.getLocation());
-            if (args[0].equals("spectator")) {
-                SGService.getInstance().setFinalArenaPosSpec(args[0], pos);
-                sender.sendMessage("Set final arena spectator spawn location to " + pos);
-            } else {
-                SGService.getInstance().setFinalArenaPosParticipant(args[0], pos);
-                sender.sendMessage("Set final arena participant spawn location to " + pos);
+            switch (args[0]) {
+                case "spec" -> {
+                    SGService.getInstance().setFinalArenaPosSpec(args[0], pos);
+                    sender.sendMessage("Set final arena spectator spawn location to " + pos);
+                }
+                case "gm" -> {
+                    SGService.getInstance().setFinalArenaPosGameMaster(args[0], pos);
+                    sender.sendMessage("Set final arena game master spawn location to " + pos);
+                }
+                case "team1" -> {
+                    SGService.getInstance().setFinalArenaPosTeam1(args[0], pos);
+                    sender.sendMessage("Set final arena team 1 spawn location to " + pos);
+                }
+                case "team2" -> {
+                    SGService.getInstance().setFinalArenaPosTeam2(args[0], pos);
+                    sender.sendMessage("Set final arena team 2 spawn location to " + pos);
+                }
+                default -> sender.sendMessage("Invalid type " + args[0]);
             }
         },
         "clearmapspawns", (sender, args) -> {
@@ -112,8 +124,14 @@ public class SGDevCommand extends AbstractCommandExecutor {
             SGService.getInstance().setMapWorldborder(player.getWorld().getName(), Integer.parseInt(args[0]), Integer.parseInt(args[1]));
             sender.sendMessage("Set map worldborder to " + args[0] + "/" + args[1]);
         },
-        "load", (sender, args) -> SGService.getInstance().loadAllData(),
-        "save", (sender, args) -> SGService.getInstance().saveAllData()
+        "load", (sender, args) -> {
+            SGService.getInstance().loadAllData();
+            sender.sendMessage("Loaded arenas.json");
+        },
+        "save", (sender, args) -> {
+            SGService.getInstance().saveAllData();
+            sender.sendMessage("Saved arenas.json");
+        }
     );
 
     private static final String HELP_MESSAGE = "Subcommands: " + String.join(", ", SUB_COMMANDS.keySet());

@@ -10,6 +10,7 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
@@ -156,7 +157,9 @@ public class SGService extends PluginService<SGPlugin> {
             return new SGFinalArena(
                 finalArena.getString("name"),
                 adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("spectatorSpawnLocation", Long.class)), "sg_lobby")),
-                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("participantSpawnLocation", Long.class)), "sg_lobby"))
+                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("gameMasterSpawnLocation", Long.class)), "sg_lobby")),
+                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("team1SpawnLocation", Long.class)), "sg_lobby")),
+                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("team2SpawnLocation", Long.class)), "sg_lobby"))
             );
         }).toList());
     }
@@ -240,7 +243,13 @@ public class SGService extends PluginService<SGPlugin> {
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.FINAL_TWO) {
             // if alive
             if (this.getCurrentRound().isAlive(player)) {
-                player.teleport(this.getCurrentFinalArena().participantSpawnLocation());
+                if (this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getId).sorted().toList().indexOf(TeamService.getInstance().getTeamOfPlayer(player).getId()) == 0) {
+                    player.teleport(this.getCurrentFinalArena().team1SpawnLocation());
+                } else {
+                    player.teleport(this.getCurrentFinalArena().team2SpawnLocation());
+                }
+            } else if (Objects.equals(TeamService.getInstance().getTeamOfPlayer(player), DefaultTeams.GAME_MASTER)) {
+                player.teleport(this.getCurrentFinalArena().gameMasterSpawnLocation());
             } else {
                 player.teleport(this.getCurrentFinalArena().spectatorSpawnLocation());
             }
