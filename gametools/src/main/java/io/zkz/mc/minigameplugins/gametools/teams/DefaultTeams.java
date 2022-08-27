@@ -42,52 +42,52 @@ public class DefaultTeams {
             .setColor(Color.GRAY)
             .setSpectator(true);
 
-        RED = new GameTeam("red", "Sexy TNTs", ChatColor.BOLD + "ST")
+        RED = new GameTeam("red", "Sexy TNTs", ChatColor.BOLD + "ST" + ChatColor.RED)
             .setScoreboardColor(org.bukkit.ChatColor.RED)
             .setFormatCode(ChatColor.RED)
             .setColor(Color.RED);
 
-        MAGENTA = new GameTeam("magenta", "Thunder Buddies", ChatColor.BOLD + "TB")
+        MAGENTA = new GameTeam("magenta", "Thunder Buddies", ChatColor.BOLD + "TB" + ChatColor.LIGHT_PURPLE)
             .setScoreboardColor(org.bukkit.ChatColor.LIGHT_PURPLE)
             .setFormatCode(ChatColor.LIGHT_PURPLE)
             .setColor(Color.MAGENTA);
 
-        YELLOW = new GameTeam("yellow", "Rage Queens", ChatColor.BOLD + "RQ")
+        YELLOW = new GameTeam("yellow", "Rage Queens", ChatColor.BOLD + "RQ" + ChatColor.YELLOW)
             .setScoreboardColor(org.bukkit.ChatColor.YELLOW)
             .setFormatCode(ChatColor.YELLOW)
             .setColor(Color.YELLOW);
 
-        NAVY = new GameTeam("navy", "Team Crafted", ChatColor.BOLD + "TC")
+        NAVY = new GameTeam("navy", "Team Crafted", ChatColor.BOLD + "TC" + ChatColor.DARK_BLUE)
             .setScoreboardColor(org.bukkit.ChatColor.DARK_BLUE)
             .setFormatCode(ChatColor.DARK_BLUE)
             .setColor(Color.BLUE.darker().darker());
 
-        GREEN = new GameTeam("green", "Chubby Bunnies", ChatColor.BOLD + "CB")
+        GREEN = new GameTeam("green", "Chubby Bunnies", ChatColor.BOLD + "CB" + ChatColor.DARK_GREEN)
             .setScoreboardColor(org.bukkit.ChatColor.DARK_GREEN)
             .setFormatCode(ChatColor.DARK_GREEN)
             .setColor(Color.GREEN.darker().darker());
 
-        CYAN = new GameTeam("cyan", "Busty Bros", ChatColor.BOLD + "BB")
+        CYAN = new GameTeam("cyan", "Busty Bros", ChatColor.BOLD + "BB" + ChatColor.DARK_AQUA)
             .setScoreboardColor(org.bukkit.ChatColor.DARK_AQUA)
             .setFormatCode(ChatColor.DARK_AQUA)
             .setColor(Color.CYAN.darker().darker());
 
-        PURPLE = new GameTeam("purple", "The Tatertots", ChatColor.BOLD + "TT")
+        PURPLE = new GameTeam("purple", "The Tatertots", ChatColor.BOLD + "TT" + ChatColor.DARK_PURPLE)
             .setScoreboardColor(org.bukkit.ChatColor.DARK_PURPLE)
             .setFormatCode(ChatColor.DARK_PURPLE)
             .setColor(Color.MAGENTA.darker().darker());
 
-        GOLD = new GameTeam("gold", "Player 2", ChatColor.BOLD + "P2")
+        GOLD = new GameTeam("gold", "Player 2", ChatColor.BOLD + "P2" + ChatColor.GOLD)
             .setScoreboardColor(org.bukkit.ChatColor.GOLD)
             .setFormatCode(ChatColor.GOLD)
             .setColor(Color.YELLOW.darker().darker());
 
-        BLUE = new GameTeam("blue", "Iddy Biddies", ChatColor.BOLD + "IB")
+        BLUE = new GameTeam("blue", "Iddy Biddies", ChatColor.BOLD + "IB" + ChatColor.BLUE)
             .setScoreboardColor(org.bukkit.ChatColor.BLUE)
             .setFormatCode(ChatColor.BLUE)
             .setColor(Color.BLUE);
 
-        LIME = new GameTeam("lime", "Sloppy Slayers", ChatColor.BOLD + "SS")
+        LIME = new GameTeam("lime", "Sloppy Slayers", ChatColor.BOLD + "SS" + ChatColor.GREEN)
             .setScoreboardColor(org.bukkit.ChatColor.GREEN)
             .setFormatCode(ChatColor.GREEN)
             .setColor(Color.GREEN);
