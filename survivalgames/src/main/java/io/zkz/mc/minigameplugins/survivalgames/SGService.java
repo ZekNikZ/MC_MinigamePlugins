@@ -64,6 +64,7 @@ public class SGService extends PluginService<SGPlugin> {
     private SGState gameState = null;
     private String skullName = "Angxstupst";
     private final Map<UUID, BukkitTask> disconnectedPlayers = new HashMap<>();
+    private final Set<UUID> eatCooldown = new HashSet<>();
 
     @Override
     protected void setup() {
@@ -564,11 +565,19 @@ public class SGService extends PluginService<SGPlugin> {
         }
 
         if (player.getInventory().getItemInMainHand().getType() == Material.EMERALD) {
+            if (this.eatCooldown.contains(player.getUniqueId())) {
+                return;
+            }
             player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
             player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 6, 0));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 200, 0));
+            SoundUtils.playSound(player, Sound.ENTITY_GENERIC_EAT, 1, 1);
+            this.eatCooldown.add(player.getUniqueId());
+            BukkitUtils.runLater(() -> {
+                this.eatCooldown.remove(player.getUniqueId());
+            }, 100);
         }
     }
 

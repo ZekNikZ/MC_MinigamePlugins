@@ -246,16 +246,17 @@ public class SGRound extends Round {
     }
 
     public void recordKill(Player player, Player killer) {
-        String playerId = TeamService.getInstance().getTeamOfPlayer(player).getId();
-        String killerId = TeamService.getInstance().getTeamOfPlayer(killer).getId();
+        String playerTeamId = TeamService.getInstance().getTeamOfPlayer(player).getId();
+        UUID killerId = killer.getUniqueId();
+        String killerTeamId = TeamService.getInstance().getTeamOfPlayer(killer).getId();
 
-        if (!this.kills.containsKey(killerId)) {
-            this.kills.put(killerId, new ArrayList<>());
+        if (!this.kills.containsKey(killerTeamId)) {
+            this.kills.put(killerTeamId, new ArrayList<>());
         }
 
-        this.kills.get(killerId).add(playerId);
+        this.kills.get(killerTeamId).add(playerTeamId);
 
-        if (this.kills.get(killerId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
+        if (this.kills.get(killerTeamId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -281,6 +282,10 @@ public class SGRound extends Round {
     }
 
     public void respawnPlayer(Player player) {
+        if (this.isAlive(player)) {
+            return;
+        }
+
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
 
         // TODO: potentially set gamemode, clear inventory, etc.
@@ -290,7 +295,10 @@ public class SGRound extends Round {
 
         // Teleport
         if (this.isTeamAlive(team)) {
-            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).filter(p -> !p.equals(player)).findFirst().get();
+            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).filter(p -> !p.equals(player)).findFirst().orElse(null);
+            if (otherPlayer == null) {
+                return;
+            }
             player.teleport(otherPlayer.getLocation());
         } else if (this.assignedSpawnLocations.get(player.getUniqueId()) != null) {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
