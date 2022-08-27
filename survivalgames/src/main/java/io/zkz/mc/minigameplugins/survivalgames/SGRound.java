@@ -42,7 +42,7 @@ public class SGRound extends Round {
     private final Set<UUID> alivePlayers = new HashSet<>();
     private final Map<UUID, Location> logOutLocations = new HashMap<>();
     private final Map<UUID, Location> assignedSpawnLocations = new HashMap<>();
-    private final Map<UUID, List<UUID>> kills = new HashMap<>();
+    private final Map<String, List<String>> kills = new HashMap<>();
 
     private AbstractTimer eventTimer;
     private boolean inSuddenDeath = false;
@@ -166,6 +166,7 @@ public class SGRound extends Round {
     @Override
     public void onEnd() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
+        this.eventTimer.stop();
     }
 
     @Override
@@ -243,8 +244,8 @@ public class SGRound extends Round {
     }
 
     public void recordKill(Player player, Player killer) {
-        UUID playerId = player.getUniqueId();
-        UUID killerId = killer.getUniqueId();
+        String playerId = TeamService.getInstance().getTeamOfPlayer(player).getId();
+        String killerId = TeamService.getInstance().getTeamOfPlayer(killer).getId();
 
         if (!this.kills.containsKey(killerId)) {
             this.kills.put(killerId, new ArrayList<>());
@@ -294,6 +295,8 @@ public class SGRound extends Round {
         } else {
             player.teleport(this.getCornLocation());
         }
+
+        Chat.sendAlert(ChatType.ALERT, player.getDisplayName() + ChatColor.GREEN + ChatColor.BOLD + " has been respawned!");
 
         // Update game state
         SGService.getInstance().updateGameState();

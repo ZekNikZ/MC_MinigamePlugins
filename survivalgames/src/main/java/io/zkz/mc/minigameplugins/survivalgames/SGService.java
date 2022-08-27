@@ -21,7 +21,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
-import net.royawesome.jlibnoise.module.combiner.Min;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
@@ -443,7 +442,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(event.getEntity())) {
-            event.getDrops().add(ISB.material(Material.PLAYER_HEAD).skullOwner(this.skullName).build());
+            event.getDrops().add(ISB.material(Material.BEETROOT_SOUP).build());
             this.setDead(event.getEntity());
         }
     }
@@ -542,15 +541,15 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onEat(PlayerItemConsumeEvent event) {
-        if (event.getItem().getType() == Material.BEETROOT_SOUP) {
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 1));
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 4));
-        }
+//        if (event.getItem().getType() == Material.BEETROOT_SOUP) {
+//            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 1));
+//            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
+//            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 4));
+//        }
     }
 
     @EventHandler
-    private void onUseRespawnCrystal(PlayerInteractEvent event) {
+    private void onUseItem(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
         if (this.getCurrentRound().isAlive(player) && player.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR) {
@@ -562,6 +561,13 @@ public class SGService extends PluginService<SGPlugin> {
                 Chat.sendAlert(player, ChatType.WARNING, "Your teammate is either still alive or offline!");
                 SoundUtils.playSound(player, StandardSounds.ALERT_ERROR, 1, 1);
             }
+        }
+
+        if (player.getInventory().getItemInMainHand().getType() == Material.EMERALD) {
+            player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 6, 0));
         }
     }
 

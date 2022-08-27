@@ -166,7 +166,14 @@ public class GameScoreboard {
         scoreboardEntry.cleanup();
         this.entries.remove(scoreboardEntry);
         this.mappedEntries.remove(id);
+        this.clear();
         this.redraw();
+    }
+
+    private void clear() {
+        for (int i = 0; i < 15; i++) {
+            this.setString(i, null);
+        }
     }
 
     public ScoreboardEntry swapEntry(String id, ScoreboardEntry newEntry) {

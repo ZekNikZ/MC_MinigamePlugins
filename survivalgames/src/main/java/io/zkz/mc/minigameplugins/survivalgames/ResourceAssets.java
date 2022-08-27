@@ -15,13 +15,14 @@ public class ResourceAssets {
         addRuleSlide('\uE304');
         addRuleSlide('\uE305');
         addRuleSlide('\uE306');
+        addRuleSlide('\uE307');
     }
 
     public static void main(String[] args) {
         for (int i = 0; i < SLIDES.size(); i++) {
             ResourceManager.addCustomCharacterImage(SLIDES.get(i), ResourceAssets.class.getResourceAsStream("/rules0" + (i + 1) + ".png"), 200, 200);
         }
-        ResourceManager.addItemTexture("beetroot_soup", ResourceAssets.class.getResourceAsStream("/beetroot_soup.png"));
+        ResourceManager.addItemTexture("emerald", ResourceAssets.class.getResourceAsStream("/emerald.png"));
         ResourceManager.addMiscResource("assets/minecraft/lang/en_us.json", ResourceAssets.class.getResourceAsStream("/en_us.json"));
     }
 
