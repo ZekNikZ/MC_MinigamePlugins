@@ -18,6 +18,8 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
@@ -30,7 +32,7 @@ import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
 
 public class SGRound extends Round {
-    private static final int KILLS_FOR_RESPAWN_CRYSTAL = 100000;
+    private static final int KILLS_FOR_RESPAWN_CRYSTAL = 3;
     private final String templateWorldName;
     private String actualWorldName;
     private final List<BlockVector3> spawnLocations;
@@ -124,8 +126,8 @@ public class SGRound extends Round {
         this.getAliveOnlinePlayers().forEach(player -> {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
             player.getInventory().clear();
-            player.setHealth(20);
-            player.setSaturation(20);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 10));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 100, 10));
             player.setTotalExperience(0);
             player.setLevel(0);
             player.setExp(0);
@@ -288,7 +290,7 @@ public class SGRound extends Round {
 
         // Teleport
         if (this.isTeamAlive(team)) {
-            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).findFirst().get();
+            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).filter(p -> !p.equals(player)).findFirst().get();
             player.teleport(otherPlayer.getLocation());
         } else if (this.assignedSpawnLocations.get(player.getUniqueId()) != null) {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));

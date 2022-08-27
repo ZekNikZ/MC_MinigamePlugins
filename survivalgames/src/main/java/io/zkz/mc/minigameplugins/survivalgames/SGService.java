@@ -568,6 +568,7 @@ public class SGService extends PluginService<SGPlugin> {
             player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 6, 0));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 200, 0));
         }
     }
 
