@@ -225,7 +225,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 this.startPreRoundTimer();
             } else {
                 ReadyUpService.getInstance().waitForReady(this.getPlayersAndGameMasters(), () -> {
-                    Chat.sendAlert(ChatType.GAME_INFO, "All players are now ready. Round starting in " + this.preRoundDelay / 20 + "seconds.");
+                    Chat.sendAlert(ChatType.GAME_INFO, "All players are now ready. Round starting in " + this.preRoundDelay / 20 + " seconds.");
                     this.startPreRoundTimer();
                 });
             }

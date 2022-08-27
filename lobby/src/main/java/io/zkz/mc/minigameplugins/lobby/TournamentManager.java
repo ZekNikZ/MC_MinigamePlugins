@@ -45,7 +45,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
 
     public void startMinigame(String minigameId) {
         this.currentMinigameId = minigameId;
-        this.createAndStartServer(this.currentMinigameId);
+//        this.createAndStartServer(this.currentMinigameId);
     }
 
     public void resetMinigame() {
