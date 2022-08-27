@@ -442,7 +442,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(event.getEntity())) {
-            event.getDrops().add(ISB.material(Material.BEETROOT_SOUP).build());
+            event.getDrops().add(ISB.stack(Material.EMERALD));
             this.setDead(event.getEntity());
         }
     }
