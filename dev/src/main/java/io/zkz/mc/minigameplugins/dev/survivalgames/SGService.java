@@ -117,7 +117,7 @@ public class SGService extends PluginService<DevPlugin> {
     }
 
     public void removeFinalArena(String name) {
-        this.finalArenas.removeIf(finalArena -> finalArena.name().equals(name));
+        this.finalArenas.removeIf(finalArena -> finalArena.name().equalsIgnoreCase(name));
     }
 
     public void listFinalArenas(CommandSender sender) {
@@ -127,42 +127,42 @@ public class SGService extends PluginService<DevPlugin> {
 
     public void setFinalArenaPosSpec(String name, BlockVector3 location) {
         this.finalArenas.stream()
-            .filter(finalArena -> finalArena.name().equals(name))
+            .filter(finalArena -> finalArena.name().equalsIgnoreCase(name))
             .forEach(finalArena -> finalArena.setSpectatorSpawnLocation(location));
     }
 
     public void setFinalArenaPosGameMaster(String name, BlockVector3 location) {
         this.finalArenas.stream()
-            .filter(finalArena -> finalArena.name().equals(name))
+            .filter(finalArena -> finalArena.name().equalsIgnoreCase(name))
             .forEach(finalArena -> finalArena.setGameMasterSpawnLocation(location));
     }
 
     public void setFinalArenaPosTeam1(String name, BlockVector3 location) {
         this.finalArenas.stream()
-            .filter(finalArena -> finalArena.name().equals(name))
+            .filter(finalArena -> finalArena.name().equalsIgnoreCase(name))
             .forEach(finalArena -> finalArena.setTeam1SpawnLocation(location));
     }
 
     public void setFinalArenaPosTeam2(String name, BlockVector3 location) {
         this.finalArenas.stream()
-            .filter(finalArena -> finalArena.name().equals(name))
+            .filter(finalArena -> finalArena.name().equalsIgnoreCase(name))
             .forEach(finalArena -> finalArena.setTeam2SpawnLocation(location));
     }
 
     public void clearMapSpawns(String map) {
-        this.arenas.stream().filter(arena -> arena.folder().equals(map)).forEach(arena -> arena.spawnLocations().clear());
+        this.arenas.stream().filter(arena -> arena.folder().equalsIgnoreCase(map)).forEach(arena -> arena.spawnLocations().clear());
     }
 
     public void addMapSpawn(String map, BlockVector3 location) {
-        this.arenas.stream().filter(arena -> arena.folder().equals(map)).forEach(arena -> arena.spawnLocations().add(location));
+        this.arenas.stream().filter(arena -> arena.folder().equalsIgnoreCase(map)).forEach(arena -> arena.spawnLocations().add(location));
     }
 
     public void setMapMiddle(String map, BlockVector3 location) {
-        this.arenas.stream().filter(arena -> arena.folder().equals(map)).forEach(arena -> arena.setCornLocation(location));
+        this.arenas.stream().filter(arena -> arena.folder().equalsIgnoreCase(map)).forEach(arena -> arena.setCornLocation(location));
     }
 
     public void setMapWorldborder(String map, int min, int max) {
-        this.arenas.stream().filter(arena -> arena.folder().equals(map)).forEach(arena -> {
+        this.arenas.stream().filter(arena -> arena.folder().equalsIgnoreCase(map)).forEach(arena -> {
             arena.setCornWorldborderSize(min);
             arena.setMapWorldborderSize(max);
         });
@@ -241,7 +241,7 @@ public class SGService extends PluginService<DevPlugin> {
                 if (b instanceof Chest chest) {
                     BlockVector3 pos = BlockVector3.at(chest.getX(), chest.getY(), chest.getZ());
                     if (arena.chests().stream().anyMatch(sgChest -> sgChest.pos().equals(pos))) {
-                        arena.chests().stream().filter(sgChest -> sgChest.pos().equals(pos)).forEach(sgChest -> sgChest.setLootTable("survivalgames:chest/tier1"));
+                        arena.chests().stream().filter(sgChest -> sgChest.pos().equals(pos)).forEach(sgChest -> sgChest.setLootTable("survivalgames:chests/tier1"));
                         player.sendMessage("Found existing chest at " + pos);
                     } else {
                         arena.chests().add(new SGChest(pos, "survivalgames:chests/tier1"));

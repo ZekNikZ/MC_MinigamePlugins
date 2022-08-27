@@ -13,6 +13,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
@@ -20,6 +21,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
+import net.royawesome.jlibnoise.module.combiner.Min;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
@@ -70,6 +72,8 @@ public class SGService extends PluginService<SGPlugin> {
         minigame.setAutomaticPreRound(false);
         minigame.setAutomaticShowRules(false);
         minigame.setAutomaticNextRound(false);
+        minigame.setGlowingTeammates(false);
+        minigame.setPostRoundDelay(1);
 
         ChatConstantsService.getInstance().setMinigameName("Survival Games");
 
@@ -86,14 +90,17 @@ public class SGService extends PluginService<SGPlugin> {
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
-            MinigameState.RULES,
             MinigameState.PRE_ROUND,
             MinigameState.WAITING_TO_BEGIN,
             MinigameState.PAUSED
         );
-        minigame.registerPlayerState(survivalMode,
-            MinigameState.IN_GAME
-        );
+        minigame.addSetupHandler(MinigameState.IN_GAME, () -> {
+            Bukkit.getOnlinePlayers().stream()
+                .filter(this.getCurrentRound()::isAlive)
+                .forEach(p -> p.setGameMode(GameMode.SURVIVAL));
+
+            minigame.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 30, TimeUnit.MINUTES));
+        });
         minigame.registerPlayerState(spectatorMode,
             MinigameState.POST_ROUND,
             MinigameState.POST_GAME
@@ -107,14 +114,12 @@ public class SGService extends PluginService<SGPlugin> {
             this.gameState = SGState.IN_GAME;
 
             BukkitUtils.forEachPlayer(player -> {
-                BukkitUtils.forEachPlayer(otherPlayer -> {
-                    if (player.equals(otherPlayer)) {
-                        return;
-                    }
+                MinigameService.getInstance().setGlowingTeammates(true);
 
-                    player.hidePlayer(this.getPlugin(), otherPlayer);
-                    player.showPlayer(this.getPlugin(), otherPlayer);
-                });
+                GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+                if (team.isSpectator()) {
+                    this.activateSpectatorMode(player);
+                }
             });
         });
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
@@ -127,9 +132,10 @@ public class SGService extends PluginService<SGPlugin> {
         });
 
         // In game scoreboard
-        BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
+        minigame.registerGlobalScoreboard((state, scoreboard) -> {
             scoreboard.removeEntry("gameName");
-
+        });
+        BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
             scoreboard.addSpace();
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().stream().map(TeamService.getInstance()::getTeamOfPlayer).map(GameTeam::getId).distinct().count(), this.aliveTeamCount));
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
@@ -180,8 +186,12 @@ public class SGService extends PluginService<SGPlugin> {
 
     private void setDead(Player player) {
         player.teleport(this.lobbySpawnLocation);
+        this.setDead(player.getUniqueId(), player.getDisplayName());
+    }
+
+    private void setDead(UUID playerId, String playerDisplayName) {
         SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
-        this.getCurrentRound().markDead(player);
+        this.getCurrentRound().markDead(playerId);
 
         // Assign points to alive players
         this.getCurrentRound().getAlivePlayers().forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.SURVIVAL));
@@ -190,9 +200,9 @@ public class SGService extends PluginService<SGPlugin> {
         Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
         Collection<? extends Player> pointsPlayers = this.getCurrentRound().getAliveOnlinePlayers();
         noPointsPlayers.removeAll(pointsPlayers);
-        Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " was eliminated.");
+        Chat.sendAlert(noPointsPlayers, ChatType.ELIMINATION, playerDisplayName + " was eliminated.");
         SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
-        Chat.sendAlert(pointsPlayers, ChatType.ELIMINATION, player.getDisplayName() + " was eliminated.", Points.SURVIVAL);
+        Chat.sendAlert(pointsPlayers, ChatType.ELIMINATION, playerDisplayName + " was eliminated.", Points.SURVIVAL);
 
         // Player remaining message
         if (this.getCurrentRound().getAlivePlayers().size() <= 5) {
@@ -200,9 +210,9 @@ public class SGService extends PluginService<SGPlugin> {
         }
 
         // Team elimination message
-        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+        GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
         if (!this.getCurrentRound().isTeamAlive(team)) {
-            Chat.sendAlert(noPointsPlayers, ChatType.TEAM_ELIMINATION, team.getDisplayName() + " was eliminated.");
+            Chat.sendAlert(ChatType.TEAM_ELIMINATION, team.getDisplayName() + " was eliminated.");
 
             // Team remaining message
             if (this.getCurrentRound().getAliveTeams().size() <= 5) {
@@ -216,7 +226,7 @@ public class SGService extends PluginService<SGPlugin> {
     void setupPlayer(Player player) {
         // If in-game and alive, tp to map
         Location logoutLocation = this.getCurrentRound().getLogoutLocation(player);
-        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(player)) {
+        if ((MinigameService.getInstance().getCurrentState() == MinigameState.PRE_ROUND || (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME)) && this.getCurrentRound().isAlive(player)) {
             player.setGameMode(GameMode.SURVIVAL);
             // If have a logout location
             if (logoutLocation != null) {
@@ -274,9 +284,15 @@ public class SGService extends PluginService<SGPlugin> {
 
     private void roundIsOver() {
         this.gameState = SGState.WAITING_FOR_FINAL_ARENA;
+        MinigameService.getInstance().changeTimer(null);
+
+        this.getCurrentRound().getAliveTeams().keySet().forEach(team -> {
+            TeamService.getInstance().getOnlineTeamMembers(team).forEach(this.getCurrentRound()::setAlive);
+        });
 
         SoundUtils.playSound(StandardSounds.GAME_OVER, 1, 1);
         TitleUtils.broadcastTitle("" + ChatColor.RED + ChatColor.BOLD + "Phase over!", ChatColor.GOLD + "Finale: " + this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getDisplayName).collect(Collectors.joining(ChatColor.GOLD + " vs. ")));
+        Chat.sendAlert(ChatType.GAME_SUCCESS, "Phase over! " + ChatColor.GOLD + "Finale: " + this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getDisplayName).collect(Collectors.joining(ChatColor.GOLD + " vs. ")));
     }
 
     public void activateSpectatorMode(Player player) {
@@ -298,13 +314,7 @@ public class SGService extends PluginService<SGPlugin> {
                 player.setSpectatorTarget(this.getCurrentRound().getAliveOnlinePlayers().stream().filter(p -> Objects.equals(TeamService.getInstance().getTeamOfPlayer(p), team)).findFirst().orElse(null));
             }
 
-            BukkitUtils.forEachPlayer(otherPlayer -> {
-                if (otherPlayer.equals(player)) {
-                    return;
-                }
-
-                otherPlayer.hidePlayer(this.getPlugin(), player);
-            });
+            PlayerUtils.hidePlayer(this.getPlugin(), player);
         });
     }
 
@@ -318,15 +328,9 @@ public class SGService extends PluginService<SGPlugin> {
             return;
         }
 
-        player.teleport(this.lobbySpawnLocation);
+        this.setupPlayer(player);
 
-        BukkitUtils.forEachPlayer(otherPlayer -> {
-            if (otherPlayer.equals(player)) {
-                return;
-            }
-
-            otherPlayer.showPlayer(this.getPlugin(), player);
-        });
+        PlayerUtils.showPlayer(this.getPlugin(), player);
     }
 
     public List<SGFinalArena> getFinalArenaLists() {
@@ -338,13 +342,16 @@ public class SGService extends PluginService<SGPlugin> {
         for (int i = 0; i < this.finalArenas.size(); i++) {
             if (this.finalArenas.get(i).name().equalsIgnoreCase(name)) {
                 this.currentFinalArenaIndex = i;
-                return;
+                break;
             }
         }
 
         // Start timer to TP players
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 20, TimeUnit.SECONDS, () -> {
+        MinigameService.getInstance().changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 10, TimeUnit.SECONDS, () -> {
             this.gameState = SGState.FINAL_TWO;
+            PlayerUtils.showAllPlayers(this.getPlugin());
+            MinigameService.getInstance().setGlowingTeammates(false);
+            BukkitUtils.forEachPlayer(p -> p.getInventory().clear());
             BukkitUtils.forEachPlayer(this::setupPlayer);
             MinigameService.getInstance().changeTimer(null);
             this.getCurrentRound().setMapName("Finale: " + this.getCurrentFinalArena().name());
@@ -396,21 +403,24 @@ public class SGService extends PluginService<SGPlugin> {
 
         if (this.disconnectedPlayers.containsKey(player.getUniqueId())) {
             BukkitTask task = this.disconnectedPlayers.get(player.getUniqueId());
-            if (task == null) {
+            if (task == null && this.getCurrentRound().isAlive(player)) {
                 this.setDead(player);
-            } else {
+            } else if (task != null) {
                 task.cancel();
             }
             this.disconnectedPlayers.remove(player.getUniqueId());
         } else {
             this.setupPlayer(player);
         }
+
+        MinigameService.getInstance().refreshGlowing();
     }
 
     @EventHandler
     private void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
+        String playerDisplayName = player.getDisplayName();
 
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(playerId)) {
             this.getCurrentRound().recordLogoutLocation(player);
@@ -418,15 +428,16 @@ public class SGService extends PluginService<SGPlugin> {
                 @Override
                 public void run() {
                     disconnectedPlayers.put(playerId, null);
+                    setDead(playerId, playerDisplayName);
                 }
-            }.runTaskLater(this.getPlugin(), 1200));
-            Chat.sendAlert(ChatType.WARNING, player.getDisplayName() + ChatColor.RED + " has disconnected, waiting 1 minute before eliminating them...");
+            }.runTaskLater(this.getPlugin(), 1800));
+            Chat.sendAlert(ChatType.WARNING, player.getDisplayName() + ChatColor.RED + " has disconnected, waiting 90 seconds before eliminating them...");
         }
     }
 
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
-        this.setupPlayer(event.getPlayer());
+        BukkitUtils.runNextTick(() -> this.setupPlayer(event.getPlayer()));
     }
 
     @EventHandler
@@ -453,7 +464,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
-            if (this.gameState != SGState.WAITING_FOR_FINAL_ARENA && (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player))) {
+            if (this.gameState == SGState.WAITING_FOR_FINAL_ARENA || !MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
                 event.setDamage(0);
             }
         }
@@ -532,8 +543,9 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onEat(PlayerItemConsumeEvent event) {
         if (event.getItem().getType() == Material.BEETROOT_SOUP) {
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10, 1));
-            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 120, 0));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 1));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 20, 4));
         }
     }
 
@@ -541,7 +553,7 @@ public class SGService extends PluginService<SGPlugin> {
     private void onUseRespawnCrystal(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        if (player.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR) {
+        if (this.getCurrentRound().isAlive(player) && player.getInventory().getItemInMainHand().getType() == Material.NETHER_STAR) {
             if (this.respawnTeammate(player)) {
                 player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 Chat.sendAlert(player, ChatType.SUCCESS, "Your teammate has been respawned!");
@@ -551,6 +563,11 @@ public class SGService extends PluginService<SGPlugin> {
                 SoundUtils.playSound(player, StandardSounds.ALERT_ERROR, 1, 1);
             }
         }
+    }
+
+    @EventHandler
+    private void onTeamChange(TeamChangeEvent event) {
+        event.getPlayers().stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(this::setupPlayer);
     }
 
     public static Location toLocation(BlockVector3 vec, String world) {

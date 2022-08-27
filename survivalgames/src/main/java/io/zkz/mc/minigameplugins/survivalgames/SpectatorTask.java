@@ -2,6 +2,8 @@ package io.zkz.mc.minigameplugins.survivalgames;
 
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
@@ -9,11 +11,16 @@ import org.bukkit.entity.Player;
 
 public class SpectatorTask extends GameTask {
     public SpectatorTask() {
-        super(0, 100);
+        super(0, 60);
     }
 
     @Override
     public void run() {
+        if (MinigameService.getInstance().getCurrentState() != MinigameState.IN_GAME || SGService.getInstance().getGameState() != SGState.IN_GAME) {
+            this.cancel();
+            return;
+        }
+
         BukkitUtils.forEachPlayer(player -> {
             // Spectate messages
             if (player.getWorld().getName().equals("sg_lobby")) {

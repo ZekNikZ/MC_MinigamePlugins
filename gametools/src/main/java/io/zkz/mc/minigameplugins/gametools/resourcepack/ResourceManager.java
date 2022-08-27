@@ -14,12 +14,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class ResourceManager {
-    private static final Path resourcesPath = Path.of("").resolve("build").resolve("resources");
-    private static final Path resourcePackPath = Path.of("").resolve("build").resolve("pack.zip");
-    private static int nextCharId = 0;
-    private static final Map<Character, Pair<Integer, Integer>> charData = new HashMap<>();
+    private static final Path resourcesPath;
+    private static final Path resourcePackPath;
+    private static final Map<String, Pair<Integer, Integer>> charData = new HashMap<>();
+
+    static {
+        Path pwd = Path.of("");
+        if (Files.exists(pwd.toAbsolutePath().getParent().resolve("build"))) {
+            resourcesPath = pwd.toAbsolutePath().getParent().resolve("build").resolve("resources");
+            resourcePackPath = Path.of("").toAbsolutePath().getParent().resolve("build").resolve("pack.zip");
+        } else {
+            resourcesPath = pwd.resolve("build").resolve("resources");
+            resourcePackPath = Path.of("").resolve("build").resolve("pack.zip");
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         // Create folder
@@ -27,8 +38,27 @@ public class ResourceManager {
             Files.createDirectories(resourcesPath.getParent());
         }
 
+        discoverCustomCharacters();
         addResourcePackMetadata();
         compressResourcePack();
+    }
+
+    private static void discoverCustomCharacters() {
+        Path customCharacterPath = resourcesPath.resolve("assets/minecraft/textures/custom");
+        try (Stream<Path> s = Files.list(customCharacterPath)){
+            s.forEach(file -> {
+                String fileName = file.getFileName().toString();
+                if (fileName.contains("custom_character")) {
+                    String[] parts = fileName.split("[_.]");
+                    String charStr = parts[2];
+                    int ascent = Integer.parseInt(parts[3]);
+                    int height = Integer.parseInt(parts[4]);
+                    charData.put(charStr, new Pair<>(ascent, height));
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void addResourcePackMetadata() {
@@ -43,10 +73,10 @@ public class ResourceManager {
 
         TypedJSONArray<JSONObject> providers = new TypedJSONArray<>(charData.entrySet().stream().map(entry -> new JSONObject(Map.of(
             "type", "bitmap",
-            "file", "minecraft:custom/custom_character_" + ((int) entry.getKey()) + ".png",
+            "file", "minecraft:custom/custom_character_" + entry.getKey() + "_" + entry.getValue().key() + "_" + entry.getValue().value() + ".png",
             "ascent", entry.getValue().key(),
             "height", entry.getValue().value(),
-            "chars", new TypedJSONArray<>(List.of(escapeJava("" + entry.getKey())))
+            "chars", new TypedJSONArray<>(List.of("\\u" + entry.getKey().toUpperCase()))
         ))).toList());
         JSONObject baseFontFile = JSONUtils.readJSONObject(ResourceManager.class.getResourceAsStream("/resources/assets/minecraft/font/default.json"));
         providers.addAll(((List<JSONObject>) baseFontFile.get("providers")).stream().map(obj -> new JSONObject(Map.of(
@@ -99,16 +129,17 @@ public class ResourceManager {
     }
 
     public static char addCustomCharacterImage(char c, InputStream inputStream, int ascent, int height) {
-        String location = "assets/minecraft/textures/custom/custom_character_" + nextCharId + ".png";
-        ++nextCharId;
+        String charId = escapeJava("" + c).substring(2).toLowerCase();
 
-        if (charData.containsKey(c)) {
-            System.err.println("Error: duplicate custom character '" + c + "'");
+        String location = "assets/minecraft/textures/custom/custom_character_" + charId + "_" + ascent + "_" + height + ".png";
+
+        if (charData.containsKey(charId)) {
+            System.err.println("Error: duplicate custom character '" + escapeJava("" + c) + "'");
             return '\0';
         }
 
         addMiscResource(location, inputStream);
-        charData.put(c, new Pair<>(ascent, height));
+        charData.put(charId, new Pair<>(ascent, height));
 
         return c;
     }
@@ -160,27 +191,27 @@ public class ResourceManager {
                 out.write("\\u00" + hex(ch));
             } else if (ch < 32) {
                 switch (ch) {
-                    case '\b' :
+                    case '\b':
                         out.write('\\');
                         out.write('b');
                         break;
-                    case '\n' :
+                    case '\n':
                         out.write('\\');
                         out.write('n');
                         break;
-                    case '\t' :
+                    case '\t':
                         out.write('\\');
                         out.write('t');
                         break;
-                    case '\f' :
+                    case '\f':
                         out.write('\\');
                         out.write('f');
                         break;
-                    case '\r' :
+                    case '\r':
                         out.write('\\');
                         out.write('r');
                         break;
-                    default :
+                    default:
                         if (ch > 0xf) {
                             out.write("\\u00" + hex(ch));
                         } else {
@@ -190,27 +221,27 @@ public class ResourceManager {
                 }
             } else {
                 switch (ch) {
-                    case '\'' :
+                    case '\'':
                         if (escapeSingleQuote) {
                             out.write('\\');
                         }
                         out.write('\'');
                         break;
-                    case '"' :
+                    case '"':
                         out.write('\\');
                         out.write('"');
                         break;
-                    case '\\' :
+                    case '\\':
                         out.write('\\');
                         out.write('\\');
                         break;
-                    case '/' :
+                    case '/':
                         if (escapeForwardSlash) {
                             out.write('\\');
                         }
                         out.write('/');
                         break;
-                    default :
+                    default:
                         out.write(ch);
                         break;
                 }

@@ -8,9 +8,19 @@ import java.util.List;
 public class ResourceAssets {
     public static final List<Character> SLIDES = new ArrayList<>();
 
+    static {
+        addRuleSlide('\uE301');
+        addRuleSlide('\uE302');
+        addRuleSlide('\uE303');
+        addRuleSlide('\uE304');
+        addRuleSlide('\uE305');
+        addRuleSlide('\uE306');
+    }
+
     public static void main(String[] args) {
-        addRuleSlide(ResourceManager.addCustomCharacterImage('\uE200', ResourceAssets.class.getResourceAsStream("/testinstructions.png"), 200, 200));
-        addRuleSlide(ResourceManager.addCustomCharacterImage('\uE201', ResourceAssets.class.getResourceAsStream("/testinstructions2.png"), 200, 200));
+        for (int i = 0; i < SLIDES.size(); i++) {
+            ResourceManager.addCustomCharacterImage(SLIDES.get(i), ResourceAssets.class.getResourceAsStream("/rules0" + (i + 1) + ".png"), 200, 200);
+        }
         ResourceManager.addItemTexture("beetroot_soup", ResourceAssets.class.getResourceAsStream("/beetroot_soup.png"));
         ResourceManager.addMiscResource("assets/minecraft/lang/en_us.json", ResourceAssets.class.getResourceAsStream("/en_us.json"));
     }

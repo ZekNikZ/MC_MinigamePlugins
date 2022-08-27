@@ -17,6 +17,8 @@ import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
@@ -54,7 +56,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
-        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + "MC Tournament 1");
+        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + "Organized Chaos");
         scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + ChatConstantsService.getInstance().getMinigameName()));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
@@ -162,7 +164,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private int currentRound = -1;
     private AbstractTimer timer;
     private int gameNumber = 0;
-    private double multiplier;
+    private double multiplier = 1.0;
     private boolean automaticShowRules = true;
     private boolean automaticPreRound = true;
     private boolean automaticNextRound = true;
@@ -222,7 +224,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             if (this.automaticPreRound) {
                 this.startPreRoundTimer();
             } else {
-                ReadyUpService.getInstance().waitForReady(this.getPlayersAndGameMasters(), this::startPreRoundTimer);
+                ReadyUpService.getInstance().waitForReady(this.getPlayersAndGameMasters(), () -> {
+                    Chat.sendAlert(ChatType.GAME_INFO, "All players are now ready. Round starting in " + this.preRoundDelay / 20 + "seconds.");
+                    this.startPreRoundTimer();
+                });
             }
         });
         this.addCleanupHandler(MinigameState.PRE_ROUND, () -> {
@@ -377,6 +382,18 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void registerScoreboard(MinigameState state, BiConsumer<MinigameState, GameScoreboard> scoreboardModifier) {
         this.scoreboardModifiers.get(state).add(scoreboardModifier);
+    }
+
+    public void registerGlobalScoreboard(MinigameScoreboard scoreboard) {
+        for (MinigameState state : MinigameState.values()) {
+            this.registerScoreboard(state, scoreboard);
+        }
+    }
+
+    public void registerGlobalScoreboard(BiConsumer<MinigameState, GameScoreboard> scoreboardModifier) {
+        for (MinigameState state : MinigameState.values()) {
+            this.registerScoreboard(state, scoreboardModifier);
+        }
     }
 
     public int getCurrentRoundIndex() {
@@ -582,6 +599,27 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void setGlowingTeammates(boolean glowingTeammates) {
         this.glowingTeammates = glowingTeammates;
+        this.refreshGlowing();
+    }
+
+    public void refreshGlowing() {
+        BukkitUtils.forEachPlayer(player -> {
+            BukkitUtils.forEachPlayer(otherPlayer -> {
+                if (player.equals(otherPlayer)) {
+                    return;
+                }
+
+                boolean canSee = player.canSee(otherPlayer);
+                player.hidePlayer(this.getPlugin(), otherPlayer);
+                if (canSee) {
+                    player.showPlayer(this.getPlugin(), otherPlayer);
+                }
+            });
+        });
+    }
+
+    public boolean isGlowingEnabled() {
+        return this.glowingTeammates;
     }
 
     public void setPointMultiplier(double multiplier) {

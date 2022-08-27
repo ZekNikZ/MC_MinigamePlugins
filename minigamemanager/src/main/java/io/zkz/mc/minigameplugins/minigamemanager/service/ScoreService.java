@@ -39,24 +39,24 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
         // Player score
         this.roundPlayerScores.putIfAbsent(playerId, 0.0);
         this.gamePlayerScores.putIfAbsent(playerId, 0.0);
-        this.roundPlayerScores.compute(playerId, (p, s) -> s + points);
-        this.gamePlayerScores.compute(playerId, (p, s) -> s + points);
+        this.roundPlayerScores.compute(playerId, (p, s) -> s + points * entry.multiplier());
+        this.gamePlayerScores.compute(playerId, (p, s) -> s + points * entry.multiplier());
 
         // Team score
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
-        this.roundTeamScores.compute(team, (t, s) -> s + points);
-        this.gameTeamScores.compute(team, (t, s) -> s + points);
+        this.roundTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
+        this.gameTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
 
         this.notifyObservers();
     }
 
     public void earnPoints(GameTeam team, @Nullable String reason, double points) {
-        ScoreEntry entry = new ScoreEntry(new UUID(0,0), ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason != null ? reason : "", points, MinigameService.getInstance().getPointMultiplier());
+        ScoreEntry entry = new ScoreEntry(new UUID(0, 0), ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason != null ? reason : "", points, MinigameService.getInstance().getPointMultiplier());
         this.entries.add(entry);
 
         // Team score
-        this.roundTeamScores.compute(team, (t, s) -> s + points);
-        this.gameTeamScores.compute(team, (t, s) -> s + points);
+        this.roundTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
+        this.gameTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
 
         this.notifyObservers();
     }

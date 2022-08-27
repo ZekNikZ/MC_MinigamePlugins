@@ -49,6 +49,7 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
                 }
 
                 TeamService.getInstance().leaveTeam(offlinePlayer.getUniqueId());
+                sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed offline player '" + playerName + "' from their team.");
                 return;
             }
 

@@ -42,7 +42,7 @@ public class SelectFinalArenaCommand extends ArgumentCommandExecutor {
 
         SGService.getInstance().selectFinalArena(args[0]);
 
-        Chat.sendMessageFormatted(sender, "Setting up final arena '%s'. Teleporting in 20 seconds.", args[0]);
+        Chat.sendMessageFormatted(sender, "Setting up final arena '%s'. Teleporting in 10 seconds.", args[0]);
 
         return true;
     }

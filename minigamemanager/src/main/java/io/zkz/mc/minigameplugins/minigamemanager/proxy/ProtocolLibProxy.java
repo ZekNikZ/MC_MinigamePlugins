@@ -10,6 +10,7 @@ import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -24,12 +25,16 @@ public class ProtocolLibProxy {
         protocolManager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.ENTITY_METADATA /*, PacketType.Play.Server.NAMED_ENTITY_SPAWN */) {
             @Override
             public void onPacketSending(PacketEvent event) {
+                if (!MinigameService.getInstance().isGlowingEnabled()) {
+                    return;
+                }
+
                 GameTeam playerTeam = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
 
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    GameTeam otherPlayerTeam = TeamService.getInstance().getTeamOfPlayer(player);
-                    if (player.getGameMode() != GameMode.SPECTATOR && (Objects.equals(otherPlayerTeam, playerTeam) || (playerTeam != null && playerTeam.isSpectator()))) {
-                        if (player.getEntityId() == event.getPacket().getIntegers().read(0)) {
+                for (Player otherPlayer : Bukkit.getOnlinePlayers()) {
+                    GameTeam otherPlayerTeam = TeamService.getInstance().getTeamOfPlayer(otherPlayer);
+                    if (otherPlayer.getEntityId() == event.getPacket().getIntegers().read(0)) {
+                        if (otherPlayer.getGameMode() != GameMode.SPECTATOR && (Objects.equals(otherPlayerTeam, playerTeam) || (playerTeam != null && playerTeam.isSpectator()))) {
                             if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
                                 List<WrappedWatchableObject> watchableObjectList = event.getPacket().getWatchableCollectionModifier().read(0);
                                 for (WrappedWatchableObject metadata : watchableObjectList) {

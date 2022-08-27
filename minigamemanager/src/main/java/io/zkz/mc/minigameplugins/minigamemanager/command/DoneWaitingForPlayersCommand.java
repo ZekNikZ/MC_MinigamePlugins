@@ -6,7 +6,9 @@ import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
@@ -33,6 +35,12 @@ public class DoneWaitingForPlayersCommand extends ArgumentCommandExecutor {
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!TeamService.getInstance().areAllNonSpectatorsOnline()) {
             sender.sendMessage(ChatColor.RED + "Cannot transition states: all participants are not online. Either remove offline players from teams or wait for all players to be present.");
+            return true;
+        } else if (Bukkit.getOnlinePlayers().stream().anyMatch(p -> TeamService.getInstance().getTeamOfPlayer(p) == null)) {
+            sender.sendMessage(ChatColor.RED + "Cannot transition states: someone is not on a team.");
+            return true;
+        } else if (MinigameService.getInstance().getCurrentState() != MinigameState.WAITING_FOR_PLAYERS) {
+            sender.sendMessage(ChatColor.RED + "Cannot transition states: you can only use this command in the WAITING_FOR_PLAYERS state, did you mean /nextround?");
             return true;
         }
 

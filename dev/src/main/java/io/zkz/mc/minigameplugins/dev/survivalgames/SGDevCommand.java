@@ -55,13 +55,13 @@ public class SGDevCommand extends AbstractCommandExecutor {
                 return;
             }
 
-            if (args.length != 1) {
-                sender.sendMessage("Usage: /sg setfinalarenapos <spec|gm|team1|team2>");
+            if (args.length != 2) {
+                sender.sendMessage("Usage: /sg setfinalarenapos <id> <spec|gm|team1|team2>");
                 return;
             }
 
             BlockVector3 pos = WorldEditService.getInstance().wrapLocation(player.getLocation());
-            switch (args[0]) {
+            switch (args[1]) {
                 case "spec" -> {
                     SGService.getInstance().setFinalArenaPosSpec(args[0], pos);
                     sender.sendMessage("Set final arena spectator spawn location to " + pos);

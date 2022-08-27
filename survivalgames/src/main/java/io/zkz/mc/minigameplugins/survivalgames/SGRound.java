@@ -30,6 +30,7 @@ import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
 
 public class SGRound extends Round {
+    private static final int KILLS_FOR_RESPAWN_CRYSTAL = 100000;
     private final String templateWorldName;
     private String actualWorldName;
     private final List<BlockVector3> spawnLocations;
@@ -44,6 +45,7 @@ public class SGRound extends Round {
     private final Map<UUID, List<UUID>> kills = new HashMap<>();
 
     private AbstractTimer eventTimer;
+    private boolean inSuddenDeath = false;
 
     @SuppressWarnings("unchecked")
     public SGRound(TypedJSONObject<Object> json) {
@@ -119,15 +121,23 @@ public class SGRound extends Round {
         this.fillChests();
 
         // Teleport players to spawn locations
-        this.getAliveOnlinePlayers().forEach(player -> player.teleport(this.assignedSpawnLocations.get(player.getUniqueId())));
+        this.getAliveOnlinePlayers().forEach(player -> {
+            player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
+            player.getInventory().clear();
+            player.setHealth(20);
+            player.setSaturation(20);
+            player.setTotalExperience(0);
+            player.setLevel(0);
+            player.setExp(0);
+        });
     }
 
     @Override
     public void onStart() {
         // every 5 minutes
         this.eventTimer = new GameCountupTimer(SGService.getInstance().getPlugin(), 1200) {
-            private static final long CHEST_REFILL = 20;
-            private static final long SUDDEN_DEATH = 26;
+            private static final long CHEST_REFILL = 15;
+            private static final long SUDDEN_DEATH = 21;
 
             @Override
             protected void onUpdate() {
@@ -150,7 +160,7 @@ public class SGRound extends Round {
                     SGRound.this.eventTimer = null;
                 }
             }
-        };
+        }.start();
     }
 
     @Override
@@ -212,9 +222,9 @@ public class SGRound extends Round {
         return this.logOutLocations.get(player.getUniqueId());
     }
 
-    public void markDead(Player player) {
-        this.alivePlayers.remove(player.getUniqueId());
-        this.logOutLocations.remove(player.getUniqueId());
+    public void markDead(UUID playerId) {
+        this.alivePlayers.remove(playerId);
+        this.logOutLocations.remove(playerId);
     }
 
     public boolean isTeamAlive(GameTeam team) {
@@ -222,9 +232,14 @@ public class SGRound extends Round {
     }
 
     public void startSuddenDeath() {
+        if (this.inSuddenDeath) {
+            return;
+        }
+
         this.getWorld().getWorldBorder().setSize(this.cornWorldborderSize, 120);
         Chat.sendAlert(ChatType.WARNING, "Sudden death! The world border is closing rapidly, make your way towards the center!");
         SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+        this.inSuddenDeath = true;
     }
 
     public void recordKill(Player player, Player killer) {
@@ -237,7 +252,7 @@ public class SGRound extends Round {
 
         this.kills.get(killerId).add(playerId);
 
-        if (this.kills.get(killerId).size() % 3 == 0) {
+        if (this.kills.get(killerId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -272,7 +287,7 @@ public class SGRound extends Round {
 
         // Teleport
         if (this.isTeamAlive(team)) {
-            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().findFirst().get();
+            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).findFirst().get();
             player.teleport(otherPlayer.getLocation());
         } else if (this.assignedSpawnLocations.get(player.getUniqueId()) != null) {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
@@ -297,6 +312,7 @@ public class SGRound extends Round {
         this.triggerRoundEnd();
         this.alivePlayers.clear();
         BukkitUtils.forEachPlayer(SGService.getInstance()::setupPlayer);
+        this.setMapName(null);
     }
 
     private void fillChests() {
@@ -313,5 +329,9 @@ public class SGRound extends Round {
         this.fillChests();
         Chat.sendAlert(ChatType.ALERT, "Chests have been refilled!");
         SoundUtils.playSound(Sound.BLOCK_CHEST_OPEN, 1, 1);
+    }
+
+    public void setAlive(Player player) {
+        this.alivePlayers.add(player.getUniqueId());
     }
 }
