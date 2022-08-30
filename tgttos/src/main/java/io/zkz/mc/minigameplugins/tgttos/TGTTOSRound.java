@@ -83,30 +83,32 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     @Override
     public void onEnterPreRound() {
         BukkitUtils.forEachPlayer(this::setupPlayer);
-        MinigameService.getInstance().getTimer().addHook(() -> {
-            long secondsRemaining = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.SECONDS);
+        BukkitUtils.runNextTick(() -> {
+            MinigameService.getInstance().getTimer().addHook(() -> {
+                long secondsRemaining = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.SECONDS);
 
-            if (secondsRemaining > 5) {
-                return;
-            }
+                if (secondsRemaining > 5) {
+                    return;
+                }
 
-            Material mat = Material.GRAY_STAINED_GLASS;
-            if (secondsRemaining == 5) {
-                mat = Material.RED_STAINED_GLASS;
-            } else if (secondsRemaining == 4) {
-                mat = Material.ORANGE_STAINED_GLASS;
-            } else if (secondsRemaining == 3) {
-                mat = Material.YELLOW_STAINED_GLASS;
-            } else if (secondsRemaining == 2) {
-                mat = Material.LIME_STAINED_GLASS;
-            } else if (secondsRemaining == 1) {
-                mat = Material.GREEN_STAINED_GLASS;
-            }
-            WorldEditService we = WorldEditService.getInstance();
-            we.fillRegion(
-                this.createGlassWallRegion(),
-                we.createPattern(mat)
-            );
+                Material mat = Material.GRAY_STAINED_GLASS;
+                if (secondsRemaining == 5) {
+                    mat = Material.RED_STAINED_GLASS;
+                } else if (secondsRemaining == 4) {
+                    mat = Material.ORANGE_STAINED_GLASS;
+                } else if (secondsRemaining == 3) {
+                    mat = Material.YELLOW_STAINED_GLASS;
+                } else if (secondsRemaining == 2) {
+                    mat = Material.LIME_STAINED_GLASS;
+                } else if (secondsRemaining == 1) {
+                    mat = Material.GREEN_STAINED_GLASS;
+                }
+                WorldEditService we = WorldEditService.getInstance();
+                we.fillRegion(
+                    this.createGlassWallRegion(),
+                    we.createPattern(mat)
+                );
+            });
         });
     }
 
