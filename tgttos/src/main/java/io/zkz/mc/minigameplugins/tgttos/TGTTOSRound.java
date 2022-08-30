@@ -82,6 +82,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
     @Override
     public void onEnterPreRound() {
+        super.onEnterPreRound();
         BukkitUtils.forEachPlayer(this::setupPlayer);
         BukkitUtils.runNextTick(() -> {
             MinigameService.getInstance().getTimer().addHook(() -> {
@@ -130,6 +131,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
         BukkitUtils.forEachPlayer(player -> {
+            player.setAllowFlight(true);
             player.setFlying(true);
             double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
             Chat.sendMessage(player, " ");
@@ -141,6 +143,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     protected void onPlayerSetup(Player player, PlayerState playerState) {
         this.setupPlayerLocation(player);
         player.setFlying(false);
+        player.setAllowFlight(false);
         player.setGameMode(switch (playerState) {
             case ALIVE -> GameMode.SURVIVAL;
             case DEAD, SPEC -> GameMode.SPECTATOR;
@@ -214,6 +217,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
         // Increment placement
         this.playerPlacement++;
+        TGTTOSService.getInstance().updateFinishedPlayerCount();
 
         // Check if the whole team is now done
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
