@@ -5,6 +5,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -27,5 +31,15 @@ public class BukkitUtils {
 
     public static void runLater(Runnable runnable, int delay) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, delay);
+    }
+
+    public static Collection<? extends Player> allPlayersExcept(Player... players) {
+        return allPlayersExcept(Arrays.asList(players));
+    }
+
+    public static Collection<? extends Player> allPlayersExcept(Collection<? extends Player> players) {
+        var res = new HashSet<>(Bukkit.getOnlinePlayers());
+        players.forEach(res::remove);
+        return res;
     }
 }

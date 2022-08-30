@@ -73,7 +73,7 @@ public class BingoRound extends Round {
     }
 
     @Override
-    public void onPreRound() {
+    public void onEnterPreRound() {
         // Create the map
         MapView mapView = Bukkit.createMap(this.spawnLocation.getWorld());
         mapView.getRenderers().clear();
@@ -161,7 +161,7 @@ public class BingoRound extends Round {
     }
 
     @Override
-    public void onStart() {
+    public void onRoundStart() {
         WorldEditService we = WorldEditService.getInstance();
 
         // Remove barriers

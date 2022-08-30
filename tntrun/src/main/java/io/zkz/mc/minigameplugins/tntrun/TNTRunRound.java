@@ -36,7 +36,7 @@ public class TNTRunRound extends Round {
     }
 
     @Override
-    public void onPreRound() {
+    public void onEnterPreRound() {
         BukkitUtils.forEachPlayer(player -> {
             player.teleport(new Location(Bukkit.getWorlds().get(0), this.getSpawnLocation().getX(), this.getSpawnLocation().getY(), this.getSpawnLocation().getZ()));
             player.getInventory().clear();
@@ -47,12 +47,8 @@ public class TNTRunRound extends Round {
     }
 
     @Override
-    public void onEnd() {
+    public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
-    }
-
-    @Override
-    public void onPostRound() {
         BukkitUtils.forEachPlayer(player -> {
             double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
             Chat.sendMessage(player, " ");

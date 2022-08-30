@@ -9,7 +9,6 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
-import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
@@ -90,7 +89,7 @@ public class SGRound extends Round {
     }
 
     @Override
-    public void onPreRound() {
+    public void onEnterPreRound() {
         this.alivePlayers.addAll(MinigameService.getInstance().getPlayers());
         SGService.getInstance().updateGameState();
 
@@ -135,7 +134,7 @@ public class SGRound extends Round {
     }
 
     @Override
-    public void onStart() {
+    public void onRoundStart() {
         // every 5 minutes
         this.eventTimer = new GameCountupTimer(SGService.getInstance().getPlugin(), 1200) {
             private static final long CHEST_REFILL = 15;
@@ -166,14 +165,9 @@ public class SGRound extends Round {
     }
 
     @Override
-    public void onEnd() {
+    public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
         this.eventTimer.stop();
-    }
-
-    @Override
-    public void onPostRound() {
-
     }
 
     @Override

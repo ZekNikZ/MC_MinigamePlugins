@@ -13,6 +13,15 @@ public class Permissions {
         public static final String STATUS = ADMIN_PREFIX + "status";
     }
 
+    public static class Vanish {
+        private static final String PREFIX = Permissions.PREFIX + "vanish.";
+        private static final String ADMIN_PREFIX = Permissions.ADMIN_PREFIX + "vanish.";
+
+        public static final String COMMAND = PREFIX + "command";
+        public static final String SELF = ADMIN_PREFIX + "self";
+        public static final String OTHERS = ADMIN_PREFIX + "others";
+    }
+
     public static class Teams {
         private static final String PREFIX = Permissions.PREFIX + "teams.";
         private static final String ADMIN_PREFIX = Permissions.ADMIN_PREFIX + "teams.";

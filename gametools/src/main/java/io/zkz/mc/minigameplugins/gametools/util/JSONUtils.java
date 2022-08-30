@@ -53,6 +53,10 @@ public class JSONUtils {
         return BlockVector3.at(json.get(0), json.get(1), json.get(2));
     }
 
+    public static BlockVector3 readBlockVector(TypedJSONObject<Object> json, String key) {
+        return readBlockVector(json.getList(key, Long.class));
+    }
+
     public static JSONObject readJSONObject(InputStream inputStream) {
         try (Reader reader = new InputStreamReader(inputStream)) {
             return (JSONObject) parser.parse(reader);

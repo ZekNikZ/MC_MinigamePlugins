@@ -12,6 +12,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -33,7 +34,6 @@ public class TeamService extends GameToolsService {
     public static TeamService getInstance() {
         return INSTANCE;
     }
-
 
     private final Map<String, GameTeam> teams = new HashMap<>();
     private final Map<UUID, String> players = new HashMap<>();
@@ -306,8 +306,11 @@ public class TeamService extends GameToolsService {
         return this.collisionRule;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST) // lowest so that the player's team is updated before other services get access to their team information
     private void onPlayerJoin(PlayerJoinEvent event) {
+        // reload team entry in database
+        this.reloadPlayerTeamEntry(event.getPlayer().getUniqueId());
+
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
             event.getPlayer().setDisplayName(ChatColor.RESET + team.getFormatCode() + team.getPrefix() + " " + event.getPlayer().getName() + ChatColor.RESET);
@@ -417,6 +420,33 @@ public class TeamService extends GameToolsService {
         } catch (SQLException e) {
             GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
         }
+    }
+
+    private void reloadPlayerTeamEntry(UUID playerId) {
+        this.db.addAction(conn -> {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "SELECT * FROM gt_player_teams WHERE playerId = ?;"
+            )) {
+                statement.setString(1, playerId.toString());
+
+                ResultSet resultSet = statement.executeQuery();
+                boolean found = false;
+                while (resultSet.next()) {
+                    found = true;
+                    this.joinTeam(
+                        playerId,
+                        resultSet.getString("teamId"),
+                        true
+                    );
+                }
+
+                if (!found) {
+                    this.leaveTeam(playerId);
+                }
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
+            }
+        });
     }
 
     private void createTeamsInDB(Connection conn, List<GameTeam> teams) {

@@ -42,7 +42,7 @@ public class SetRoundCommand extends ArgumentCommandExecutor {
             return true;
         }
 
-        MinigameService.getInstance().getCurrentRound().onPostRound();
+        MinigameService.getInstance().getCurrentRound().onEnterPostRound();
         MinigameService.getInstance().setCurrentRound(round);
         MinigameService.getInstance().setState(MinigameState.PRE_ROUND);
 

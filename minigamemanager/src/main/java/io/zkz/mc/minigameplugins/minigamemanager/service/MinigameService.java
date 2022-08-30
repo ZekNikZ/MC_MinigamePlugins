@@ -39,6 +39,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -56,7 +57,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
-        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + "Organized Chaos");
+        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + getInstance().getTournamentName());
         scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + ChatConstantsService.getInstance().getMinigameName()));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
@@ -163,12 +164,24 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private final List<Character> rulesSlides = new ArrayList<>();
     private int currentRound = -1;
     private AbstractTimer timer;
+
+    // ===============
+    //  Minigame Info
+    // ===============
+    private String tournamentName = "MC Tournament 0";
     private int gameNumber = 0;
+    private int maxGameNumber = 6;
     private double multiplier = 1.0;
+
+    // ==========
+    //  Settings
+    // ==========
     private boolean automaticShowRules = true;
     private boolean automaticPreRound = true;
     private boolean automaticNextRound = true;
     private boolean glowingTeammates = true;
+    private boolean spectatorsCanOnlySeeAliveTeammates = false;
+    private boolean useSecondInGameState = false;
 
     public void setGameNumber(int gameNumber) {
         this.gameNumber = gameNumber;
@@ -207,7 +220,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
-            this.getCurrentRound().onPreRound();
+            this.getCurrentRound().onEnterPreRound();
 
             // Reset glowing
             BukkitUtils.forEachPlayer(player -> {
@@ -235,12 +248,15 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         });
 
         // IN_GAME (note: these are registered for different states to prevent paused from triggering them)
-        this.addCleanupHandler(MinigameState.PRE_ROUND, () -> this.rounds.get(this.currentRound).onStart());
-        this.addSetupHandler(MinigameState.POST_ROUND, () -> this.rounds.get(this.currentRound).onEnd());
+        this.addCleanupHandler(MinigameState.PRE_ROUND, () -> this.getCurrentRound().onRoundStart());
+
+        // MID_GAME
+        this.addSetupHandler(MinigameState.MID_GAME, () -> this.getCurrentRound().onPhase1End());
+        this.addCleanupHandler(MinigameState.MID_GAME, () -> this.getCurrentRound().onPhase2Start());
 
         // POST_ROUND
         this.addSetupHandler(MinigameState.POST_ROUND, () -> {
-            this.getCurrentRound().onPostRound();
+            this.getCurrentRound().onEnterPostRound();
             this.changeTimer(null);
             if (this.automaticNextRound) {
                 this.goToNextRound();
@@ -318,7 +334,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             });
             IPlayerState playerState = this.statePlayerStates.get(this.state);
             if (playerState != null) {
-                Bukkit.getOnlinePlayers().forEach(playerState::apply);
+                BukkitUtils.forEachPlayer(playerState::apply);
             }
         }
         BukkitUtils.dispatchEvent(new StateChangeEvent.Post(this.state, newState));
@@ -534,6 +550,14 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.setState(MinigameState.POST_ROUND);
     }
 
+    public void endPhase1() {
+        this.setState(MinigameState.MID_GAME);
+    }
+
+    public void startPhase2() {
+        this.setState(MinigameState.IN_GAME_2);
+    }
+
     private void endGame() {
         // Send players back to hub
         SubAPI.getInstance().getRemotePlayers(players -> {
@@ -627,16 +651,23 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public double getPointMultiplier() {
-        // TODO: use this
+        // TODO: fetch from DB
         return this.multiplier;
     }
 
     public int getGameNumber() {
-        // TODO: use this
+        // TODO: fetch from DB
         return this.gameNumber;
     }
 
+    @NotNull
+    private String getTournamentName() {
+        // TODO: fetch from DB
+        return this.tournamentName;
+    }
+
     public int getMaxGameNumber() {
-        return 6;
+        // TODO: fetch from DB
+        return this.maxGameNumber;
     }
 }

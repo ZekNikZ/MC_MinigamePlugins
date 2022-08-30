@@ -5,13 +5,21 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class Round {
     private String mapName;
+    private String mapBy;
 
     protected Round() {
         this.mapName = null;
+        this.mapBy = null;
     }
 
     protected Round(String mapName) {
         this.mapName = mapName;
+        this.mapBy = null;
+    }
+
+    protected Round(String mapName, String mapBy) {
+        this.mapName = mapName;
+        this.mapBy = mapBy;
     }
 
     /**
@@ -31,28 +39,29 @@ public abstract class Round {
     /**
      * Run when round has begun (i.e., when players can start moving).
      */
-    public void onStart() {
+    public void onRoundStart() {
+
+    }
+
+    public void onPhase1End() {
+
+    }
+
+    public void onPhase2Start() {
 
     }
 
     /**
      * Run when game enters pre-round phase.
      */
-    public void onPreRound() {
+    public void onEnterPreRound() {
 
     }
 
     /**
      * Run when game enters post-round phase.
      */
-    public void onPostRound() {
-
-    }
-
-    /**
-     * Run when round has ended (i.e., when timer expires or last man standing).
-     */
-    public void onEnd() {
+    public void onEnterPostRound() {
 
     }
 
@@ -77,8 +86,26 @@ public abstract class Round {
         MinigameService.getInstance().endRound();
     }
 
+    /**
+     * Convenience method to end the first phase.
+     */
+    public void triggerPhase1End() {
+        MinigameService.getInstance().endPhase1();
+    }
+
+    /**
+     * Convenience method to start the second phase.
+     */
+    public void triggerPhase2Start() {
+        MinigameService.getInstance().startPhase2();
+    }
+
     public @Nullable String getMapName() {
         return this.mapName;
+    }
+
+    public @Nullable String getMapBy() {
+        return this.mapBy;
     }
 
     public void setMapName(@Nullable String mapName) {

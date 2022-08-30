@@ -1,6 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.command;
 
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -26,7 +29,18 @@ public abstract class CommandGroup {
     public final void registerCommands(JavaPlugin plugin) {
         this.registerCommands();
 
-        this.commands.forEach((commandName, executor) -> plugin.getCommand(commandName).setExecutor(executor));
+        this.commands.forEach((commandName, executor) -> {
+            PluginCommand command = plugin.getCommand(commandName);
+            if (command == null) {
+                plugin.getLogger().severe("Could not register command /" + commandName);
+                return;
+            }
+
+            command.setExecutor(executor);
+            if (executor instanceof TabCompleter completer) {
+               command.setTabCompleter(completer);
+            }
+        });
 
         plugin.getLogger().info("Initialized command group " + this.getClass().getSimpleName());
     }

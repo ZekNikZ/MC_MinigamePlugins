@@ -1,7 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
+import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.scoreboard.Team;
 
 import java.awt.*;
@@ -126,5 +128,9 @@ public class GameTeam {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    public Material getWoolColor() {
+        return BlockUtils.getWoolColor(this.scoreboardColor);
     }
 }
