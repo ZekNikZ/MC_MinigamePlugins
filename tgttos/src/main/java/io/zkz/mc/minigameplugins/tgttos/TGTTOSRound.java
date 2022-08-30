@@ -192,6 +192,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
     public void onPlayerFallOff(Player player) {
         this.setupPlayerLocation(player);
+        this.setupPlayerInventory(player);
 
         Chat.sendAlert(ChatType.ELIMINATION, player.getDisplayName() + ChatColor.GRAY + Constants.randomDeathMessage());
         SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);

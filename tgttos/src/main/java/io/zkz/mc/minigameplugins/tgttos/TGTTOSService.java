@@ -9,10 +9,7 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
-import io.zkz.mc.minigameplugins.gametools.util.ISB;
-import io.zkz.mc.minigameplugins.gametools.util.ObservableValue;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
@@ -34,14 +31,15 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class TGTTOSService extends PluginService<TGTTOSPlugin> {
@@ -54,6 +52,8 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     private final ObservableValue<Integer> finishedPlayerCount = new ObservableValue<>(0);
 
     private final List<TGTTOSRound> rounds = new ArrayList<>();
+
+    private final Map<UUID, BukkitTask> boatRemoval = new HashMap<>();
 
     @Override
     protected void setup() {
@@ -218,12 +218,31 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
         Vehicle vehicle = event.getVehicle();
         if ((event.getExited() instanceof Player player) && (vehicle.getType() == EntityType.BOAT)) {
             vehicle.remove();
-            player.getInventory().setItem(0, ISB.stack(Material.OAK_BOAT));
+            this.getCurrentRound().setupPlayerInventory(player);
         }
     }
 
     @EventHandler
-    private void onBoatCreate(VehicleCreateEvent event) {
+    private void onBoatRideEvent(VehicleEnterEvent event) {
+        this.boatRemoval.remove(event.getVehicle().getUniqueId()).cancel();
+    }
 
+    @EventHandler
+    private void onBoatCreate(VehicleCreateEvent event) {
+        Vehicle vehicle = event.getVehicle();
+        this.boatRemoval.put(vehicle.getUniqueId(), new BukkitRunnable() {
+            @Override
+            public void run() {
+                vehicle.remove();
+                BukkitUtils.forEachPlayer(player -> {
+                    ItemStack stack = player.getInventory().getItem(0);
+                    if (stack == null || stack.getType() != Material.OAK_BOAT) {
+                        if (player.getVehicle() == null) {
+                            getCurrentRound().setupPlayerInventory(player);
+                        }
+                    }
+                });
+            }
+        }.runTaskLater(this.getPlugin(), 60));
     }
 }
