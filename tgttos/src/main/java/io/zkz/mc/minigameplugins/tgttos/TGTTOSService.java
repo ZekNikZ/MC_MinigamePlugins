@@ -164,6 +164,8 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
             return;
         }
 
+        player.sendMessage("you moved");
+
         if (this.getCurrentRound().isPlayerInEndRegion(player)) {
             this.getCurrentRound().onPlayerFinishCourse(player);
         } else if (loc.getY() <= this.getCurrentRound().getDeathYLevel()) {

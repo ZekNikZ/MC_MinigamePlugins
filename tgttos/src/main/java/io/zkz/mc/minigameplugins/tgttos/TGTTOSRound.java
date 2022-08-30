@@ -54,7 +54,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         this.deathYLevel = (int) json.getLong("deathYLevel");
         this.endMin = JSONUtils.readBlockVector(json, "endMin");
         this.endMax = JSONUtils.readBlockVector(json, "endMax");
-        this.regionName = this.getMapName() + "_endRegion";
+        this.regionName = this.getMapName() + "_end";
     }
 
     @Override
@@ -89,6 +89,8 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
+        TGTTOSService.getInstance().getLogger().info("onPreRoundTimerTick: " + currentTimeMillis);
+
         if (currentTimeMillis > 5000) {
             return;
         }
