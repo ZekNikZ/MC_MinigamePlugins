@@ -114,6 +114,13 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     }
 
     @Override
+    protected void onEnable() {
+        MinigameService minigame = MinigameService.getInstance();
+        minigame.registerRounds(this.rounds.toArray(TGTTOSRound[]::new));
+        minigame.randomizeRoundOrder();
+    }
+
+    @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
             new JSONDataManager<>(this, Path.of("arenas.json"), null, this::loadData)
