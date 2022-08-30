@@ -139,6 +139,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (getInstance().getCurrentRound().getMapName() != null) {
             scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Map: " + ChatColor.RESET + getInstance().getCurrentRound().getMapName());
         }
+        if (getInstance().getCurrentRound().getMapBy() != null) {
+            scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Map by: " + ChatColor.RESET + getInstance().getCurrentRound().getMapBy());
+        }
         if (getInstance().getRoundCount() > 1) {
             scoreboard.addEntry("" + ChatColor.GREEN + ChatColor.BOLD + "Round: " + ChatColor.RESET + (getInstance().getCurrentRoundIndex() + 1) + "/" + getInstance().getRoundCount());
         }

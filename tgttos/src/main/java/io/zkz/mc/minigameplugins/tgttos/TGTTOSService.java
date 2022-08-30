@@ -33,6 +33,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.vehicle.VehicleCreateEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.json.simple.JSONObject;
@@ -164,8 +165,6 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
             return;
         }
 
-        player.sendMessage("you moved");
-
         if (this.getCurrentRound().isPlayerInEndRegion(player)) {
             this.getCurrentRound().onPlayerFinishCourse(player);
         } else if (loc.getY() <= this.getCurrentRound().getDeathYLevel()) {
@@ -215,11 +214,16 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     }
 
     @EventHandler
-    public void onBoatLeaveEvent(VehicleExitEvent event) {
+    private void onBoatLeaveEvent(VehicleExitEvent event) {
         Vehicle vehicle = event.getVehicle();
         if ((event.getExited() instanceof Player player) && (vehicle.getType() == EntityType.BOAT)) {
             vehicle.remove();
             player.getInventory().setItem(0, ISB.stack(Material.OAK_BOAT));
         }
+    }
+
+    @EventHandler
+    private void onBoatCreate(VehicleCreateEvent event) {
+
     }
 }

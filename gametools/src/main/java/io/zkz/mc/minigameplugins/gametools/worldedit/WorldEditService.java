@@ -87,7 +87,7 @@ public class WorldEditService extends GameToolsService {
     }
 
     public void replaceRegion(Region region, Mask mask, Pattern pattern) {
-        this.fillRegion(region.getWorld(), region, pattern);
+        this.replaceRegion(region.getWorld(), region, mask, pattern);
     }
 
     public void replaceRegion(World world, Region region, Mask mask, Pattern pattern) {

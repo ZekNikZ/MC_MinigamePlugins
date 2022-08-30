@@ -89,8 +89,6 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
-        TGTTOSService.getInstance().getLogger().info("onPreRoundTimerTick: " + currentTimeMillis);
-
         if (currentTimeMillis > 5000) {
             return;
         }
@@ -109,8 +107,9 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         }
         WorldEditService we = WorldEditService.getInstance();
         we.fillRegion(
-            this.createGlassWallRegion(),
-            we.createPattern(mat)
+                we.wrapWorld(Bukkit.getWorld(this.worldName)),
+                this.createGlassWallRegion(),
+                we.createPattern(mat)
         );
     }
 
@@ -119,12 +118,13 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         // Remove barrier
         WorldEditService we = WorldEditService.getInstance();
         we.fillRegion(
-            this.createGlassWallRegion(),
-            we.createPattern(Material.AIR)
+                we.wrapWorld(Bukkit.getWorld(this.worldName)),
+                this.createGlassWallRegion(),
+                we.createPattern(Material.AIR)
         );
 
         // Setup timers
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(TGTTOSService.getInstance().getPlugin(), 20, 90, TimeUnit.SECONDS, this::roundIsOver));
+        MinigameService.getInstance().changeTimer(new GameCountdownTimer(TGTTOSService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
         // TODO: warnings
     }
 
@@ -180,16 +180,10 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     }
 
     public boolean isPlayerInEndRegion(Player player) {
-        com.sk89q.worldedit.util.Location weLoc = BukkitAdapter.adapt(player.getLocation());
+        BlockVector3 vec = WorldEditService.getInstance().wrapLocation(player.getLocation());
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager regions = container.get(WorldEditService.getInstance().wrapWorld(player.getWorld()));
-        ApplicableRegionSet set = regions.getApplicableRegions(weLoc.toVector().toBlockPoint());
-        for (ProtectedRegion protectedRegion : set) {
-            if (protectedRegion.getId().equals(this.regionName)) {
-                return true;
-            }
-        }
-        return false;
+        return regions.getRegion(this.regionName).contains(vec);
     }
 
     public void setupPlayerLocation(Player player) {
@@ -199,7 +193,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     public void onPlayerFallOff(Player player) {
         this.setupPlayerLocation(player);
 
-        Chat.sendAlert(ChatType.ELIMINATION, player.getDisplayName() + Constants.randomDeathMessage());
+        Chat.sendAlert(ChatType.ELIMINATION, player.getDisplayName() + ChatColor.GRAY + Constants.randomDeathMessage());
         SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
     }
 
@@ -226,7 +220,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         if (!this.isTeamAlive(team)) {
             // Compute score and placement
             int teamPoints = Points.getTeamPlacementPointValue(this.teamPlacement) / TeamService.getInstance().getTeamMembers(team).size();
-            String teamPlacementOrdinal = NumberUtils.ordinal(this.playerPlacement);
+            String teamPlacementOrdinal = NumberUtils.ordinal(this.teamPlacement);
             ScoreService.getInstance().earnPoints(player, "team completion", points);
 
             // Chat message
