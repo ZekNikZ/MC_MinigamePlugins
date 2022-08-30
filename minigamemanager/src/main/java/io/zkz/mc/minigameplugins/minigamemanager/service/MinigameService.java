@@ -293,6 +293,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                     SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
                 }
 
+                getCurrentRound().onPreRoundTimerTick(getCurrentTimeMillis());
+
                 super.onUpdate();
             }
         });

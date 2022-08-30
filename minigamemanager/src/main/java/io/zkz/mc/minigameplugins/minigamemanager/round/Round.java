@@ -80,6 +80,15 @@ public abstract class Round {
     }
 
     /**
+     * Run when timer ticks
+     *
+     * @param currentTimeMillis value of the timer at this point in time
+     */
+    public void onPreRoundTimerTick(long currentTimeMillis) {
+
+    }
+
+    /**
      * Convenience method to end a round.
      */
     public void triggerRoundEnd() {

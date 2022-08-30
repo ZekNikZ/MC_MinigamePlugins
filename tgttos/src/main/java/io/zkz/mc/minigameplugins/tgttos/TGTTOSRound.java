@@ -6,6 +6,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
@@ -53,7 +54,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         this.deathYLevel = (int) json.getLong("deathYLevel");
         this.endMin = JSONUtils.readBlockVector(json, "endMin");
         this.endMax = JSONUtils.readBlockVector(json, "endMax");
-        this.regionName = this.worldName + "_endRegion";
+        this.regionName = this.getMapName() + "_endRegion";
     }
 
     @Override
@@ -84,33 +85,31 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     public void onEnterPreRound() {
         super.onEnterPreRound();
         BukkitUtils.forEachPlayer(this::setupPlayer);
-        BukkitUtils.runNextTick(() -> {
-            MinigameService.getInstance().getTimer().addHook(() -> {
-                long secondsRemaining = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.SECONDS);
+    }
 
-                if (secondsRemaining > 5) {
-                    return;
-                }
+    @Override
+    public void onPreRoundTimerTick(long currentTimeMillis) {
+        if (currentTimeMillis > 5000) {
+            return;
+        }
 
-                Material mat = Material.GRAY_STAINED_GLASS;
-                if (secondsRemaining == 5) {
-                    mat = Material.RED_STAINED_GLASS;
-                } else if (secondsRemaining == 4) {
-                    mat = Material.ORANGE_STAINED_GLASS;
-                } else if (secondsRemaining == 3) {
-                    mat = Material.YELLOW_STAINED_GLASS;
-                } else if (secondsRemaining == 2) {
-                    mat = Material.LIME_STAINED_GLASS;
-                } else if (secondsRemaining == 1) {
-                    mat = Material.GREEN_STAINED_GLASS;
-                }
-                WorldEditService we = WorldEditService.getInstance();
-                we.fillRegion(
-                    this.createGlassWallRegion(),
-                    we.createPattern(mat)
-                );
-            });
-        });
+        Material mat;
+        if (currentTimeMillis <= 1000) {
+            mat = Material.GREEN_STAINED_GLASS;
+        } else if (currentTimeMillis <= 2000) {
+            mat = Material.LIME_STAINED_GLASS;
+        } else if (currentTimeMillis <= 3000) {
+            mat = Material.YELLOW_STAINED_GLASS;
+        } else if (currentTimeMillis <= 4000) {
+            mat = Material.ORANGE_STAINED_GLASS;
+        } else {
+            mat = Material.RED_STAINED_GLASS;
+        }
+        WorldEditService we = WorldEditService.getInstance();
+        we.fillRegion(
+            this.createGlassWallRegion(),
+            we.createPattern(mat)
+        );
     }
 
     @Override
@@ -149,6 +148,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
             case DEAD, SPEC -> GameMode.SPECTATOR;
         });
         if (playerState == PlayerState.ALIVE) {
+            player.getInventory().clear();
             this.setupPlayerInventory(player);
         } else {
             player.getInventory().clear();
@@ -180,8 +180,8 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     public boolean isPlayerInEndRegion(Player player) {
         com.sk89q.worldedit.util.Location weLoc = BukkitAdapter.adapt(player.getLocation());
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        RegionQuery query = container.createQuery();
-        ApplicableRegionSet set = query.getApplicableRegions(weLoc);
+        RegionManager regions = container.get(WorldEditService.getInstance().wrapWorld(player.getWorld()));
+        ApplicableRegionSet set = regions.getApplicableRegions(weLoc.toVector().toBlockPoint());
         for (ProtectedRegion protectedRegion : set) {
             if (protectedRegion.getId().equals(this.regionName)) {
                 return true;

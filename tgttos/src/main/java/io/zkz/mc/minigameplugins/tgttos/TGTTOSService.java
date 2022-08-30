@@ -18,7 +18,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.tgttos.round.RoundType;
 import net.md_5.bungee.api.ChatColor;
-import net.minecraft.world.entity.Entity;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
