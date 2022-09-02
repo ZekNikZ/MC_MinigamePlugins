@@ -35,19 +35,21 @@ public class SchematicService extends GameToolsService {
         loaded = true;
     }
 
-    public boolean loadSchematic(InputStream schematicStream, Location placementLocation) {
+    public boolean loadSchematic(InputStream schematicStream, Location... placementLocations) {
         Objects.requireNonNull(schematicStream, "Cannot load schematic from a null stream");
 
         try (ClipboardReader reader = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getReader(schematicStream)) {
             Clipboard clipboard = reader.read();
 
-            try (EditSession editSession = WorldEdit.getInstance().newEditSession(new BukkitWorld(placementLocation.getWorld()))) {
-                Operation operation = new ClipboardHolder(clipboard)
-                    .createPaste(editSession)
-                    .to(BlockVector3.at(placementLocation.getBlockX(), placementLocation.getY(), placementLocation.getZ()))
-                    .ignoreAirBlocks(false)
-                    .build();
-                Operations.complete(operation);
+            for (Location location : placementLocations) {
+                try (EditSession editSession = WorldEdit.getInstance().newEditSession(new BukkitWorld(location.getWorld()))) {
+                    Operation operation = new ClipboardHolder(clipboard)
+                        .createPaste(editSession)
+                        .to(BlockVector3.at(location.getBlockX(), location.getY(), location.getZ()))
+                        .ignoreAirBlocks(false)
+                        .build();
+                    Operations.complete(operation);
+                }
             }
         } catch (IOException | WorldEditException e) {
             this.getLogger().log(Level.SEVERE, "Could not load schematic", e);

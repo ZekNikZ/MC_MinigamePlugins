@@ -1,11 +1,13 @@
 package io.zkz.mc.minigameplugins.battlebox;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
+import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
 import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
@@ -21,27 +23,39 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 public class BattleBoxRound extends PlayerAliveDeadRound {
     private final List<Pair<GameTeam, GameTeam>> matches;
+    private final List<Boolean> activeMatches;
+    private final List<GameTeam> matchWinners;
     private final GameConfig config;
     private final Map<UUID, String> kitSelections = new HashMap<>();
     private final Map<GameTeam, Set<String>> teamKitSelections = new HashMap<>();
 
     public BattleBoxRound(List<Pair<GameTeam, GameTeam>> matches) {
         this.matches = matches;
+        this.activeMatches = new ArrayList<>(Collections.nCopies(this.matches.size(), true));
+        this.matchWinners = new ArrayList<>(Collections.nCopies(this.matches.size(), null));
         this.config = BattleBoxService.getInstance().getConfig();
         MinigameService.getInstance().getGameTeams().forEach(team -> {
             this.teamKitSelections.put(team, new HashSet<>());
         });
+        this.setMapName(this.config.selectedMapName());
+        this.setMapBy(this.config.map().author());
     }
 
     @Override
     public void onSetup() {
-        // TODO: create arenas (load schematic)
+        // Create arenas (load schematic)
+        World world = this.config.world();
+        SchematicService.getInstance().loadSchematic(
+            BattleBoxRound.class.getResourceAsStream("/schematics/arenas/" + this.config.selectedMapName() + ".schem"),
+            this.config.arenas().stream().map(vec -> BukkitAdapter.adapt(world, vec)).toArray(Location[]::new)
+        );
 
         // World setup
         WorldSyncUtils.setDifficulty(Difficulty.HARD);
@@ -115,16 +129,45 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
         // Start timer
         MinigameService.getInstance().changeTimer(new GameCountdownTimer(BattleBoxService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
+        MinigameService.getInstance().getTimer().addHook(new Runnable() {
+            boolean warning30 = false;
+            boolean warning20 = false;
+            boolean warning10 = false;
+
+            @Override
+            public void run() {
+                long currentTime = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.MILLISECONDS);
+
+                if (currentTime < 30000 && !warning30) {
+                    warning30 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "30 seconds remain.");
+                } else if (currentTime < 20000 && !warning20) {
+                    warning20 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "20 seconds remain.");
+                } else if (currentTime < 10000 && !warning10) {
+                    warning10 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "10 seconds remain.");
+                } else if (currentTime < 10000) {
+                    SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
+                }
+            }
+        });
     }
 
     @Override
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
-        BukkitUtils.forEachPlayer(player -> {
-            double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
-            Chat.sendMessage(player, " ");
-            Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + net.md_5.bungee.api.ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
-        });
+        BukkitUtils.runLater(() -> {
+            // TODO: send win/loss message and following message
+            BukkitUtils.forEachPlayer(player -> {
+                double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
+                Chat.sendMessage(player, " ");
+                Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + net.md_5.bungee.api.ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
+            });
+        }, 100);
     }
 
     @Override
@@ -195,11 +238,125 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
             .findFirst().orElse(0);
     }
 
+    private int arenaIndexOf(Player player) {
+        return this.arenaIndexOf(TeamService.getInstance().getTeamOfPlayer(player));
+    }
+
     private int teamIndexOf(int arenaIndex, GameTeam team) {
         return this.matches.get(arenaIndex).first().equals(team) ? 0 : 1;
     }
 
     private void roundIsOver() {
+        this.getOnlineAlivePlayers().forEach(this::setDead);
+
+        // Compute and assign scores for still-active games
+        for (int i = 0; i < this.matches.size(); i++) {
+            this.checkIfMatchIsOver(i);
+        }
+
+        // Check if all matches are over
         this.triggerRoundEnd();
+    }
+
+    public void recordKill(Player player, @Nullable Player killer) {
+        // Sound
+        SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
+
+        // Tell system they are dead
+        this.setDead(player);
+
+        if (killer == null) {
+            return;
+        }
+
+        // Assign scores
+        SoundUtils.playSound(player, StandardSounds.GOAL_MET_MINOR, 1, 1);
+        player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
+        ScoreService.getInstance().earnPoints(killer, "kill", Points.KILL);
+
+        // Check if this match is over (if so, play a sound and title and assign winning scores)
+        this.checkIfMatchIsOver(this.arenaIndexOf(player));
+
+        // Check if all matches are over
+        this.checkIfAllMatchesAreOver();
+    }
+
+    public Collection<Player> getAllPlayersInArena(Player player) {
+        return this.getAllPlayersInArena(this.arenaIndexOf(player));
+    }
+
+    public Collection<Player> getAllPlayersInArena(int arenaIndex) {
+        Pair<GameTeam, GameTeam> match = this.matches.get(arenaIndex);
+        Set<Player> res = new HashSet<>();
+        res.addAll(TeamService.getInstance().getOnlineTeamMembers(match.first()));
+        res.addAll(TeamService.getInstance().getOnlineTeamMembers(match.second()));
+        return res;
+    }
+
+    public void checkIfMatchIsOver(int arenaIndex) {
+        if (!this.activeMatches.get(arenaIndex)) {
+            return;
+        }
+
+        Pair<GameTeam, GameTeam> match = this.matches.get(arenaIndex);
+
+        // Compute block counts
+        WorldEditService we = WorldEditService.getInstance();
+        int woolCount1 = we.regionStats(
+            we.wrapWorld(this.config.world()),
+            this.config.woolRegion(arenaIndex),
+            match.first().getWoolColor()
+        );
+        int woolCount2 = we.regionStats(
+            we.wrapWorld(this.config.world()),
+            this.config.woolRegion(arenaIndex),
+            match.second().getWoolColor()
+        );
+
+        if (this.getAllPlayersInArena(arenaIndex).stream().noneMatch(this::isAlive) || woolCount1 == 9 || woolCount2 == 9) {
+            // Compute winner
+            Collection<Player> teamMembers;
+            Collection<Player> otherTeamMembers;
+            int points;
+            if (woolCount1 > woolCount2) {
+                // Team 1 won
+                this.matchWinners.set(arenaIndex, match.first());
+                teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
+                otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
+                points = Points.WINNING / teamMembers.size();
+            } else if (woolCount2 > woolCount1) {
+                // Team 2 won
+                this.matchWinners.set(arenaIndex, match.second());
+                teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
+                otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
+                points = Points.WINNING / teamMembers.size();
+            } else {
+                // Tie
+                teamMembers = List.of();
+                otherTeamMembers = this.getAllPlayersInArena(arenaIndex);
+                points = 0;
+            }
+
+            teamMembers.forEach(p -> {
+                Chat.sendAlert(p, ChatType.GAME_SUCCESS, "Your team won! Well played!", points);
+                SoundUtils.playSound(p, StandardSounds.GOAL_MET_MAJOR, 1, 1);
+                p.spawnParticle(Particle.TOTEM, p.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
+                ScoreService.getInstance().earnPoints(p, "winning", points);
+                this.setDead(p);
+            });
+            otherTeamMembers.forEach(p -> {
+                Chat.sendAlert(p, ChatType.GAME_INFO, "Your team lost! Better luck next time!");
+                this.setDead(p);
+            });
+
+            // Mark match as completed
+            this.activeMatches.set(arenaIndex, false);
+        }
+    }
+
+    public void checkIfAllMatchesAreOver() {
+        if (this.activeMatches.stream().noneMatch(x -> x)) {
+            this.triggerRoundEnd();
+        }
     }
 }

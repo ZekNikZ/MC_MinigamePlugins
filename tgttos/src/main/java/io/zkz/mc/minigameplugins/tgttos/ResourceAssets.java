@@ -8,9 +8,18 @@ import java.util.List;
 public class ResourceAssets {
     public static final List<Character> SLIDES = new ArrayList<>();
 
+    static {
+        addRuleSlide('\uE500');
+        addRuleSlide('\uE501');
+        addRuleSlide('\uE502');
+        addRuleSlide('\uE503');
+        addRuleSlide('\uE504');
+    }
+
     public static void main(String[] args) {
-        addRuleSlide(ResourceManager.addCustomCharacterImage('\uE200', ResourceAssets.class.getResourceAsStream("/testinstructions.png"), 200, 200));
-        addRuleSlide(ResourceManager.addCustomCharacterImage('\uE201', ResourceAssets.class.getResourceAsStream("/testinstructions2.png"), 200, 200));
+        for (int i = 0; i < SLIDES.size(); i++) {
+            ResourceManager.addCustomCharacterImage(SLIDES.get(i), ResourceAssets.class.getResourceAsStream("/rules/tgttos_0" + i + ".png"), 200, 200);
+        }
     }
 
     private static void addRuleSlide(char c) {

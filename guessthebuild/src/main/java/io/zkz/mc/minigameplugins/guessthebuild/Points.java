@@ -10,8 +10,4 @@ public class Points {
         }
         return base;
     }
-
-    public static int getTeamPlacementPointValue(int placement) {
-        return Math.max(100 - 25 * placement, 0);
-    }
 }

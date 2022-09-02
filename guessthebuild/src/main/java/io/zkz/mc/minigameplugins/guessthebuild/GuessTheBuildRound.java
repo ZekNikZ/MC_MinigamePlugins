@@ -217,11 +217,11 @@ public class GuessTheBuildRound extends Round {
             return true;
         }
 
-        GameTeam builderTeam = TeamService.getInstance().getTeamOfPlayer(this.builderId);
-        if (Objects.equals(team, builderTeam)) {
-            Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your teammate's build!");
-            return true;
-        }
+//        GameTeam builderTeam = TeamService.getInstance().getTeamOfPlayer(this.builderId);
+//        if (Objects.equals(team, builderTeam)) {
+//            Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your teammate's build!");
+//            return true;
+//        }
 
         if (this.correctGuessers.contains(player.getUniqueId())) {
             Chat.sendAlert(player, ChatType.WARNING, "You already guessed correctly!");

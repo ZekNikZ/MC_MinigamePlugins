@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,6 +69,7 @@ class MapConfig {
     private final Material[] validWoolPlacementBlocks;
     private final Material leafBlock;
     private final Map<String, KitConfig> kits;
+    private final @Nullable String author;
 
     public MapConfig(TypedJSONObject<Object> json) {
         this.woolMin = JSONUtils.readBlockVector(json, "woolMin");
@@ -86,10 +88,11 @@ class MapConfig {
         this.potions = json.getArray("arenas", List.class).stream()
             .map(JSONUtils::readBlockVector)
             .toList();
+        this.author = json.getString("author");
     }
 
-    public CuboidRegion wool() {
-        return WorldEditService.getInstance().createCuboidRegion(this.woolMin, this.woolMax);
+    public CuboidRegion wool(BlockVector3 base) {
+        return WorldEditService.getInstance().createCuboidRegion(this.woolMin.add(base), this.woolMax.add(base));
     }
 
     public TeamConfig[] teams() {
@@ -118,6 +121,10 @@ class MapConfig {
 
     public List<BlockVector3> potions() {
         return this.potions;
+    }
+
+    public @Nullable String author() {
+        return this.author;
     }
 }
 
@@ -182,6 +189,10 @@ public class GameConfig {
         );
     }
 
+    public Region woolRegion(int arenaIndex) {
+        return this.map().wool(this.arenas.get(arenaIndex));
+    }
+
     public List<Location> potions() {
         World world = this.world();
         return this.map().potions().stream().map(vec -> new Location(world, vec.getX() + 0.5, vec.getY() + 0.5, vec.getZ() + 0.5)).toList();
@@ -189,5 +200,9 @@ public class GameConfig {
 
     public List<CuboidRegion> allWalls() {
         return Arrays.stream(this.map().teams()).flatMap(team -> this.arenas().stream().map(team::wall)).toList();
+    }
+
+    public String selectedMapName() {
+        return this.selectedMap;
     }
 }

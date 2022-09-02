@@ -2,10 +2,15 @@ package io.zkz.mc.minigameplugins.battlebox;
 
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
+import io.zkz.mc.minigameplugins.gametools.util.ColorUtils;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -37,6 +42,16 @@ public class Kits {
                     .canPlaceOn(validPlacementBlocks())
                     .build(),
                 ISB.stack(Material.ARROW, 6)
+            );
+            Color color = ColorUtils.toBukkitColor(TeamService.getInstance().getTeamOfPlayer(player).getColor());
+            LeatherArmorMeta meta = ((LeatherArmorMeta) Bukkit.getItemFactory().getItemMeta(Material.LEATHER_BOOTS));
+            meta.setColor(color);
+            inv.setItem(
+                EquipmentSlot.FEET,
+                ISB.material(Material.LEATHER_BOOTS)
+                    .meta(meta)
+                    .unbreakable()
+                    .build()
             );
         },
         "crossbow", (player, inv) -> {

@@ -120,4 +120,8 @@ public abstract class Round {
     public void setMapName(@Nullable String mapName) {
         this.mapName = mapName;
     }
+
+    protected void setMapBy(String author) {
+        this.mapBy = author;
+    }
 }

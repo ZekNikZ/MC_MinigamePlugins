@@ -114,4 +114,10 @@ public class WorldEditService extends GameToolsService {
     public BlockVector3 wrapLocation(org.bukkit.Location location) {
         return BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
+
+    public int regionStats(World world, Region region, Material... mats) {
+        try (EditSession session = this.createEditSession(world)) {
+            return session.countBlocks(region, this.createMask(world, mats));
+        }
+    }
 }

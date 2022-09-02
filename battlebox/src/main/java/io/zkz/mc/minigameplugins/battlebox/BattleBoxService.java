@@ -4,12 +4,12 @@ import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.Pair;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
@@ -23,11 +23,11 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class BattleBoxService extends PluginService<BattleBoxPlugin> {
@@ -65,8 +65,6 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
             MinigameState.POST_ROUND
         );
 
-        // Round setup handlers
-
         // State change titles
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
@@ -76,14 +74,6 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
             TitleUtils.broadcastTitle(ChatColor.RED + "Game over!", ChatColor.GOLD + "Check the chat for score information.", 10, 70, 20);
         });
-
-        // In game scoreboard
-        BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
-            // TODO: anything here?
-        };
-        minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
-        minigame.registerScoreboard(MinigameState.IN_GAME, scoreboardModifier);
-        minigame.registerScoreboard(MinigameState.PAUSED, scoreboardModifier);
     }
 
     @Override
@@ -169,5 +159,24 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     @EventHandler
     private void onPlayerHungerChange(FoodLevelChangeEvent event) {
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    private void onPlayerKill(PlayerDeathEvent event) {
+        Player killer = event.getEntity().getKiller();
+
+        // Only show death message to those in the arena
+        String deathMessage = event.getDeathMessage();
+        event.setDeathMessage(null);
+        this.getCurrentRound().getAllPlayersInArena(event.getEntity()).forEach(p -> {
+            if (p.equals(killer)) {
+                p.sendMessage(Chat.Constants.POINT_PREFIX.formatted(String.valueOf(Points.KILL)) + deathMessage);
+            } else {
+                p.sendMessage(deathMessage);
+            }
+        });
+
+        // Record the kill
+        this.getCurrentRound().recordKill(event.getEntity(), killer);
     }
 }
