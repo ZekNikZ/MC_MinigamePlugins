@@ -1,8 +1,12 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -19,6 +23,8 @@ public class ItemStackBuilder {
     private final List<String> lore = new ArrayList<>();
     private String name = null;
     private Boolean unbreakable = null;
+    private final List<Material> canPlaceOn = new ArrayList<>();
+    private final List<Material> canBreak = new ArrayList<>();
 
     private ItemStackBuilder(ItemStack stack) {
         this.stack = stack.clone();
@@ -151,6 +157,16 @@ public class ItemStackBuilder {
         return this;
     }
 
+    public ItemStackBuilder canPlaceOn(Material... materials) {
+        this.canPlaceOn.addAll(Arrays.asList(materials));
+        return this;
+    }
+
+    public ItemStackBuilder canBreak(Material... materials) {
+        this.canBreak.addAll(Arrays.asList(materials));
+        return this;
+    }
+
     public ItemStack build() {
         ItemStack stack = this.stack.clone();
         ItemMeta meta = stack.getItemMeta();
@@ -168,6 +184,31 @@ public class ItemStackBuilder {
         }
 
         stack.setItemMeta(meta);
+
+        if (!this.canPlaceOn.isEmpty() || !this.canBreak.isEmpty()) {
+            net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(stack);
+            NBTTagCompound tag = nmsStack.v();
+
+            if (!this.canPlaceOn.isEmpty()) {
+                NBTTagList canPlaceOnTag = new NBTTagList();
+                this.canPlaceOn.forEach(mat -> {
+                    canPlaceOnTag.add(NBTTagString.a(mat.getKey().toString()));
+                });
+                tag.a("CanPlaceOn", canPlaceOnTag);
+            }
+
+            if (!this.canBreak.isEmpty()) {
+                NBTTagList canBreakTag = new NBTTagList();
+                this.canBreak.forEach(mat -> {
+                    canBreakTag.add(NBTTagString.a(mat.getKey().toString()));
+                });
+                tag.a("CanDestroy", canBreakTag);
+            }
+
+            nmsStack.c(tag);
+            stack = CraftItemStack.asBukkitCopy(nmsStack);
+        }
+
         return stack;
     }
 }

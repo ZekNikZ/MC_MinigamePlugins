@@ -58,7 +58,6 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     @Override
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
-        minigame.registerRounds(this.rounds.toArray(TGTTOSRound[]::new));
 
         ChatConstantsService.getInstance().setMinigameName("TGTTOS");
 

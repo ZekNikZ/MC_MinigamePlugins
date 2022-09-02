@@ -3,13 +3,40 @@ package io.zkz.mc.minigameplugins.gametools.util;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class BlockUtils {
+    private static final List<Material> WOOLS;
+
+    static {
+        ArrayList<Material> wools = new ArrayList<>();
+        wools.add(Material.WHITE_WOOL);
+        wools.add(Material.BLACK_WOOL);
+        wools.add(Material.BLUE_WOOL);
+        wools.add(Material.BROWN_WOOL);
+        wools.add(Material.CYAN_WOOL);
+        wools.add(Material.GRAY_WOOL);
+        wools.add(Material.GREEN_WOOL);
+        wools.add(Material.LIGHT_BLUE_WOOL);
+        wools.add(Material.LIGHT_GRAY_WOOL);
+        wools.add(Material.LIME_WOOL);
+        wools.add(Material.MAGENTA_WOOL);
+        wools.add(Material.ORANGE_WOOL);
+        wools.add(Material.PINK_WOOL);
+        wools.add(Material.PURPLE_WOOL);
+        wools.add(Material.RED_WOOL);
+        wools.add(Material.YELLOW_WOOL);
+        WOOLS = Collections.unmodifiableList(wools);
+    }
+
+    public static List<Material> allWools() {
+        return WOOLS;
+    }
+
     public static boolean isWool(Material material) {
-        return switch (material) {
-            case WHITE_WOOL, BLACK_WOOL, BLUE_WOOL, BROWN_WOOL, CYAN_WOOL, GRAY_WOOL, GREEN_WOOL, LIGHT_BLUE_WOOL, LIGHT_GRAY_WOOL, LIME_WOOL, MAGENTA_WOOL, ORANGE_WOOL, PINK_WOOL, PURPLE_WOOL, RED_WOOL, YELLOW_WOOL ->
-                true;
-            default -> false;
-        };
+        return WOOLS.contains(material);
     }
 
     public static Material getWoolColor(ChatColor color) {

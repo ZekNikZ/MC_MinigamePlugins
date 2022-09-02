@@ -6,7 +6,6 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.function.mask.BlockMask;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
@@ -74,8 +73,16 @@ public class WorldEditService extends GameToolsService {
         return WorldEdit.getInstance().newEditSessionBuilder().world(world).maxBlocks(maxBlocks).build();
     }
 
+    public void fillRegion(Region region, Material pattern) {
+        this.fillRegion(region.getWorld(), region, this.createPattern(pattern));
+    }
+
     public void fillRegion(Region region, Pattern pattern) {
         this.fillRegion(region.getWorld(), region, pattern);
+    }
+
+    public void fillRegion(World world, Region region, Material pattern) {
+        this.fillRegion(world, region, this.createPattern(pattern));
     }
 
     public void fillRegion(World world, Region region, Pattern pattern) {

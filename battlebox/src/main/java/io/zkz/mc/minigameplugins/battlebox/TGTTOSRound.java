@@ -120,7 +120,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         );
 
         // Setup timers
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(TGTTOSService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
+        MinigameService.getInstance().changeTimer(new GameCountdownTimer(BattleBoxService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
         // TODO: warnings
     }
 
@@ -207,7 +207,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
         // Increment placement
         this.playerPlacement++;
-        TGTTOSService.getInstance().updateFinishedPlayerCount();
+        BattleBoxService.getInstance().updateFinishedPlayerCount();
 
         // Check if the whole team is now done
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);

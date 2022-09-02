@@ -9,21 +9,21 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.util.logging.Logger;
 
-@Plugin(name = "TGTTOS", version = "1.0")
-@Description("To Get to the Other Side")
+@Plugin(name = "BattleBox", version = "1.0")
+@Description("Battle Box")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
 @Dependency("GameTools")
 @Dependency("MinigameManager")
-public class TGTTOSPlugin extends GTPlugin<TGTTOSPlugin> {
+public class BattleBoxPlugin extends GTPlugin<BattleBoxPlugin> {
     private static Logger logger;
     public static Logger logger() {
         return logger;
     }
 
-    public TGTTOSPlugin() {
+    public BattleBoxPlugin() {
         // Services
-        register(TGTTOSService.getInstance());
+        register(BattleBoxService.getInstance());
     }
 
     @Override

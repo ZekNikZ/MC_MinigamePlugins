@@ -1,0 +1,173 @@
+package io.zkz.mc.minigameplugins.battlebox;
+
+import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
+import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
+import io.zkz.mc.minigameplugins.gametools.util.Pair;
+import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+public class BattleBoxService extends PluginService<BattleBoxPlugin> {
+    private static final BattleBoxService INSTANCE = new BattleBoxService();
+
+    public static BattleBoxService getInstance() {
+        return INSTANCE;
+    }
+
+    private GameConfig config;
+    private final List<BattleBoxRound> rounds = new ArrayList<>();
+
+    @Override
+    protected void setup() {
+        MinigameService minigame = MinigameService.getInstance();
+
+        ChatConstantsService.getInstance().setMinigameName("Battle Box");
+
+        // Rules slides
+        minigame.registerRulesSlides(ResourceAssets.SLIDES);
+        minigame.setPreRoundDelay(400);
+        minigame.setPostRoundDelay(200);
+        minigame.setPostGameDelay(600);
+
+        // Player states
+        minigame.registerPlayerState(new BasicPlayerState(GameMode.ADVENTURE),
+            MinigameState.SETUP,
+            MinigameState.WAITING_FOR_PLAYERS,
+            MinigameState.RULES,
+            MinigameState.PRE_ROUND,
+            MinigameState.WAITING_TO_BEGIN,
+            MinigameState.PAUSED,
+            MinigameState.IN_GAME,
+            MinigameState.POST_GAME,
+            MinigameState.POST_ROUND
+        );
+
+        // Round setup handlers
+
+        // State change titles
+        minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
+            SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
+            TitleUtils.broadcastTitle(ChatColor.RED + "Round over!", 10, 70, 20);
+        });
+        minigame.addSetupHandler(MinigameState.POST_GAME, () -> {
+            SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
+            TitleUtils.broadcastTitle(ChatColor.RED + "Game over!", ChatColor.GOLD + "Check the chat for score information.", 10, 70, 20);
+        });
+
+        // In game scoreboard
+        BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
+            // TODO: anything here?
+        };
+        minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
+        minigame.registerScoreboard(MinigameState.IN_GAME, scoreboardModifier);
+        minigame.registerScoreboard(MinigameState.PAUSED, scoreboardModifier);
+    }
+
+    @Override
+    protected void onEnable() {
+        MinigameService minigame = MinigameService.getInstance();
+
+        List<GameTeam> teams = minigame.getGameTeams().stream().sorted(Comparator.comparing(GameTeam::getId)).collect(Collectors.toCollection(ArrayList::new));
+        // note: assumes even number of teams
+        int numMatches = teams.size() - 1;
+        int halfSize = numMatches / 2;
+
+        for (int i = 0; i < numMatches; i++) {
+            List<Pair<GameTeam, GameTeam>> match = new ArrayList<>();
+            for (int j = 0; j < halfSize; j++) {
+                match.add(new Pair<>(teams.get(j), teams.get(teams.size() - j - 1)));
+            }
+
+            this.rounds.add(new BattleBoxRound(match));
+
+            GameTeam team = teams.remove(0);
+            Collections.rotate(teams, 1);
+            teams.add(0, team);
+        }
+
+        minigame.registerRounds(this.rounds.toArray(BattleBoxRound[]::new));
+        minigame.randomizeRoundOrder();
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            new JSONDataManager<>(this, Path.of("battlebox.json"), null, this::loadData)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadData(TypedJSONObject<Object> json) {
+        this.config = new GameConfig(json);
+    }
+
+    public GameConfig getConfig() {
+        return this.config;
+    }
+
+    public BattleBoxRound getCurrentRound() {
+        return (BattleBoxRound) MinigameService.getInstance().getCurrentRound();
+    }
+
+    @EventHandler
+    private void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (!this.getCurrentRound().isAlive(player)) {
+                event.setDamage(0);
+            }
+        }
+    }
+
+    @EventHandler
+    private void onPlayerJoin(PlayerJoinEvent event) {
+        this.getCurrentRound().setupPlayerLocation(event.getPlayer());
+    }
+
+    @EventHandler
+    private void onBlockPlace(BlockPlaceEvent event) {
+        if (BlockUtils.isWool(event.getPlayer().getInventory().getItemInOffHand().getType())) {
+            event.getPlayer().getInventory().getItemInOffHand().setAmount(64);
+        } else if (BlockUtils.isWool(event.getPlayer().getInventory().getItemInMainHand().getType())) {
+            event.getPlayer().getInventory().getItemInMainHand().setAmount(64);
+        }
+    }
+
+    @EventHandler
+    private void onBlockBreak(BlockBreakEvent event) {
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+
+        if (!this.getCurrentRound().isAlive(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onPlayerHungerChange(FoodLevelChangeEvent event) {
+        event.setCancelled(true);
+    }
+}
