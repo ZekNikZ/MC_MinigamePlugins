@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -54,6 +55,13 @@ public class LobbyService extends PluginService<LobbyPlugin> {
         Player player = event.getPlayer();
         this.parkourCheckpoints.remove(player.getUniqueId());
         this.isInParkour.remove(player.getUniqueId());
+    }
+
+    @EventHandler
+    private void onPlayerDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player) {
+            event.setDamage(0);
+        }
     }
 
     @EventHandler

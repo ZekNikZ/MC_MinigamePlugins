@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.SpaceEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -11,33 +12,28 @@ import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Wrapper around a Bukkit scoreboard to allow additional functionality.
  */
 public class GameScoreboard {
     private static final String[] INVISIBLE_STRINGS = new String[]{
-        "\uF811\uF831\uF811\uF831\uF811\uF831",
-        "\uF811\uF831\uF811\uF831\uF831\uF811",
-        "\uF811\uF831\uF811\uF811\uF831\uF831",
-        "\uF811\uF831\uF831\uF811\uF811\uF831",
-        "\uF811\uF831\uF831\uF811\uF831\uF811",
-        "\uF811\uF831\uF831\uF831\uF811\uF811",
-        "\uF811\uF811\uF831\uF831\uF811\uF831",
-        "\uF811\uF811\uF831\uF831\uF831\uF811",
-        "\uF811\uF811\uF831\uF811\uF831\uF831",
-        "\uF811\uF811\uF811\uF831\uF831\uF831",
-        "\uF831\uF811\uF811\uF831\uF811\uF831",
-        "\uF831\uF811\uF811\uF831\uF831\uF811",
-        "\uF831\uF811\uF811\uF811\uF831\uF831",
-        "\uF831\uF811\uF831\uF811\uF811\uF831",
-        "\uF831\uF811\uF831\uF811\uF831\uF811",
-        "\uF831\uF811\uF831\uF831\uF811\uF811",
-        "\uF831\uF831\uF811\uF811\uF811\uF831",
-        "\uF831\uF831\uF811\uF811\uF831\uF811",
-        "\uF831\uF831\uF811\uF831\uF811\uF811",
-        "\uF831\uF831\uF831\uF811\uF811\uF811",
+        "\u00A70" + ChatColor.RESET,
+        "\u00A71" + ChatColor.RESET,
+        "\u00A72" + ChatColor.RESET,
+        "\u00A73" + ChatColor.RESET,
+        "\u00A74" + ChatColor.RESET,
+        "\u00A75" + ChatColor.RESET,
+        "\u00A76" + ChatColor.RESET,
+        "\u00A77" + ChatColor.RESET,
+        "\u00A78" + ChatColor.RESET,
+        "\u00A79" + ChatColor.RESET,
+        "\u00A7a" + ChatColor.RESET,
+        "\u00A7b" + ChatColor.RESET,
+        "\u00A7c" + ChatColor.RESET,
+        "\u00A7d" + ChatColor.RESET,
+        "\u00A7e" + ChatColor.RESET,
+        "\u00A7f" + ChatColor.RESET,
     };
 
     private static int nextId = 0;

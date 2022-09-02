@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.tgttos;
+package io.zkz.mc.minigameplugins.battlebox;
 
 import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
@@ -13,7 +13,7 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
-import io.zkz.mc.minigameplugins.tgttos.round.RoundType;
+import io.zkz.mc.minigameplugins.battlebox.round.RoundType;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;

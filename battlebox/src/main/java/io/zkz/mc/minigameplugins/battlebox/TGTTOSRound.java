@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.tgttos;
+package io.zkz.mc.minigameplugins.battlebox;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
@@ -19,7 +19,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
 import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
-import io.zkz.mc.minigameplugins.tgttos.round.RoundType;
+import io.zkz.mc.minigameplugins.battlebox.round.RoundType;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
