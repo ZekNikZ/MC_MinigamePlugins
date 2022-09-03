@@ -1,17 +1,26 @@
 package io.zkz.mc.minigameplugins.lobby;
 
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import net.ME1312.Galaxi.Library.Version.Version;
 import net.ME1312.SubServers.Client.Bukkit.Event.SubStartedEvent;
-import net.ME1312.SubServers.Client.Bukkit.Event.SubStoppedEvent;
 import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.ME1312.SubServers.Client.Common.Network.API.SubCreator;
 import net.ME1312.SubServers.Client.Common.Network.API.SubServer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 public class TournamentManager extends PluginService<LobbyPlugin> {
     private static final TournamentManager INSTANCE = new TournamentManager();
@@ -21,6 +30,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     }
 
     private String currentMinigameId = null;
+    private MySQLDataManager<TournamentManager> db;
 
     public void createAndStartServer(String templateId) {
         // Note: this assumes only one host
@@ -45,12 +55,41 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
 
     public void startMinigame(String minigameId) {
         this.currentMinigameId = minigameId;
-//        this.createAndStartServer(this.currentMinigameId);
+        this.db.addAction(conn -> {
+            Map<String, String> values = Map.of(
+                "minigameId", minigameId,
+                "roundNumber", "0"
+            );
+
+            try (PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+            )) {
+                conn.setAutoCommit(false);
+
+                for (Map.Entry<String, String> entry : values.entrySet()) {
+                    String id = entry.getKey();
+                    String value = entry.getValue();
+                    statement.setString(1, id);
+                    statement.setString(2, value);
+                    statement.setString(3, id);
+                    statement.addBatch();
+                }
+
+                statement.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+            }
+        });
+        this.createAndStartServer(this.currentMinigameId);
     }
 
     public void resetMinigame() {
         String minigameId = this.currentMinigameId;
         this.currentMinigameId = null;
+        this.db.addAction(conn -> {
+
+        });
         this.removeServer(minigameId);
     }
 
@@ -71,5 +110,12 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
                 });
             }, 200);
         }
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            this.db = new MySQLDataManager<>(this, (conn) -> {})
+        );
     }
 }

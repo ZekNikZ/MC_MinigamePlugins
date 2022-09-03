@@ -116,7 +116,7 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     protected void onEnable() {
         MinigameService minigame = MinigameService.getInstance();
         minigame.registerRounds(this.rounds.toArray(TGTTOSRound[]::new));
-        minigame.randomizeRoundOrder();
+//        minigame.randomizeRoundOrder();
     }
 
     @Override

@@ -155,7 +155,7 @@ public class BingoService extends PluginService<BingoPlugin> {
     protected void onEnable() {
         // Register rounds
         MinigameService.getInstance().registerRounds(this.rounds.toArray(BingoRound[]::new));
-        MinigameService.getInstance().randomizeRoundOrder();
+//        MinigameService.getInstance().randomizeRoundOrder();
     }
 
     @Override

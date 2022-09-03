@@ -8,7 +8,6 @@ import io.zkz.mc.minigameplugins.bingo.util.PlayerUtils;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.*;
@@ -52,7 +51,8 @@ public class BingoRound extends Round {
     @Override
     public void onSetup() {
         // TODO: remove
-//        this.card.randomizeItems();
+        this.card.randomizeItems();
+        BingoCardMap.markDirty();
 
         this.setupCollections();
 

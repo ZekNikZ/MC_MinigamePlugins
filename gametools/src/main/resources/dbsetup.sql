@@ -34,14 +34,14 @@ create table if not exists gt_player_teams
     references gt_teams(teamId)
 );
 
-create table mm_minigame_state
+create table if not exists mm_minigame_state
 (
     id    varchar(40) not null
         primary key,
     value varchar(60) null
 );
 
-create table mm_score
+create table if not exists mm_score
 (
     playerId   varchar(40) not null,
     minigame   varchar(20) not null,

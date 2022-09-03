@@ -102,7 +102,7 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
         }
 
         minigame.registerRounds(this.rounds.toArray(BattleBoxRound[]::new));
-        minigame.randomizeRoundOrder();
+//        minigame.randomizeRoundOrder();
     }
 
     @Override
@@ -184,8 +184,10 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
 
     @EventHandler
     private void onPlaceBlock(BlockPlaceEvent event) {
-        this.getCurrentRound().checkIfMatchIsOver(this.getCurrentRound().arenaIndexOf(event.getPlayer()));
-        this.getCurrentRound().checkIfAllMatchesAreOver();
+        if (MinigameService.getInstance().getCurrentState().isInGame()) {
+            this.getCurrentRound().checkIfMatchIsOver(this.getCurrentRound().arenaIndexOf(event.getPlayer()));
+            this.getCurrentRound().checkIfAllMatchesAreOver();
+        }
     }
 
     @EventHandler

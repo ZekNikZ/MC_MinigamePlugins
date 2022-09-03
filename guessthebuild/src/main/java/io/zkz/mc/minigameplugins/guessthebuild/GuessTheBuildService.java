@@ -8,7 +8,6 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
@@ -38,11 +37,12 @@ public class GuessTheBuildService extends PluginService<GuessTheBuildPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
+        MinigameConstantsService.getInstance().setMinigameID("guessthebuild");
         MinigameConstantsService.getInstance().setMinigameName("Guess the Build");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);
-        minigame.setPreRoundDelay(200);
+        minigame.setPreRoundDelay(300);
         minigame.setPostRoundDelay(100);
         minigame.setPostGameDelay(600);
 
@@ -119,11 +119,11 @@ public class GuessTheBuildService extends PluginService<GuessTheBuildPlugin> {
     @EventHandler
     private void onChatMessage(AsyncPlayerChatEvent event) {
         // TODO: find a way to deal with this and cancel the event
-        BukkitUtils.runNextTick(() -> {
-            if (MinigameService.getInstance().getCurrentState().isInGame()) {
-                this.getCurrentRound().handlePlayerGuess(event.getPlayer(), event.getMessage());
+        if (MinigameService.getInstance().getCurrentState().isInGame()) {
+            if (this.getCurrentRound().handlePlayerGuess(event.getPlayer(), event.getMessage())) {
+                event.setCancelled(true);
             }
-        });
+        }
     }
 
     public List<String> getWords() {

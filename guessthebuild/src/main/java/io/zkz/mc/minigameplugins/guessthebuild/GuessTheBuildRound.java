@@ -31,6 +31,7 @@ public class GuessTheBuildRound extends Round {
     private final Set<UUID> correctGuessers = new HashSet<>();
     private static int wordIndex = 0;
     private final List<String> wordOptions = new ArrayList<>();
+    private SmartInventory inv;
 
     public GuessTheBuildRound(UUID builderId) {
         super(null);
@@ -93,7 +94,7 @@ public class GuessTheBuildRound extends Round {
         Player builder = this.getBuilder();
 
         // Display word selector
-        SmartInventory.builder()
+        this.inv = SmartInventory.builder()
             .provider(new InventoryProvider() {
                 @Override
                 public void init(Player player, InventoryContents contents) {
@@ -138,8 +139,8 @@ public class GuessTheBuildRound extends Round {
             .size(3, 9)
             .title("Choose a theme")
             .closeable(false)
-            .build()
-            .open(builder);
+            .build();
+        this.inv.open(builder);
     }
 
     @Override
@@ -153,7 +154,7 @@ public class GuessTheBuildRound extends Round {
         // Creative mode
         Player builder = this.getBuilder();
         BukkitUtils.runNextTick(() -> {
-            builder.closeInventory();
+            this.inv.close(builder);
             builder.setGameMode(GameMode.CREATIVE);
         });
 
@@ -207,13 +208,13 @@ public class GuessTheBuildRound extends Round {
 
     public boolean handlePlayerGuess(Player player, String guess) {
         if (player.getUniqueId().equals(this.builderId)) {
-            Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your own build!");
+            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your own build!"));
             return true;
         }
 
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
         if (team != null && team.isSpectator()) {
-            Chat.sendAlert(player, ChatType.WARNING, "You can't guess as a spectator!");
+            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You can't guess as a spectator!"));
             return true;
         }
 
@@ -224,7 +225,7 @@ public class GuessTheBuildRound extends Round {
 //        }
 
         if (this.correctGuessers.contains(player.getUniqueId())) {
-            Chat.sendAlert(player, ChatType.WARNING, "You already guessed correctly!");
+            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You already guessed correctly!"));
             return true;
         }
 
@@ -234,30 +235,32 @@ public class GuessTheBuildRound extends Round {
 
         this.correctGuessers.add(player.getUniqueId());
 
-        // Compute score and placement
-        int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
-        String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
-        ScoreService.getInstance().earnPoints(player, "correct guess", points);
+        BukkitUtils.runNextTick(() -> {
+            // Compute score and placement
+            int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
+            String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
+            ScoreService.getInstance().earnPoints(player, "correct guess", points);
 
-        // Builder score
-        if (this.playerPlacement == 0) {
-            ScoreService.getInstance().earnPoints(this.builderId, "successful build", Points.SUCCESSFUL_BUILD);
-        }
+            // Builder score
+            if (this.playerPlacement == 0) {
+                ScoreService.getInstance().earnPoints(this.builderId, "successful build", Points.SUCCESSFUL_BUILD);
+            }
 
-        // Chat message
-        Chat.sendAlert(player, ChatType.SUCCESS, "You correctly guessed the build! (" + ChatColor.AQUA + ChatColor.BOLD + placementOrdinal + ChatColor.GREEN + ChatColor.BOLD + " place)", points);
-        Chat.sendAlert(BukkitUtils.allPlayersExcept(player), ChatType.ACTIVE_INFO, player.getDisplayName() + ChatColor.GRAY + " correctly guessed the build!");
-        SoundUtils.playSound(player, StandardSounds.GOAL_MET_MAJOR, 1, 1);
-        SoundUtils.playSound(BukkitUtils.allPlayersExcept(player), StandardSounds.ALERT_WARNING, 1, 1);
-        player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
+            // Chat message
+            Chat.sendAlert(player, ChatType.SUCCESS, "You correctly guessed the build! (" + ChatColor.AQUA + ChatColor.BOLD + placementOrdinal + ChatColor.GREEN + ChatColor.BOLD + " place)", points);
+            Chat.sendAlert(BukkitUtils.allPlayersExcept(player), ChatType.ACTIVE_INFO, player.getDisplayName() + ChatColor.GRAY + " correctly guessed the build!");
+            SoundUtils.playSound(player, StandardSounds.GOAL_MET_MAJOR, 1, 1);
+            SoundUtils.playSound(BukkitUtils.allPlayersExcept(player), StandardSounds.ALERT_WARNING, 1, 1);
+            player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
 
-        // Increment placement
-        this.playerPlacement++;
+            // Increment placement
+            this.playerPlacement++;
 
-        // Check if round is over
-        if (this.correctGuessers.size() == MinigameService.getInstance().getPlayers().size() - 1) {
-            this.roundIsOver();
-        }
+            // Check if round is over
+            if (this.correctGuessers.size() == MinigameService.getInstance().getPlayers().size() - 1) {
+                this.roundIsOver();
+            }
+        });
 
         return true;
     }

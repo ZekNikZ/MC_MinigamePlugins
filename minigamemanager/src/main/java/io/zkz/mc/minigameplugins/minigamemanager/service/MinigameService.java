@@ -2,6 +2,8 @@ package io.zkz.mc.minigameplugins.minigamemanager.service;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
@@ -34,7 +36,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
-import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -174,6 +175,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private final List<Character> rulesSlides = new ArrayList<>();
     private int currentRound = -1, initialRound = 0;
     private AbstractTimer timer;
+    private MySQLDataManager<MinigameService> db;
 
     // ===============
     //  Minigame Info
@@ -196,12 +198,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     @Override
     protected void onEnable() {
         // Setup
-        this.setState(MinigameState.LOADING);
+//        this.setState(MinigameState.LOADING);
 
         // Schedule a transition to the setup phase
         BukkitUtils.runNextTick(() -> {
             // Load initial state
-            this.loadInitialState();
+            this.db.addAction(this::loadInitialState);
 
             transitionToSetup();
         });
@@ -574,11 +576,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private void endGame() {
         // Send players back to hub
-        SubAPI.getInstance().getRemotePlayers(players -> {
-            players.forEach((playerId, player) -> {
-                player.transfer("lobby");
-            });
-        });
+//        SubAPI.getInstance().getRemotePlayers(players -> {
+//            players.forEach((playerId, player) -> {
+//                player.transfer("lobby");
+//            });
+//        });
+        Bukkit.shutdown();
     }
 
     /**
@@ -720,10 +723,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         }
     }
 
-    public void loadInitialState() {
+    public void loadInitialState(Connection conn) {
         Map<String, String> values = new HashMap<>();
 
-        try (Connection conn = MySQLService.getInstance().getConnection(); PreparedStatement statement = conn.prepareStatement(
+        try (PreparedStatement statement = conn.prepareStatement(
             "SELECT * FROM mm_minigame_state;"
         )) {
             ResultSet resultSet = statement.executeQuery();
@@ -742,5 +745,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (Objects.equals(values.get("minigameId"), MinigameConstantsService.getInstance().getMinigameID())) {
             this.initialRound = Integer.parseInt("roundNumber");
         }
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            this.db = new MySQLDataManager<>(this, conn -> {})
+        );
     }
 }
