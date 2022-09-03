@@ -50,7 +50,7 @@ public class BlockUtils {
             case GOLD -> Material.ORANGE_WOOL;
             case GRAY -> Material.LIGHT_GRAY_WOOL;
             case DARK_GRAY -> Material.GRAY_WOOL;
-            case BLUE -> Material.BROWN_WOOL;
+            case BLUE -> Material.BLUE_WOOL;
             case GREEN -> Material.LIME_WOOL;
             case AQUA -> Material.LIGHT_BLUE_WOOL;
             case RED -> Material.PINK_WOOL;

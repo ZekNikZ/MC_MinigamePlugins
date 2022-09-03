@@ -192,7 +192,14 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
         BukkitUtils.runLater(() -> {
-            // TODO: send win/loss message and following message
+            Chat.sendAlert(ChatType.ACTIVE_INFO, "Round winners:");
+            for (int i = 0; i < this.matches.size(); i++) {
+                Pair<GameTeam, GameTeam> match = this.matches.get(i);
+                GameTeam winner = this.matchWinners.get(i);
+                String team1 = match.first().getFormatCode() + match.first().getPrefix() + (match.first().equals(winner) ? ChatColor.UNDERLINE : "") + match.first().getName() + ChatColor.RESET;
+                String team2 = match.second().getFormatCode() + match.second().getPrefix() + (match.second().equals(winner) ? ChatColor.UNDERLINE : "") + match.second().getName() + ChatColor.RESET;
+                Chat.sendMessage(team1 + ChatColor.GRAY + " vs. " + team2);
+            }
             BukkitUtils.forEachPlayer(player -> {
                 double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
                 Chat.sendMessage(player, " ");

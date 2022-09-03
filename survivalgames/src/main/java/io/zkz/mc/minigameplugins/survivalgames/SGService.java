@@ -10,7 +10,6 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
@@ -43,7 +42,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 public class SGService extends PluginService<SGPlugin> {
     private static final SGService INSTANCE = new SGService();
@@ -54,15 +52,10 @@ public class SGService extends PluginService<SGPlugin> {
 
     private final List<SGRound> rounds = new ArrayList<>();
     private Location lobbySpawnLocation;
-    //    private Location gulagSpawnLocation;
-    private final List<SGFinalArena> finalArenas = new ArrayList<>();
-    private int currentFinalArenaIndex = -1;
 
     private final ObservableValue<Integer> aliveTeamCount = new ObservableValue<>(-1);
     private final ObservableValue<Integer> alivePlayerCount = new ObservableValue<>(-1);
 
-    private SGState gameState = null;
-    private String skullName = "Angxstupst";
     private final Map<UUID, BukkitTask> disconnectedPlayers = new HashMap<>();
     private final Set<UUID> eatCooldown = new HashSet<>();
 
@@ -85,7 +78,6 @@ public class SGService extends PluginService<SGPlugin> {
 
         // Player states
         BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE);
-        BasicPlayerState survivalMode = new BasicPlayerState(GameMode.SURVIVAL);
         BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR);
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
@@ -111,8 +103,6 @@ public class SGService extends PluginService<SGPlugin> {
 
         // State change titles
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
-            this.gameState = SGState.IN_GAME;
-
             BukkitUtils.forEachPlayer(player -> {
                 MinigameService.getInstance().setGlowingTeammates(true);
 
@@ -157,17 +147,6 @@ public class SGService extends PluginService<SGPlugin> {
         this.rounds.clear();
         this.rounds.addAll(json.getArray("arenas").stream().map(obj -> new SGRound(new TypedJSONObject<Object>((JSONObject) obj))).toList());
         this.lobbySpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("lobbySpawnLocation", Long.class)), "sg_lobby"));
-//        this.gulagSpawnLocation = adjustLocation(toLocation(JSONUtils.readBlockVector(json.getList("gulagSpawnLocation", Long.class)), "sg_lobby"));
-        this.finalArenas.addAll(json.getArray("finalArenas").stream().map(obj -> {
-            TypedJSONObject<Object> finalArena = new TypedJSONObject<Object>((JSONObject) obj);
-            return new SGFinalArena(
-                finalArena.getString("name"),
-                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("spectatorSpawnLocation", Long.class)), "sg_lobby")),
-                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("gameMasterSpawnLocation", Long.class)), "sg_lobby")),
-                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("team1SpawnLocation", Long.class)), "sg_lobby")),
-                adjustLocation(toLocation(JSONUtils.readBlockVector(finalArena.getList("team2SpawnLocation", Long.class)), "sg_lobby"))
-            );
-        }).toList());
     }
 
     @Override
@@ -178,10 +157,6 @@ public class SGService extends PluginService<SGPlugin> {
 
     public SGRound getCurrentRound() {
         return (SGRound) MinigameService.getInstance().getCurrentRound();
-    }
-
-    public SGFinalArena getCurrentFinalArena() {
-        return this.finalArenas.get(this.currentFinalArenaIndex);
     }
 
     private void setDead(Player player) {
@@ -226,7 +201,7 @@ public class SGService extends PluginService<SGPlugin> {
     void setupPlayer(Player player) {
         // If in-game and alive, tp to map
         Location logoutLocation = this.getCurrentRound().getLogoutLocation(player);
-        if ((MinigameService.getInstance().getCurrentState() == MinigameState.PRE_ROUND || (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME)) && this.getCurrentRound().isAlive(player)) {
+        if ((MinigameService.getInstance().getCurrentState() == MinigameState.PRE_ROUND || (MinigameService.getInstance().getCurrentState().isInGame())) && this.getCurrentRound().isAlive(player)) {
             player.setGameMode(GameMode.SURVIVAL);
             // If have a logout location
             if (logoutLocation != null) {
@@ -249,23 +224,6 @@ public class SGService extends PluginService<SGPlugin> {
             player.setGameMode(GameMode.ADVENTURE);
         }
 
-        // If in final 2, tp to arena
-        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.FINAL_TWO) {
-            // if alive
-            if (this.getCurrentRound().isAlive(player)) {
-                if (this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getId).sorted().toList().indexOf(TeamService.getInstance().getTeamOfPlayer(player).getId()) == 0) {
-                    player.teleport(this.getCurrentFinalArena().team1SpawnLocation());
-                } else {
-                    player.teleport(this.getCurrentFinalArena().team2SpawnLocation());
-                }
-            } else if (Objects.equals(TeamService.getInstance().getTeamOfPlayer(player), DefaultTeams.GAME_MASTER)) {
-                player.teleport(this.getCurrentFinalArena().gameMasterSpawnLocation());
-            } else {
-                player.teleport(this.getCurrentFinalArena().spectatorSpawnLocation());
-            }
-            return;
-        }
-
         // otherwise, tp to lobby
         player.teleport(this.lobbySpawnLocation);
     }
@@ -273,7 +231,7 @@ public class SGService extends PluginService<SGPlugin> {
     public void updateGameState() {
         // Check teams
         Map<GameTeam, Long> aliveTeams = this.getCurrentRound().getAliveTeams();
-        if (aliveTeams.size() <= 2) {
+        if (aliveTeams.size() <= 1) {
             this.roundIsOver();
         }
 
@@ -283,16 +241,7 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     private void roundIsOver() {
-        this.gameState = SGState.WAITING_FOR_FINAL_ARENA;
-        MinigameService.getInstance().changeTimer(null);
-
-        this.getCurrentRound().getAliveTeams().keySet().forEach(team -> {
-            TeamService.getInstance().getOnlineTeamMembers(team).forEach(this.getCurrentRound()::setAlive);
-        });
-
-        SoundUtils.playSound(StandardSounds.GAME_OVER, 1, 1);
-        TitleUtils.broadcastTitle("" + ChatColor.RED + ChatColor.BOLD + "Phase over!", ChatColor.GOLD + "Finale: " + this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getDisplayName).collect(Collectors.joining(ChatColor.GOLD + " vs. ")));
-        Chat.sendAlert(ChatType.GAME_SUCCESS, "Phase over! " + ChatColor.GOLD + "Finale: " + this.getCurrentRound().getAliveTeams().keySet().stream().map(GameTeam::getDisplayName).collect(Collectors.joining(ChatColor.GOLD + " vs. ")));
+        MinigameService.getInstance().endRound();
     }
 
     public void activateSpectatorMode(Player player) {
@@ -305,7 +254,7 @@ public class SGService extends PluginService<SGPlugin> {
             return;
         }
 
-        player.teleport(Bukkit.getWorld(this.getCurrentRound().getActualWorldName()).getSpawnLocation());
+        player.teleport(Bukkit.getWorld(this.getCurrentRound().getTemplateWorldName()).getSpawnLocation());
         BukkitUtils.runNextTick(() -> {
             player.setGameMode(GameMode.SPECTATOR);
             Chat.sendAlert(player, ChatType.ACTIVE_INFO, ChatColor.GOLD + "You are now spectating. Use " + ChatColor.AQUA + "/lobby" + ChatColor.GOLD + " to return to the lobby.");
@@ -331,47 +280,6 @@ public class SGService extends PluginService<SGPlugin> {
         this.setupPlayer(player);
 
         PlayerUtils.showPlayer(this.getPlugin(), player);
-    }
-
-    public List<SGFinalArena> getFinalArenaLists() {
-        return this.finalArenas;
-    }
-
-    public void selectFinalArena(String name) {
-        // Select the arena
-        for (int i = 0; i < this.finalArenas.size(); i++) {
-            if (this.finalArenas.get(i).name().equalsIgnoreCase(name)) {
-                this.currentFinalArenaIndex = i;
-                break;
-            }
-        }
-
-        // Start timer to TP players
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 10, TimeUnit.SECONDS, () -> {
-            this.gameState = SGState.FINAL_TWO;
-            PlayerUtils.showAllPlayers(this.getPlugin());
-            MinigameService.getInstance().setGlowingTeammates(false);
-            BukkitUtils.forEachPlayer(p -> p.getInventory().clear());
-            BukkitUtils.forEachPlayer(this::setupPlayer);
-            MinigameService.getInstance().changeTimer(null);
-            this.getCurrentRound().setMapName("Finale: " + this.getCurrentFinalArena().name());
-            MinigameService.getInstance().refreshScoreboard();
-        }));
-        MinigameService.getInstance().refreshScoreboard();
-    }
-
-    public SGState getGameState() {
-        return this.gameState;
-    }
-
-    public void declareWinner(String teamId) {
-        GameTeam team = TeamService.getInstance().getTeam(teamId);
-
-        SoundUtils.playSound(StandardSounds.GAME_OVER, 1, 1);
-        TitleUtils.broadcastTitle("" + ChatColor.RED + ChatColor.BOLD + "Game over!", ChatColor.GOLD + "Winner: " + team);
-        ScoreService.getInstance().earnPoints(team, "winning", 250);
-
-        this.getCurrentRound().endRound();
     }
 
     private boolean respawnTeammate(Player player) {
@@ -442,7 +350,7 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
-        if (MinigameService.getInstance().getCurrentState().isInGame() && this.gameState == SGState.IN_GAME && this.getCurrentRound().isAlive(event.getEntity())) {
+        if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(event.getEntity())) {
             event.getDrops().add(ISB.stack(Material.EMERALD));
             this.setDead(event.getEntity());
         }
@@ -464,7 +372,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
-            if (this.gameState == SGState.WAITING_FOR_FINAL_ARENA || !MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
+            if (!MinigameService.getInstance().getCurrentState().isInGame() || !this.getCurrentRound().isAlive(player)) {
                 event.setDamage(0);
             }
         }

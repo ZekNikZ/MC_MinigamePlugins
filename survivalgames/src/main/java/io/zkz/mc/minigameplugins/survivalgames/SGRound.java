@@ -33,7 +33,6 @@ import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
 public class SGRound extends Round {
     private static final int KILLS_FOR_RESPAWN_CRYSTAL = 3;
     private final String templateWorldName;
-    private String actualWorldName;
     private final List<BlockVector3> spawnLocations;
     private final BlockVector3 cornLocation;
     private final long cornWorldborderSize;
@@ -68,12 +67,7 @@ public class SGRound extends Round {
     @Override
     public void onSetup() {
         // Create and set up actual world
-        MultiverseCore core = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        MVWorldManager worldManager = core.getMVWorldManager();
-        this.actualWorldName = this.templateWorldName + "_active";
-        worldManager.cloneWorld(this.templateWorldName, this.actualWorldName);
-
-        World world = worldManager.getMVWorld(this.actualWorldName).getCBWorld();
+        World world = Bukkit.getWorld(this.templateWorldName);
         world.setDifficulty(Difficulty.NORMAL);
         world.setTime(6000);
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
@@ -108,7 +102,7 @@ public class SGRound extends Round {
         for (var entry : orderedAliveTeams) {
             var playerIdsOnTeam = TeamService.getInstance().getTeamMembers(entry.getKey());
             for (UUID playerId : playerIdsOnTeam) {
-                this.assignedSpawnLocations.put(playerId, adjustLocation(toLocation(this.spawnLocations.get((nextPos + offset) % numSpawnLocations), this.actualWorldName)));
+                this.assignedSpawnLocations.put(playerId, adjustLocation(toLocation(this.spawnLocations.get((nextPos + offset) % numSpawnLocations), this.templateWorldName)));
                 ++nextPos;
             }
             nextPos += gap;
@@ -174,20 +168,15 @@ public class SGRound extends Round {
     public void onCleanup() {
         MultiverseCore core = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MVWorldManager worldManager = core.getMVWorldManager();
-        worldManager.deleteWorld(this.actualWorldName);
-        this.actualWorldName = null;
+        worldManager.unloadWorld(this.templateWorldName);
     }
 
     public String getTemplateWorldName() {
         return this.templateWorldName;
     }
 
-    public @Nullable String getActualWorldName() {
-        return this.actualWorldName;
-    }
-
     public World getWorld() {
-        return Bukkit.getWorld(this.actualWorldName);
+        return Bukkit.getWorld(this.templateWorldName);
     }
 
     public Collection<UUID> getAlivePlayers() {
@@ -312,7 +301,7 @@ public class SGRound extends Round {
     }
 
     public Location getCornLocation() {
-        return adjustLocation(toLocation(this.cornLocation, this.actualWorldName));
+        return adjustLocation(toLocation(this.cornLocation, this.templateWorldName));
     }
 
     public void endRound() {

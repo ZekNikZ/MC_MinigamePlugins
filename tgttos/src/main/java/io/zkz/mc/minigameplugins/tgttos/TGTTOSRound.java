@@ -121,7 +121,36 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
 
         // Setup timers
         MinigameService.getInstance().changeTimer(new GameCountdownTimer(TGTTOSService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
-        // TODO: warnings
+        MinigameService.getInstance().getTimer().addHook(new Runnable() {
+            boolean warning30 = false;
+            boolean warning20 = false;
+            boolean warning10 = false;
+
+            @Override
+            public void run() {
+                if (MinigameService.getInstance().getTimer() == null) {
+                    return;
+                }
+
+                long currentTime = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.MILLISECONDS);
+
+                if (currentTime < 30000 && !warning30) {
+                    warning30 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "30 seconds remain.");
+                } else if (currentTime < 20000 && !warning20) {
+                    warning20 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "20 seconds remain.");
+                } else if (currentTime < 10000 && !warning10) {
+                    warning10 = true;
+                    SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
+                    Chat.sendAlert(ChatType.WARNING, "10 seconds remain.");
+                } else if (currentTime < 10000) {
+                    SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
+                }
+            }
+        });
     }
 
     @Override

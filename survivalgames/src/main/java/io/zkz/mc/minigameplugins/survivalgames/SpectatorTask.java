@@ -16,7 +16,7 @@ public class SpectatorTask extends GameTask {
 
     @Override
     public void run() {
-        if (MinigameService.getInstance().getCurrentState() != MinigameState.IN_GAME || SGService.getInstance().getGameState() != SGState.IN_GAME) {
+        if (MinigameService.getInstance().getCurrentState() != MinigameState.IN_GAME) {
             this.cancel();
             return;
         }
