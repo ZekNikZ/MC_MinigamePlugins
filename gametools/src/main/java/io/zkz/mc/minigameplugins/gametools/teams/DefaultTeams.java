@@ -130,6 +130,8 @@ public class DefaultTeams {
 
     public static void addAll() {
         try {
+            TeamService.getInstance().createTeam(GAME_MASTER, true);
+            TeamService.getInstance().createTeam(CASTER, true);
             TeamService.getInstance().createTeam(SPECTATOR, true);
             TeamService.getInstance().createTeam(BLACK, true);
             TeamService.getInstance().createTeam(NAVY, true);

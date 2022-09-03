@@ -32,7 +32,7 @@ public class Kits {
                     .canBreak(BlockUtils.allWools().toArray(Material[]::new))
                     .canBreak(leaves())
                     .build(),
-                ISB.material(TeamService.getInstance().getTeamOfPlayer(player).getWoolColor() )
+                ISB.material(TeamService.getInstance().getTeamOfPlayer(player).getWoolColor())
                     .amount(64)
                     .canPlaceOn(BlockUtils.allWools().toArray(Material[]::new))
                     .canPlaceOn(validWoolPlacementBlocks())
@@ -40,6 +40,7 @@ public class Kits {
                 ISB.material(leaves())
                     .amount(8)
                     .canPlaceOn(validPlacementBlocks())
+                    .canPlaceOn(leaves())
                     .build(),
                 ISB.stack(Material.ARROW, 6)
             );
@@ -55,16 +56,20 @@ public class Kits {
             );
         },
         "crossbow", (player, inv) -> {
-            inv.addItem(
+            inv.setItemInOffHand(
                 ISB.material(Material.CROSSBOW)
                     .unbreakable()
-                    .build(),
+                    .build());
+            inv.addItem(
                 ISB.stack(Material.ARROW, 4)
             );
         },
         "creepers", (player, inv) -> {
             inv.addItem(
-                ISB.stack(Material.CREEPER_SPAWN_EGG, 2)
+                ISB.material(Material.CREEPER_SPAWN_EGG)
+                    .amount(2)
+                    .canPlaceOn(validPlacementBlocks())
+                    .build()
             );
         },
         "speed", (player, inv) -> {
@@ -75,6 +80,7 @@ public class Kits {
                 ISB.material(Material.COBWEB)
                     .amount(4)
                     .canPlaceOn(validPlacementBlocks())
+                    .canPlaceOn(Material.COBWEB)
                     .build()
             );
         }

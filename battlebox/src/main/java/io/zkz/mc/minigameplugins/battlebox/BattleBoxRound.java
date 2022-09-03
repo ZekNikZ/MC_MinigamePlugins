@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -44,7 +45,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         MinigameService.getInstance().getGameTeams().forEach(team -> {
             this.teamKitSelections.put(team, new HashSet<>());
         });
-        this.setMapName(this.config.selectedMapName());
+        this.setMapName(this.config.map().name());
         this.setMapBy(this.config.map().author());
     }
 
@@ -52,10 +53,12 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
     public void onSetup() {
         // Create arenas (load schematic)
         World world = this.config.world();
-        SchematicService.getInstance().loadSchematic(
-            BattleBoxRound.class.getResourceAsStream("/schematics/arenas/" + this.config.selectedMapName() + ".schem"),
-            this.config.arenas().stream().map(vec -> BukkitAdapter.adapt(world, vec)).toArray(Location[]::new)
-        );
+        this.config.arenas().stream().map(vec -> BukkitAdapter.adapt(world, vec)).forEach(location -> {
+            SchematicService.getInstance().loadSchematic(
+                BattleBoxRound.class.getResourceAsStream("/schematics/arenas/" + this.config.selectedMapName() + ".schem"),
+                location
+            );
+        });
 
         // World setup
         WorldSyncUtils.setDifficulty(Difficulty.HARD);
@@ -78,11 +81,26 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
         BukkitUtils.forEachPlayer(player -> {
             player.getInventory().clear();
+            this.setupPlayer(player);
+            var match = this.matches.get(this.arenaIndexOf(player));
+            Chat.sendAlertFormatted(player, ChatType.GAME_INFO, "Round %d: %s vs %s", (Object) (MinigameService.getInstance().getCurrentRoundIndex() + 1), match.first().getDisplayName() + ChatColor.RESET, match.second().getDisplayName());
         });
     }
 
+    private boolean movedDown = false;
+
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
+        if (currentTimeMillis <= 8000 && !movedDown) {
+            BukkitUtils.forEachPlayer(player -> {
+                int arenaIndex = this.arenaIndexOf(player);
+                int teamIndex = this.teamIndexOf(arenaIndex, TeamService.getInstance().getTeamOfPlayer(player));
+                player.teleport(this.config.computedTeamArenaSpawn(arenaIndex, teamIndex));
+            });
+            movedDown = true;
+            return;
+        }
+
         if (currentTimeMillis > 3000) {
             return;
         }
@@ -119,12 +137,21 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         });
 
         // Setup players
-        BukkitUtils.forEachPlayer(this::setupPlayer);
+        BukkitUtils.forEachPlayer(this::setupPlayerInventory);
+
+        // Wall
+        WorldEditService we = WorldEditService.getInstance();
+        var weWorld = we.wrapWorld(this.config.world());
+        this.config.allWalls().forEach(region -> we.fillRegion(
+            weWorld,
+            region,
+            Material.AIR
+        ));
 
         // Spawn potions
         World world = this.config.world();
         this.config.potions().forEach(loc -> {
-            world.dropItem(loc, ISB.material(Material.SPLASH_POTION).meta(itemMeta -> ((PotionMeta) itemMeta).setBasePotionData(new PotionData(PotionType.INSTANT_DAMAGE))).build());
+            world.dropItem(loc, ISB.material(Material.SPLASH_POTION).meta(itemMeta -> ((PotionMeta) itemMeta).setBasePotionData(new PotionData(PotionType.INSTANT_DAMAGE))).build()).setVelocity(new Vector(0, 0, 0));
         });
 
         // Start timer
@@ -136,6 +163,10 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
             @Override
             public void run() {
+                if (MinigameService.getInstance().getTimer() == null) {
+                    return;
+                }
+
                 long currentTime = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.MILLISECONDS);
 
                 if (currentTime < 30000 && !warning30) {
@@ -189,11 +220,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         int teamIndex = this.teamIndexOf(arenaIndex, team);
 
         if (this.isAlive(player)) {
-            if (currentState == MinigameState.PRE_ROUND) {
-                player.teleport(this.config.computedTeamKitSpawn(arenaIndex, teamIndex));
-            } else {
-                player.teleport(this.config.computedTeamArenaSpawn(arenaIndex, teamIndex));
-            }
+            player.teleport(this.config.computedTeamKitSpawn(arenaIndex, teamIndex));
         } else {
             player.teleport(this.config.computedSpecSpawn(arenaIndex));
         }
@@ -207,14 +234,16 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 3, 10, true));
 
         Kits.apply("base", player);
-        Kits.apply(this.kitSelections.get(player.getUniqueId()), player);
+        if (this.kitSelections.get(player.getUniqueId()) != null) {
+            Kits.apply(this.kitSelections.get(player.getUniqueId()), player);
+        }
     }
 
     public boolean assignKit(Player player, String kit) {
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
 
         // Check validity
-        if (this.teamKitSelections.get(team).contains(kit) || !config.map().kits().containsKey(kit)) {
+        if (this.kitSelections.get(player.getUniqueId()) != null || this.teamKitSelections.get(team).contains(kit) || !config.map().kits().containsKey(kit)) {
             return false;
         }
 
@@ -225,6 +254,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         // Mark as such
         int arenaIndex = this.arenaIndexOf(team);
         WorldEditService.getInstance().fillRegion(
+            WorldEditService.getInstance().wrapWorld(this.config.world()),
             this.config.kitSelectionPodiumRegion(kit, arenaIndex, this.teamIndexOf(arenaIndex, team)),
             Material.RED_CONCRETE
         );
@@ -235,10 +265,10 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
     private int arenaIndexOf(GameTeam team) {
         return IntStream.range(0, this.matches.size())
             .filter(i -> this.matches.get(i).eitherMatch(team))
-            .findFirst().orElse(0);
+            .findFirst().orElse(-1);
     }
 
-    private int arenaIndexOf(Player player) {
+    public int arenaIndexOf(Player player) {
         return this.arenaIndexOf(TeamService.getInstance().getTeamOfPlayer(player));
     }
 

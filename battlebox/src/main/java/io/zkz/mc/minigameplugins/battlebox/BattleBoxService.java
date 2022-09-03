@@ -8,12 +8,9 @@ import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
-import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
-import io.zkz.mc.minigameplugins.gametools.util.Pair;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
+import io.zkz.mc.minigameplugins.minigamemanager.state.JustGamemodePlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
@@ -25,6 +22,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -48,12 +46,12 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);
-        minigame.setPreRoundDelay(400);
+        minigame.setPreRoundDelay(760);
         minigame.setPostRoundDelay(200);
         minigame.setPostGameDelay(600);
 
         // Player states
-        minigame.registerPlayerState(new BasicPlayerState(GameMode.ADVENTURE),
+        minigame.registerPlayerState(new JustGamemodePlayerState(GameMode.ADVENTURE),
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
             MinigameState.RULES,
@@ -83,14 +81,16 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
         List<GameTeam> teams = minigame.getGameTeams().stream().sorted(Comparator.comparing(GameTeam::getId)).collect(Collectors.toCollection(ArrayList::new));
         // note: assumes even number of teams
         int numMatches = teams.size() - 1;
-        int halfSize = numMatches / 2;
+        int halfSize = teams.size() / 2;
 
         for (int i = 0; i < numMatches; i++) {
             List<Pair<GameTeam, GameTeam>> match = new ArrayList<>();
             for (int j = 0; j < halfSize; j++) {
                 match.add(new Pair<>(teams.get(j), teams.get(teams.size() - j - 1)));
+                System.out.println(match.get(j).first().getId() + " vs. " + match.get(j).second().getId());
             }
 
+            System.out.println("-----");
             this.rounds.add(new BattleBoxRound(match));
 
             GameTeam team = teams.remove(0);
@@ -109,7 +109,6 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
         );
     }
 
-    @SuppressWarnings("unchecked")
     private void loadData(TypedJSONObject<Object> json) {
         this.config = new GameConfig(json);
     }
@@ -165,18 +164,29 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     private void onPlayerKill(PlayerDeathEvent event) {
         Player killer = event.getEntity().getKiller();
 
+        // Record the kill
+        this.getCurrentRound().recordKill(event.getEntity(), killer);
+
         // Only show death message to those in the arena
         String deathMessage = event.getDeathMessage();
         event.setDeathMessage(null);
         this.getCurrentRound().getAllPlayersInArena(event.getEntity()).forEach(p -> {
             if (p.equals(killer)) {
-                p.sendMessage(Chat.Constants.POINT_PREFIX.formatted(String.valueOf(Points.KILL)) + deathMessage);
+                p.sendMessage(Chat.Constants.POINT_PREFIX.replace("%points%", String.valueOf(Points.KILL)) + deathMessage);
             } else {
                 p.sendMessage(deathMessage);
             }
         });
+    }
 
-        // Record the kill
-        this.getCurrentRound().recordKill(event.getEntity(), killer);
+    @EventHandler
+    private void onPlaceBlock(BlockPlaceEvent event) {
+        this.getCurrentRound().checkIfMatchIsOver(this.getCurrentRound().arenaIndexOf(event.getPlayer()));
+        this.getCurrentRound().checkIfAllMatchesAreOver();
+    }
+
+    @EventHandler
+    private void onPlayerRespawn(PlayerRespawnEvent event) {
+        BukkitUtils.runNextTick(() -> this.getCurrentRound().setupPlayerLocation(event.getPlayer()));
     }
 }

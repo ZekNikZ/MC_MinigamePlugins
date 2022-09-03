@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -70,6 +71,7 @@ class MapConfig {
     private final Material leafBlock;
     private final Map<String, KitConfig> kits;
     private final @Nullable String author;
+    private final @Nullable String name;
 
     public MapConfig(TypedJSONObject<Object> json) {
         this.woolMin = JSONUtils.readBlockVector(json, "woolMin");
@@ -83,12 +85,13 @@ class MapConfig {
         this.kits = TypedJSONObject.asObjects(json.getObject("kits")).entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> new KitConfig(entry.getKey(), new TypedJSONObject<>(entry.getValue(), Object.class))
+                entry -> new KitConfig(entry.getKey(), new TypedJSONObject<>((JSONObject) entry.getValue(), Object.class))
             ));
-        this.potions = json.getArray("arenas", List.class).stream()
+        this.potions = json.getArray("potions", List.class).stream()
             .map(JSONUtils::readBlockVector)
             .toList();
         this.author = json.getString("author");
+        this.name = json.getString("name");
     }
 
     public CuboidRegion wool(BlockVector3 base) {
@@ -126,10 +129,14 @@ class MapConfig {
     public @Nullable String author() {
         return this.author;
     }
+
+    public @Nullable String name() {
+        return this.name;
+    }
 }
 
 public class GameConfig {
-    private final Map<String, MapConfig> maps = new HashMap<>();
+    private final Map<String, MapConfig> maps;
     private final String selectedMap, world;
     private final List<BlockVector3> arenas;
 
@@ -139,6 +146,11 @@ public class GameConfig {
         this.arenas = json.getArray("arenas", List.class).stream()
             .map(JSONUtils::readBlockVector)
             .toList();
+        this.maps = TypedJSONObject.asObjects(json.getObject("maps")).entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> new MapConfig(new TypedJSONObject<>((JSONObject) entry.getValue(), Object.class))
+            ));
     }
 
     public Map<String, MapConfig> getMaps() {
@@ -195,7 +207,10 @@ public class GameConfig {
 
     public List<Location> potions() {
         World world = this.world();
-        return this.map().potions().stream().map(vec -> new Location(world, vec.getX() + 0.5, vec.getY() + 0.5, vec.getZ() + 0.5)).toList();
+        return this.arenas.stream()
+            .flatMap(base -> this.map().potions().stream().map(vec -> vec.add(base)))
+            .map(vec -> new Location(world, vec.getX() + 0.5, vec.getY() + 0.5, vec.getZ() + 0.5))
+            .toList();
     }
 
     public List<CuboidRegion> allWalls() {

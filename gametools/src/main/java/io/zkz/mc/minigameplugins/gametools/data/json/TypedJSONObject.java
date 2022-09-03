@@ -81,12 +81,20 @@ public class TypedJSONObject<T> extends HashMap<String, T> implements Map<String
         return new TypedJSONObject<>(object, String.class);
     }
 
-    public static TypedJSONObject<JSONObject> objects() {
+    public static TypedJSONObject<JSONObject> jsonObjects() {
         return new TypedJSONObject<>();
     }
 
-    public static TypedJSONObject<JSONObject> asObjects(JSONObject object) {
+    public static TypedJSONObject<JSONObject> asJsonObjects(JSONObject object) {
         return new TypedJSONObject<>(object, JSONObject.class);
+    }
+
+    public static TypedJSONObject<Object> objects() {
+        return new TypedJSONObject<>();
+    }
+
+    public static TypedJSONObject<Object> asObjects(JSONObject object) {
+        return new TypedJSONObject<>(object, Object.class);
     }
 
     public static TypedJSONObject<JSONObject> arrays() {

@@ -179,7 +179,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     // ==========
     //  Settings
     // ==========
-    private boolean automaticShowRules = true;
+    private boolean automaticShowRules = false;
     private boolean automaticPreRound = true;
     private boolean automaticNextRound = true;
     private boolean glowingTeammates = true;

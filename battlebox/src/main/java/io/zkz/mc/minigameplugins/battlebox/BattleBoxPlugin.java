@@ -24,6 +24,9 @@ public class BattleBoxPlugin extends GTPlugin<BattleBoxPlugin> {
     public BattleBoxPlugin() {
         // Services
         register(BattleBoxService.getInstance());
+
+        // Commands
+        register(new BattleBoxCommands());
     }
 
     @Override
