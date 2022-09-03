@@ -8,6 +8,7 @@ import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
+import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.JustGamemodePlayerState;
@@ -43,6 +44,7 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
         MinigameService minigame = MinigameService.getInstance();
 
         ChatConstantsService.getInstance().setMinigameName("Battle Box");
+        TeamService.getInstance().setFriendlyFire(true);
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);
