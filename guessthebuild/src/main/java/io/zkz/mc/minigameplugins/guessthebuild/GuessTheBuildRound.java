@@ -192,6 +192,11 @@ public class GuessTheBuildRound extends Round {
         });
     }
 
+    @Override
+    public void onEnterPostRound() {
+        Chat.sendAlert(ChatType.GAME_INFO, "The prompt was " + ChatColor.AQUA + ChatColor.BOLD + chosenWord);
+    }
+
     private void addHint() {
         Random rand = new Random();
         int hintIndex;

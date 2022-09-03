@@ -1,6 +1,8 @@
 package io.zkz.mc.minigameplugins.lobby.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.lobby.Permissions;
 import io.zkz.mc.minigameplugins.lobby.TournamentManager;
 import org.bukkit.command.Command;
@@ -28,6 +30,7 @@ public class SetupServerCommand extends ArgumentCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         TournamentManager.getInstance().startMinigame(args[0]);
+        Chat.sendAlert(ChatType.ACTIVE_INFO, "The next minigame is: " + args[0]);
         return true;
     }
 }

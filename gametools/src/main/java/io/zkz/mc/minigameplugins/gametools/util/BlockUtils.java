@@ -3,35 +3,30 @@ package io.zkz.mc.minigameplugins.gametools.util;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class BlockUtils {
-    private static final List<Material> WOOLS;
+    private static final Set<Material> WOOLS = Set.of(Material.WHITE_WOOL, Material.BLACK_WOOL, Material.BLUE_WOOL, Material.BROWN_WOOL, Material.CYAN_WOOL, Material.GRAY_WOOL, Material.GREEN_WOOL, Material.LIGHT_BLUE_WOOL, Material.LIGHT_GRAY_WOOL, Material.LIME_WOOL, Material.MAGENTA_WOOL, Material.ORANGE_WOOL, Material.PINK_WOOL, Material.PURPLE_WOOL, Material.RED_WOOL, Material.YELLOW_WOOL);
+    private static final Set<Material> LOGS = Set.of(
+        Material.OAK_LOG,
+        Material.DARK_OAK_LOG,
+        Material.BIRCH_LOG,
+        Material.ACACIA_LOG,
+        Material.SPRUCE_LOG,
+        Material.JUNGLE_LOG,
+        Material.MANGROVE_LOG
+    );
+    private static final Set<Material> LEAVES = Set.of(
+        Material.OAK_LEAVES,
+        Material.DARK_OAK_LEAVES,
+        Material.BIRCH_LEAVES,
+        Material.ACACIA_LEAVES,
+        Material.SPRUCE_LEAVES,
+        Material.JUNGLE_LEAVES,
+        Material.MANGROVE_LEAVES
+    );
 
-    static {
-        ArrayList<Material> wools = new ArrayList<>();
-        wools.add(Material.WHITE_WOOL);
-        wools.add(Material.BLACK_WOOL);
-        wools.add(Material.BLUE_WOOL);
-        wools.add(Material.BROWN_WOOL);
-        wools.add(Material.CYAN_WOOL);
-        wools.add(Material.GRAY_WOOL);
-        wools.add(Material.GREEN_WOOL);
-        wools.add(Material.LIGHT_BLUE_WOOL);
-        wools.add(Material.LIGHT_GRAY_WOOL);
-        wools.add(Material.LIME_WOOL);
-        wools.add(Material.MAGENTA_WOOL);
-        wools.add(Material.ORANGE_WOOL);
-        wools.add(Material.PINK_WOOL);
-        wools.add(Material.PURPLE_WOOL);
-        wools.add(Material.RED_WOOL);
-        wools.add(Material.YELLOW_WOOL);
-        WOOLS = Collections.unmodifiableList(wools);
-    }
-
-    public static List<Material> allWools() {
+    public static Set<Material> allWools() {
         return WOOLS;
     }
 
@@ -59,5 +54,13 @@ public class BlockUtils {
             case WHITE -> Material.WHITE_WOOL;
             default -> null;
         };
+    }
+
+    public static boolean isLog(Material type) {
+        return LOGS.contains(type);
+    }
+
+    public static boolean isLeaves(Material type) {
+        return LEAVES.contains(type);
     }
 }

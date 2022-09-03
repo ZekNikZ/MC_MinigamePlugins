@@ -10,7 +10,10 @@ import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
-import io.zkz.mc.minigameplugins.gametools.util.*;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.*;
@@ -19,7 +22,6 @@ import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
@@ -239,29 +241,29 @@ public class SGRound extends Round {
 
         this.kills.get(killerTeamId).add(playerTeamId);
 
-        if (this.kills.get(killerTeamId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Player killer = Bukkit.getPlayer(killerId);
-                    if (killer == null) {
-                        return;
-                    }
-
-                    var leftover = killer.getInventory().addItem(
-                        ISB.material(Material.NETHER_STAR)
-                            .name(ChatColor.YELLOW + "Respawn Crystal")
-                            .lore("Right-click this to respawn your")
-                            .lore("dead teammate.")
-                            .build()
-                    );
-
-                    if (leftover.isEmpty()) {
-                        this.cancel();
-                    }
-                }
-            }.runTaskTimer(SGService.getInstance().getPlugin(), 1, 1);
-        }
+//        if (this.kills.get(killerTeamId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
+//            new BukkitRunnable() {
+//                @Override
+//                public void run() {
+//                    Player killer = Bukkit.getPlayer(killerId);
+//                    if (killer == null) {
+//                        return;
+//                    }
+//
+//                    var leftover = killer.getInventory().addItem(
+//                        ISB.material(Material.NETHER_STAR)
+//                            .name(ChatColor.YELLOW + "Respawn Crystal")
+//                            .lore("Right-click this to respawn your")
+//                            .lore("dead teammate.")
+//                            .build()
+//                    );
+//
+//                    if (leftover.isEmpty()) {
+//                        this.cancel();
+//                    }
+//                }
+//            }.runTaskTimer(SGService.getInstance().getPlugin(), 1, 1);
+//        }
     }
 
     public void respawnPlayer(Player player) {

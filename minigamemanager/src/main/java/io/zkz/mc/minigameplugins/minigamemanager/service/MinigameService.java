@@ -4,7 +4,6 @@ import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
-import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
@@ -702,25 +701,27 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             "roundNumber", String.valueOf(MinigameService.getInstance().getCurrentRoundIndex())
         );
 
-        try (Connection conn = MySQLService.getInstance().getConnection(); PreparedStatement statement = conn.prepareStatement(
-            "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
-        )) {
-            conn.setAutoCommit(false);
+        this.db.addAction(conn -> {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+            )) {
+                conn.setAutoCommit(false);
 
-            for (Map.Entry<String, String> entry : values.entrySet()) {
-                String id = entry.getKey();
-                String value = entry.getValue();
-                statement.setString(1, id);
-                statement.setString(2, value);
-                statement.setString(3, id);
-                statement.addBatch();
+                for (Map.Entry<String, String> entry : values.entrySet()) {
+                    String id = entry.getKey();
+                    String value = entry.getValue();
+                    statement.setString(1, id);
+                    statement.setString(2, value);
+                    statement.setString(3, id);
+                    statement.addBatch();
+                }
+
+                statement.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
             }
-
-            statement.executeBatch();
-            conn.commit();
-        } catch (SQLException e) {
-            GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
-        }
+        });
     }
 
     public void loadInitialState(Connection conn) {
@@ -750,7 +751,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
-            this.db = new MySQLDataManager<>(this, conn -> {})
+            this.db = new MySQLDataManager<>(this, conn -> {
+            })
         );
     }
 }

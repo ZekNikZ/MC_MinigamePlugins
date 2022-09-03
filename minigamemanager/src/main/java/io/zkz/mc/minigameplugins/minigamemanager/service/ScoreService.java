@@ -186,13 +186,13 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
             try (PreparedStatement statement = conn.prepareStatement(
                 "INSERT INTO mm_score (playerId, minigame, round, reason, points, multiplier) VALUES (?, ?, ?, ?, ?, ?);"
             )) {
-                statement.setString(0, entry.playerId().toString());
-                statement.setString(1, entry.minigame());
-                statement.setInt(2, entry.round());
-                statement.setString(3, entry.reason());
-                statement.setDouble(4, entry.points());
+                statement.setString(1, entry.playerId().toString());
+                statement.setString(2, entry.minigame());
+                statement.setInt(3, entry.round());
+                statement.setString(4, entry.reason());
                 statement.setDouble(5, entry.points());
-                statement.executeQuery();
+                statement.setDouble(6, entry.multiplier());
+                statement.executeUpdate();
             } catch (SQLException e) {
                 GameToolsPlugin.logger().log(Level.SEVERE, "Could not load score data", e);
             }

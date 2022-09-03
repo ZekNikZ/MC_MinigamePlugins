@@ -64,7 +64,7 @@ public class SGService extends PluginService<SGPlugin> {
         MinigameService minigame = MinigameService.getInstance();
         minigame.setAutomaticPreRound(false);
         minigame.setAutomaticShowRules(false);
-        minigame.setAutomaticNextRound(false);
+//        minigame.setAutomaticNextRound(false);
         minigame.setGlowingTeammates(false);
         minigame.setPostRoundDelay(1);
 
@@ -352,7 +352,7 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(event.getEntity())) {
-            event.getDrops().add(ISB.stack(Material.EMERALD));
+//            event.getDrops().add(ISB.stack(Material.EMERALD));
             this.setDead(event.getEntity());
         }
     }

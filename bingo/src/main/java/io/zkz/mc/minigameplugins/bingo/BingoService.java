@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.bingo;
 
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
 import io.zkz.mc.minigameplugins.bingo.menu.BingoCardMenu;
+import io.zkz.mc.minigameplugins.bingo.util.TimberTask;
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
@@ -14,10 +15,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
-import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import io.zkz.mc.minigameplugins.gametools.util.ISB;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
@@ -239,6 +237,8 @@ public class BingoService extends PluginService<BingoPlugin> {
             event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), ISB.stack(Material.COPPER_INGOT));
             event.setCancelled(true);
             event.getBlock().setType(Material.AIR);
+        } else if (BlockUtils.isLog(event.getBlock().getType())) {
+            new TimberTask(event.getBlock().getLocation()).start(this.getPlugin());
         }
     }
 
