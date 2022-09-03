@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams.command;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -35,7 +35,7 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Please specify at least one player.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Please specify at least one player.");
             return true;
         }
 
@@ -44,17 +44,17 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
             if (player == null) {
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
                 if (!offlinePlayer.hasPlayedBefore()) {
-                    sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + playerName + "'.");
+                    sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + playerName + "'.");
                     return;
                 }
 
                 TeamService.getInstance().leaveTeam(offlinePlayer.getUniqueId());
-                sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed offline player '" + playerName + "' from their team.");
+                sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed offline player '" + playerName + "' from their team.");
                 return;
             }
 
             TeamService.getInstance().leaveTeam(player);
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed player '" + playerName + "' from their team.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed player '" + playerName + "' from their team.");
         });
 
         return true;

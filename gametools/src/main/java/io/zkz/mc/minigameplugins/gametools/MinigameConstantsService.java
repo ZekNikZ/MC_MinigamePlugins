@@ -3,14 +3,14 @@ package io.zkz.mc.minigameplugins.gametools;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import net.md_5.bungee.api.ChatColor;
 
-public class ChatConstantsService extends GameToolsService {
-    private static final ChatConstantsService INSTANCE = new ChatConstantsService();
-    public static ChatConstantsService getInstance() {
+public class MinigameConstantsService extends GameToolsService {
+    private static final MinigameConstantsService INSTANCE = new MinigameConstantsService();
+    public static MinigameConstantsService getInstance() {
         return INSTANCE;
     }
 
-
     private String name;
+    private String id;
 
     private String chatPrefixFormat = ChatColor.GRAY + "[" + ChatColor.AQUA + "%s" + ChatColor.GRAY + "]" + ChatColor.RESET + " ";
     private String scoreboardTitleFormat = ChatColor.AQUA + "%s";
@@ -36,6 +36,14 @@ public class ChatConstantsService extends GameToolsService {
 
     public String getMinigameName() {
         return this.name;
+    }
+
+    public void setMinigameID(String id) {
+        this.id = id;
+    }
+
+    public String getMinigameID() {
+        return this.id;
     }
 
     public String getChatPrefix() {

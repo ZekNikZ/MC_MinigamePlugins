@@ -1,6 +1,8 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
@@ -42,10 +44,15 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class MinigameService extends PluginService<MinigameManagerPlugin> {
@@ -58,7 +65,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
         GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + getInstance().getTournamentName());
-        scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + ChatConstantsService.getInstance().getMinigameName()));
+        scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + MinigameConstantsService.getInstance().getMinigameName()));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
                 scoreboard.addSpace();
@@ -165,13 +172,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private int postGameDelay = 200;
     private final List<Round> rounds = new ArrayList<>();
     private final List<Character> rulesSlides = new ArrayList<>();
-    private int currentRound = -1;
+    private int currentRound = -1, initialRound = 0;
     private AbstractTimer timer;
 
     // ===============
     //  Minigame Info
     // ===============
-    private String tournamentName = "MC Tournament 0";
+    private String tournamentName = "MC Tournament";
     private int gameNumber = 0;
     private int maxGameNumber = 6;
     private double multiplier = 1.0;
@@ -186,17 +193,18 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private boolean spectatorsCanOnlySeeAliveTeammates = false;
     private boolean useSecondInGameState = false;
 
-    public void setGameNumber(int gameNumber) {
-        this.gameNumber = gameNumber;
-    }
-
     @Override
     protected void onEnable() {
         // Setup
         this.setState(MinigameState.LOADING);
 
         // Schedule a transition to the setup phase
-        BukkitUtils.runNextTick(this::transitionToSetup);
+        BukkitUtils.runNextTick(() -> {
+            // Load initial state
+            this.loadInitialState();
+
+            transitionToSetup();
+        });
 
         // Add state handlers
         // ==================
@@ -342,6 +350,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 BukkitUtils.forEachPlayer(playerState::apply);
             }
         }
+        this.storeStateInDatabase();
         BukkitUtils.dispatchEvent(new StateChangeEvent.Post(this.state, newState));
     }
 
@@ -467,7 +476,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     private void transitionToWaitingForPlayers() {
-        this.setCurrentRound(0);
+        this.setCurrentRound(this.initialRound);
         this.setState(MinigameState.WAITING_FOR_PLAYERS);
     }
 
@@ -656,23 +665,82 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public double getPointMultiplier() {
-        // TODO: fetch from DB
         return this.multiplier;
     }
 
+    public void setGameNumber(int gameNumber) {
+        this.gameNumber = gameNumber;
+    }
+
     public int getGameNumber() {
-        // TODO: fetch from DB
         return this.gameNumber;
+    }
+
+    public void setTournamentName(String tournamentName) {
+        this.tournamentName = tournamentName;
     }
 
     @NotNull
     private String getTournamentName() {
-        // TODO: fetch from DB
         return this.tournamentName;
     }
 
+    public void setMaxGameNumber(int maxGameNumber) {
+        this.maxGameNumber = maxGameNumber;
+    }
+
     public int getMaxGameNumber() {
-        // TODO: fetch from DB
         return this.maxGameNumber;
+    }
+
+    public void storeStateInDatabase() {
+        Map<String, String> values = Map.of(
+            "minigameId", MinigameConstantsService.getInstance().getMinigameID(),
+            "roundNumber", String.valueOf(MinigameService.getInstance().getCurrentRoundIndex())
+        );
+
+        try (Connection conn = MySQLService.getInstance().getConnection(); PreparedStatement statement = conn.prepareStatement(
+            "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+        )) {
+            conn.setAutoCommit(false);
+
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                String id = entry.getKey();
+                String value = entry.getValue();
+                statement.setString(1, id);
+                statement.setString(2, value);
+                statement.setString(3, id);
+                statement.addBatch();
+            }
+
+            statement.executeBatch();
+            conn.commit();
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+        }
+    }
+
+    public void loadInitialState() {
+        Map<String, String> values = new HashMap<>();
+
+        try (Connection conn = MySQLService.getInstance().getConnection(); PreparedStatement statement = conn.prepareStatement(
+            "SELECT * FROM mm_minigame_state;"
+        )) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                values.put(resultSet.getString("id"), resultSet.getString("value"));
+            }
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+        }
+
+        this.setPointMultiplier(Double.parseDouble(values.get("pointMultiplier")));
+        this.setGameNumber(Integer.parseInt(values.get("gameNumber")));
+        this.setMaxGameNumber(Integer.parseInt(values.get("maxGameNumber")));
+        this.setTournamentName(values.get("tournamentName"));
+
+        if (Objects.equals(values.get("minigameId"), MinigameConstantsService.getInstance().getMinigameID())) {
+            this.initialRound = Integer.parseInt("roundNumber");
+        }
     }
 }

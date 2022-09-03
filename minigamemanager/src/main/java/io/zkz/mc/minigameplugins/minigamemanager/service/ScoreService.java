@@ -1,6 +1,9 @@
 package io.zkz.mc.minigameplugins.minigamemanager.service;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
@@ -12,9 +15,13 @@ import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class ScoreService extends PluginService<MinigameManagerPlugin> implements IObservable {
@@ -32,9 +39,12 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     private final Map<UUID, Double> gamePlayerScores = new HashMap<>();
     private final Map<GameTeam, Double> gameTeamScores = new HashMap<>();
 
+    private MySQLDataManager<ScoreService> db;
+
     public void earnPoints(UUID playerId, String reason, double points) {
-        ScoreEntry entry = new ScoreEntry(playerId, ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason, points, MinigameService.getInstance().getPointMultiplier());
+        ScoreEntry entry = new ScoreEntry(playerId, MinigameConstantsService.getInstance().getMinigameID(), MinigameService.getInstance().getCurrentRoundIndex(), reason, points, MinigameService.getInstance().getPointMultiplier());
         this.entries.add(entry);
+        this.putEntry(entry);
 
         // Player score
         this.roundPlayerScores.putIfAbsent(playerId, 0.0);
@@ -44,17 +54,6 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
         // Team score
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
-        this.roundTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
-        this.gameTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
-
-        this.notifyObservers();
-    }
-
-    public void earnPoints(GameTeam team, @Nullable String reason, double points) {
-        ScoreEntry entry = new ScoreEntry(new UUID(0, 0), ChatConstantsService.getInstance().getMinigameName(), MinigameService.getInstance().getCurrentRoundIndex(), reason != null ? reason : "", points, MinigameService.getInstance().getPointMultiplier());
-        this.entries.add(entry);
-
-        // Team score
         this.roundTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
         this.gameTeamScores.compute(team, (t, s) -> s + points * entry.multiplier());
 
@@ -79,7 +78,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
     public List<ScoreEntry> getRoundEntries(Player player) {
         return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
+            .filter(entry -> entry.minigame().equals(MinigameConstantsService.getInstance().getMinigameID()))
             .filter(entry -> entry.round() == MinigameService.getInstance().getCurrentRoundIndex())
             .filter(entry -> Objects.equals(entry.playerId(), player.getUniqueId()))
             .toList();
@@ -87,7 +86,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
     public Map<UUID, Double> getRoundTeamMemberScoreSummary(GameTeam team) {
         return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
+            .filter(entry -> entry.minigame().equals(MinigameConstantsService.getInstance().getMinigameID()))
             .filter(entry -> entry.round() == MinigameService.getInstance().getCurrentRoundIndex())
             .filter(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()) == team)
             .collect(Collectors.groupingBy(ScoreEntry::playerId, Collectors.summingDouble(ScoreEntry::points)));
@@ -103,8 +102,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
     public List<ScoreEntry> getGameEntries(Player player) {
         return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
-            .filter(entry -> entry.round() == MinigameService.getInstance().getCurrentRoundIndex())
+            .filter(entry -> entry.minigame().equals(MinigameConstantsService.getInstance().getMinigameID()))
             .filter(entry -> Objects.equals(entry.playerId(), player.getUniqueId()))
             .toList();
     }
@@ -112,7 +110,7 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     public Map<UUID, Double> getGameTeamMemberScoreSummary(GameTeam team) {
         // TODO: probably not very efficient to be computing this so often, cache it
         return this.entries.stream()
-            .filter(entry -> entry.minigame().equals(ChatConstantsService.getInstance().getMinigameName()))
+            .filter(entry -> entry.minigame().equals(MinigameConstantsService.getInstance().getMinigameID()))
             .filter(entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()) == team)
             .collect(Collectors.groupingBy(ScoreEntry::playerId, Collectors.summingDouble(ScoreEntry::points)));
     }
@@ -122,8 +120,13 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
     }
 
     public Map<GameTeam, Double> getEventTeamScoreSummary() {
-        // TODO: implement properly
-        return this.getGameTeamScoreSummary();
+        this.loadAllData();
+
+        return this.entries.stream()
+            .collect(Collectors.groupingBy(
+                entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()),
+                Collectors.summingDouble(ScoreEntry::getTotalPoints)
+            ));
     }
 
     @SuppressWarnings("rawtypes")
@@ -169,5 +172,53 @@ public class ScoreService extends PluginService<MinigameManagerPlugin> implement
 
         this.gameTeamScores.clear();
         MinigameService.getInstance().getGameTeams().forEach(team -> this.gameTeamScores.put(team, 0.0));
+    }
+
+    @Override
+    protected Collection<AbstractDataManager<?>> getDataManagers() {
+        return List.of(
+            this.db = new MySQLDataManager<>(this, this::loadDB)
+        );
+    }
+
+    private void putEntry(ScoreEntry entry) {
+        this.db.addAction(conn -> {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO mm_score (playerId, minigame, round, reason, points, multiplier) VALUES (?, ?, ?, ?, ?, ?);"
+            )) {
+                statement.setString(0, entry.playerId().toString());
+                statement.setString(1, entry.minigame());
+                statement.setInt(2, entry.round());
+                statement.setString(3, entry.reason());
+                statement.setDouble(4, entry.points());
+                statement.setDouble(5, entry.points());
+                statement.executeQuery();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not load score data", e);
+            }
+        });
+    }
+
+    private void loadDB(Connection conn) {
+        this.entries.clear();
+
+        try (PreparedStatement statement = conn.prepareStatement(
+            "SELECT * from mm_score;"
+        )) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                ScoreEntry entry = new ScoreEntry(
+                    UUID.fromString(resultSet.getString("playerId")),
+                    resultSet.getString("minigame"),
+                    resultSet.getInt("round"),
+                    resultSet.getString("reason"),
+                    resultSet.getDouble("points"),
+                    resultSet.getDouble("multiplier")
+                );
+                this.entries.add(entry);
+            }
+        } catch (SQLException e) {
+            GameToolsPlugin.logger().log(Level.SEVERE, "Could not load score data", e);
+        }
     }
 }

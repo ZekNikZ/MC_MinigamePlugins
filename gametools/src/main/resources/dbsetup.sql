@@ -23,5 +23,32 @@ create table if not exists gt_player_teams
         references gt_teams(teamId)
 );
 
+create table if not exists gt_player_teams
+(
+    playerId varchar(36) not null,
+    teamId   varchar(20) not null,
+    primary key (playerId, teamId),
+    constraint gt_player_teams_playerId_uindex
+    unique (playerId),
+    foreign key (teamId)
+    references gt_teams(teamId)
+);
 
+create table mm_minigame_state
+(
+    id    varchar(40) not null
+        primary key,
+    value varchar(60) null
+);
+
+create table mm_score
+(
+    playerId   varchar(40) not null,
+    minigame   varchar(20) not null,
+    round      int         not null,
+    reason     varchar(50) null,
+    points     double      null,
+    multiplier double      null,
+    primary key (playerId, minigame, round)
+);
 

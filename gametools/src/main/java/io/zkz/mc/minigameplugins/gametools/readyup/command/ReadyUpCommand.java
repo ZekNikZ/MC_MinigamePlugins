@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.readyup.command;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
@@ -36,7 +36,7 @@ public class ReadyUpCommand extends ArgumentCommandExecutor {
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         // Ensure sender is a player
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "You cannot execute this command from the console.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "You cannot execute this command from the console.");
             return true;
         }
 

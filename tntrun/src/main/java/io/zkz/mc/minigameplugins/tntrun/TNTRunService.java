@@ -5,7 +5,7 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
@@ -57,7 +57,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("TNT Run");
+        MinigameConstantsService.getInstance().setMinigameID("tntrun");
+        MinigameConstantsService.getInstance().setMinigameName("TNT Run");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);

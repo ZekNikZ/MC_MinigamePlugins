@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.survivalgames;
 
 import com.sk89q.worldedit.math.BlockVector3;
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
@@ -68,7 +68,8 @@ public class SGService extends PluginService<SGPlugin> {
         minigame.setGlowingTeammates(false);
         minigame.setPostRoundDelay(1);
 
-        ChatConstantsService.getInstance().setMinigameName("Survival Games");
+        MinigameConstantsService.getInstance().setMinigameID("survivalgames");
+        MinigameConstantsService.getInstance().setMinigameName("Survival Games");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);

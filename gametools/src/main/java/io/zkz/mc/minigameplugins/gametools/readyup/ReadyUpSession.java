@@ -5,6 +5,9 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +21,7 @@ public class ReadyUpSession {
     private final Runnable onAllReady;
     private final BiConsumer<Player, ReadyUpSession> onPlayerReady;
     private final int taskId;
+    private final BossBar bossBar;
 
     ReadyUpSession(int sessionId, Collection<UUID> players, Runnable onAllReady, @Nullable BiConsumer<Player, ReadyUpSession> onPlayerReady) {
         this.sessionId = sessionId;
@@ -25,6 +29,10 @@ public class ReadyUpSession {
         this.onPlayerReady = onPlayerReady;
         players.forEach(playerId -> this.readyPlayers.put(playerId, false));
         this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(ReadyUpService.getInstance().getPlugin(), this::displayReadyActionbarMessages, 10, 10);
+        this.bossBar = Bukkit.createBossBar("Ready Up: 0/" + players.size() + " players ready", BarColor.GREEN, BarStyle.SOLID);
+        this.updateBossbar();
+        this.bossBar.setVisible(true);
+        players.stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(this.bossBar::addPlayer);
     }
 
     public long getReadyPlayerCount() {
@@ -38,6 +46,7 @@ public class ReadyUpSession {
     public void cancel() {
         Bukkit.getScheduler().cancelTask(this.taskId);
         ReadyUpService.getInstance().cleanupSession(this.sessionId);
+        this.bossBar.removeAll();
     }
 
     public void complete() {
@@ -72,6 +81,8 @@ public class ReadyUpSession {
             Chat.sendAlert(p, ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
         });
 
+        this.updateBossbar();
+
         // Check if this was the last player
         if (this.getReadyPlayerCount() == this.getTotalPlayerCount()) {
             this.complete();
@@ -95,6 +106,7 @@ public class ReadyUpSession {
 
     public boolean undoReady(UUID playerId) {
         this.readyPlayers.put(playerId, false);
+        this.updateBossbar();
         return true;
     }
 
@@ -124,5 +136,10 @@ public class ReadyUpSession {
                 return Bukkit.getOfflinePlayer(entry.getKey()).getName() + ChatColor.DARK_RED + " (offline)";
             })
             .toList();
+    }
+
+    private void updateBossbar() {
+        this.bossBar.setTitle("Ready Up: " + this.getReadyPlayerCount() + "/" + this.getTotalPlayerCount() + " players ready");
+        this.bossBar.setProgress((double) this.getReadyPlayerCount() / this.getTotalPlayerCount());
     }
 }

@@ -61,7 +61,7 @@ public class AddPointsCommand extends AbstractCommandExecutor {
         }
 
         // Assign points
-        ScoreService.getInstance().earnPoints(TeamService.getInstance().getTeam(teamId), reason, points);
+        ScoreService.getInstance().earnPointsUUID(TeamService.getInstance().getTeamMembers(teamId), reason, points / TeamService.getInstance().getTeamMembers(teamId).size());
         sender.sendMessage(ChatColor.GRAY + "Successfully assigned points.");
 
         return true;

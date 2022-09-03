@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.survivalgames.command;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.survivalgames.Permissions;
 import io.zkz.mc.minigameplugins.survivalgames.SGService;
@@ -33,7 +33,7 @@ public class RespawnCommand extends ArgumentCommandExecutor {
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         Player player = Bukkit.getPlayer(args[0]);
         if (player == null) {
-            sender.sendMessage(ChatConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + args[0] + "'.");
+            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + args[0] + "'.");
             return true;
         }
 

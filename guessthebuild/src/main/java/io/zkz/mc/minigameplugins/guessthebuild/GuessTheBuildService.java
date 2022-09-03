@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.guessthebuild;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
@@ -38,7 +38,7 @@ public class GuessTheBuildService extends PluginService<GuessTheBuildPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("Guess the Build");
+        MinigameConstantsService.getInstance().setMinigameName("Guess the Build");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);

@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.bingo;
 
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
 import io.zkz.mc.minigameplugins.bingo.menu.BingoCardMenu;
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
@@ -11,7 +11,6 @@ import io.zkz.mc.minigameplugins.gametools.event.PlayerInventoryChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
@@ -63,8 +62,8 @@ public class BingoService extends PluginService<BingoPlugin> {
         // Setup scoreboard and state hooks
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("Bingo");
-        ChatConstantsService.getInstance().setMinigameName("Bingo");
+        MinigameConstantsService.getInstance().setMinigameID("bingo");
+        MinigameConstantsService.getInstance().setMinigameName("Bingo");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);

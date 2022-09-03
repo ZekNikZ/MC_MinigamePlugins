@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.battlebox;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
@@ -43,7 +43,8 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("Battle Box");
+        MinigameConstantsService.getInstance().setMinigameID("battlebox");
+        MinigameConstantsService.getInstance().setMinigameName("Battle Box");
         TeamService.getInstance().setFriendlyFire(true);
 
         // Rules slides

@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.tgttos;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
@@ -59,7 +59,8 @@ public class TGTTOSService extends PluginService<TGTTOSPlugin> {
     protected void setup() {
         MinigameService minigame = MinigameService.getInstance();
 
-        ChatConstantsService.getInstance().setMinigameName("TGTTOS");
+        MinigameConstantsService.getInstance().setMinigameID("tgttos");
+        MinigameConstantsService.getInstance().setMinigameName("TGTTOS");
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);

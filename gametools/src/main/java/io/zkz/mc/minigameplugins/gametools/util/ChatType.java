@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
-import io.zkz.mc.minigameplugins.gametools.ChatConstantsService;
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 
 import static io.zkz.mc.minigameplugins.gametools.util.Chat.Constants.*;
 import static net.md_5.bungee.api.ChatColor.*;
@@ -62,7 +62,7 @@ public enum ChatType {
     private String format(String format, String message) {
         return format
             .replace("%message%", message)
-            .replace("%name%", ChatConstantsService.getInstance().getMinigameName());
+            .replace("%name%", MinigameConstantsService.getInstance().getMinigameName());
     }
 
     private String format(String format, String message, float points) {
