@@ -21,7 +21,7 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
@@ -195,7 +195,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         this.alivePlayers.remove(player.getUniqueId());
 
         // Assign points to alive players
-        this.alivePlayers.forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.PLAYER_ELIMINATION));
+        this.alivePlayers.forEach(p -> MinigameService.getInstance().earnPoints(p, "survival", Points.PLAYER_ELIMINATION));
 
         // Chat message
         Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());
@@ -219,15 +219,15 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         // Assign points to top 3
         if (this.alivePlayers.size() == 2) {
             SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
-            ScoreService.getInstance().earnPoints(player, "third place", Points.THIRD_PLACE);
+            MinigameService.getInstance().earnPoints(player, "third place", Points.THIRD_PLACE);
             Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in third place!", Points.THIRD_PLACE);
         } else if (this.alivePlayers.size() == 1) {
             SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
-            ScoreService.getInstance().earnPoints(player, "second place", Points.SECOND_PLACE);
+            MinigameService.getInstance().earnPoints(player, "second place", Points.SECOND_PLACE);
             Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in second place!", Points.SECOND_PLACE);
         } else if (this.alivePlayers.size() == 0) {
             SoundUtils.playSound(pointsPlayers, StandardSounds.GOAL_MET_MINOR, 1, 1);
-            ScoreService.getInstance().earnPoints(player, "first place", Points.FIRST_PLACE);
+            MinigameService.getInstance().earnPoints(player, "first place", Points.FIRST_PLACE);
             Chat.sendAlert(player, ChatType.SUCCESS, "You were awarded bonus points for coming in first place!", Points.FIRST_PLACE);
         }
 
@@ -243,7 +243,7 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
             Collection<? extends Player> players = this.getAlivePlayers();
 
             // Award first place points
-            ScoreService.getInstance().earnPointsUUID(this.alivePlayers, "first place", Points.FIRST_PLACE);
+            ScoreService.getInstance().earnPointsUUID(this.alivePlayers, "first place", Points.FIRST_PLACE, MinigameService.getInstance().getCurrentRoundIndex());
             Chat.sendAlert(players, ChatType.SUCCESS, "You were awarded bonus points for coming in first place!", Points.FIRST_PLACE);
 
             // Win message

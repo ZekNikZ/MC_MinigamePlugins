@@ -6,16 +6,14 @@ import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObserver<ScoreService> {
     private final GameTeam team;

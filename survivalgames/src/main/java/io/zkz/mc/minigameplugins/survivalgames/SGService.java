@@ -16,7 +16,6 @@ import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
@@ -170,7 +169,7 @@ public class SGService extends PluginService<SGPlugin> {
         this.getCurrentRound().markDead(playerId);
 
         // Assign points to alive players
-        this.getCurrentRound().getAlivePlayers().forEach(p -> ScoreService.getInstance().earnPoints(p, "survival", Points.SURVIVAL));
+        this.getCurrentRound().getAlivePlayers().forEach(p -> MinigameService.getInstance().earnPoints(p, "survival", Points.SURVIVAL));
 
         // Elimination chat message
         Collection<? extends Player> noPointsPlayers = new HashSet<>(Bukkit.getOnlinePlayers());

@@ -16,9 +16,9 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
-import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.tgttos.round.RoundType;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
@@ -157,7 +157,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
         BukkitUtils.forEachPlayer(player -> {
-            double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
+            double points = ScoreService.getInstance().getRoundEntries(player, MinigameService.getInstance().getCurrentRoundIndex()).stream().mapToDouble(ScoreEntry::points).sum();
             Chat.sendMessage(player, " ");
             Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
         });
@@ -226,7 +226,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         // Compute score and placement
         int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
         String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
-        ScoreService.getInstance().earnPoints(player, "completion", points);
+        MinigameService.getInstance().earnPoints(player, "completion", points);
 
         // Chat message
         Chat.sendAlert(player, ChatType.SUCCESS, "You completed the course, finishing in " + ChatColor.AQUA + ChatColor.BOLD + placementOrdinal + ChatColor.GREEN + ChatColor.BOLD + " place!", points);
@@ -244,7 +244,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
             // Compute score and placement
             int teamPoints = Points.getTeamPlacementPointValue(this.teamPlacement) / TeamService.getInstance().getTeamMembers(team).size();
             String teamPlacementOrdinal = NumberUtils.ordinal(this.teamPlacement + 1);
-            ScoreService.getInstance().earnPoints(player, "team completion", points);
+            MinigameService.getInstance().earnPoints(player, "team completion", points);
 
             // Chat message
             Chat.sendAlert(player, ChatType.SUCCESS, team.getDisplayName() + " was the " + ChatColor.AQUA + ChatColor.BOLD + teamPlacementOrdinal + ChatColor.GREEN + ChatColor.BOLD + " full team to finish!", teamPoints);

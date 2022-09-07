@@ -7,8 +7,9 @@ import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
-import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -50,7 +51,7 @@ public class TNTRunRound extends Round {
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
         BukkitUtils.forEachPlayer(player -> {
-            double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
+            double points = ScoreService.getInstance().getRoundEntries(player, MinigameService.getInstance().getCurrentRoundIndex()).stream().mapToDouble(ScoreEntry::points).sum();
             Chat.sendMessage(player, " ");
             Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
         });

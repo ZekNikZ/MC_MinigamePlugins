@@ -3,7 +3,8 @@ package io.zkz.mc.minigameplugins.minigamemanager.command;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -61,7 +62,7 @@ public class AddPointsCommand extends AbstractCommandExecutor {
         }
 
         // Assign points
-        ScoreService.getInstance().earnPointsUUID(TeamService.getInstance().getTeamMembers(teamId), reason, points / TeamService.getInstance().getTeamMembers(teamId).size());
+        ScoreService.getInstance().earnPointsUUID(TeamService.getInstance().getTeamMembers(teamId), reason, points / TeamService.getInstance().getTeamMembers(teamId).size(), MinigameService.getInstance().getCurrentRoundIndex());
         sender.sendMessage(ChatColor.GRAY + "Successfully assigned points.");
 
         return true;

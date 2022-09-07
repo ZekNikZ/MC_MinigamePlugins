@@ -119,7 +119,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     }
 
     private void resetPodiums() {
-        
+
     }
 
     @EventHandler

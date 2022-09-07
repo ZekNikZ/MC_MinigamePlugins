@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.minigamemanager.score;
+package io.zkz.mc.minigameplugins.gametools.score;
 
 import java.util.UUID;
 

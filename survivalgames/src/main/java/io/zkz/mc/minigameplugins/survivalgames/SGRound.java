@@ -16,7 +16,6 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -244,7 +243,7 @@ public class SGRound extends Round {
         Chat.sendAlert(killer, ChatType.ACTIVE_INFO, "You got bonus points for eliminating " + player.getDisplayName(), Points.PLAYER_KILL);
         SoundUtils.playSound(killer, StandardSounds.GOAL_MET_MINOR, 1, 1);
         killer.spawnParticle(Particle.TOTEM, killer.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
-        ScoreService.getInstance().earnPoints(killer, "killing", Points.PLAYER_KILL);
+        MinigameService.getInstance().earnPoints(killer, "killing", Points.PLAYER_KILL);
     }
 
     public void respawnPlayer(Player player) {

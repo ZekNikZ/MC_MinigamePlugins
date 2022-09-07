@@ -14,7 +14,7 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
@@ -225,7 +225,7 @@ public class BingoRound extends Round {
         int numPoints = this.possiblePoints.get(mat);
         this.teamCollections.get(teamId).add(mat);
         this.teamCollectionOrder.get(mat).add(teamId);
-        ScoreService.getInstance().earnPoints(collector.getUniqueId(), "collected " + itemName + " (" + Points.ORDINALS.get(numPoints) + ")", numPoints);
+        MinigameService.getInstance().earnPoints(collector.getUniqueId(), "collected " + itemName + " (" + Points.ORDINALS.get(numPoints) + ")", numPoints);
 
         // Alert variables
         GameTeam team = TeamService.getInstance().getTeam(teamId);

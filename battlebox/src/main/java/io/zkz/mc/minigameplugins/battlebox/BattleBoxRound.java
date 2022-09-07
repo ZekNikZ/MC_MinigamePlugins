@@ -10,9 +10,9 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
-import io.zkz.mc.minigameplugins.minigamemanager.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
@@ -218,7 +218,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                 Chat.sendMessage(team1 + ChatColor.GRAY + " vs. " + team2);
             }
             BukkitUtils.forEachPlayer(player -> {
-                double points = ScoreService.getInstance().getRoundEntries(player).stream().mapToDouble(ScoreEntry::points).sum();
+                double points = ScoreService.getInstance().getRoundEntries(player, MinigameService.getInstance().getCurrentRoundIndex()).stream().mapToDouble(ScoreEntry::points).sum();
                 Chat.sendMessage(player, " ");
                 Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + net.md_5.bungee.api.ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
             });
@@ -326,7 +326,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         // Assign scores
         SoundUtils.playSound(player, StandardSounds.GOAL_MET_MINOR, 1, 1);
         player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
-        ScoreService.getInstance().earnPoints(killer, "kill", Points.KILL);
+        MinigameService.getInstance().earnPoints(killer, "kill", Points.KILL);
 
         // Check if this match is over (if so, play a sound and title and assign winning scores)
         this.checkIfMatchIsOver(this.arenaIndexOf(player));
@@ -398,12 +398,12 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                 Chat.sendAlert(p, ChatType.GAME_SUCCESS, "Your team won! Well played!", points);
                 SoundUtils.playSound(p, StandardSounds.GOAL_MET_MAJOR, 1, 1);
                 p.spawnParticle(Particle.TOTEM, p.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
-                ScoreService.getInstance().earnPoints(p, "winning", points);
+                MinigameService.getInstance().earnPoints(p, "winning", points);
                 this.setDead(p);
             });
             otherTeamMembers.forEach(p -> {
                 Chat.sendAlert(p, ChatType.GAME_INFO, "Your team lost! Better luck next time!", otherPoints);
-                ScoreService.getInstance().earnPoints(p, "losing", otherPoints);
+                MinigameService.getInstance().earnPoints(p, "losing", otherPoints);
                 this.setDead(p);
             });
 

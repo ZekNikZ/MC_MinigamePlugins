@@ -6,6 +6,7 @@ import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
@@ -182,7 +183,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private String tournamentName = "MC Tournament";
     private int gameNumber = 0;
     private int maxGameNumber = 6;
-    private double multiplier = 1.0;
 
     // ==========
     //  Settings
@@ -662,11 +662,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public void setPointMultiplier(double multiplier) {
-        this.multiplier = multiplier;
+        ScoreService.getInstance().setMultiplier(multiplier);
     }
 
     public double getPointMultiplier() {
-        return this.multiplier;
+        return ScoreService.getInstance().getMultiplier();
     }
 
     public void setGameNumber(int gameNumber) {
@@ -753,5 +753,22 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             this.db = new MySQLDataManager<>(this, conn -> {
             })
         );
+    }
+
+    @EventHandler
+    private void onStateChange(StateChangeEvent event) {
+        if (event.getNewState() == MinigameState.PRE_ROUND) {
+            ScoreService.getInstance().resetRoundScores(this.getGameTeams());
+        } else if (event.getNewState() == MinigameState.SETUP) {
+            ScoreService.getInstance().resetGameScores(this.getGameTeams());
+        }
+    }
+
+    public void earnPoints(UUID playerId, String reason, double points) {
+        ScoreService.getInstance().earnPoints(playerId, reason, points, this.getCurrentRoundIndex());
+    }
+
+    public void earnPoints(Player player, String reason, double points) {
+        ScoreService.getInstance().earnPoints(player, reason, points, this.getCurrentRoundIndex());
     }
 }

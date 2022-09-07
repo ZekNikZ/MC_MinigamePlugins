@@ -14,7 +14,6 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -249,11 +248,11 @@ public class GuessTheBuildRound extends Round {
             // Compute score and placement
             int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
             String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
-            ScoreService.getInstance().earnPoints(player, "correct guess (" + placementOrdinal + ")", points);
+            MinigameService.getInstance().earnPoints(player, "correct guess (" + placementOrdinal + ")", points);
 
             // Builder score
             if (this.playerPlacement == 0) {
-                ScoreService.getInstance().earnPoints(this.builderId, "successful build", Points.SUCCESSFUL_BUILD);
+                MinigameService.getInstance().earnPoints(this.builderId, "successful build", Points.SUCCESSFUL_BUILD);
             }
 
             // Chat message
