@@ -242,7 +242,7 @@ public class SGService extends PluginService<SGPlugin> {
     }
 
     private void roundIsOver() {
-        MinigameService.getInstance().endRound();
+        this.getCurrentRound().endRound();
     }
 
     public void activateSpectatorMode(Player player) {
@@ -352,7 +352,10 @@ public class SGService extends PluginService<SGPlugin> {
     @EventHandler
     private void onPlayerDeath(PlayerDeathEvent event) {
         if (MinigameService.getInstance().getCurrentState().isInGame() && this.getCurrentRound().isAlive(event.getEntity())) {
-//            event.getDrops().add(ISB.stack(Material.EMERALD));
+            Player killer = event.getEntity().getKiller();
+            if (killer != null) {
+                this.getCurrentRound().recordKill(event.getEntity(), killer);
+            }
             this.setDead(event.getEntity());
         }
     }
@@ -423,14 +426,6 @@ public class SGService extends PluginService<SGPlugin> {
         if (event.getBlock().getType() == Material.TNT) {
             event.getBlock().setType(Material.AIR);
             event.getBlock().getWorld().spawn(adjustLocation(event.getBlock().getLocation()), TNTPrimed.class);
-        }
-    }
-
-    @EventHandler
-    private void onPlayerKill(PlayerDeathEvent event) {
-        Player killer = event.getEntity().getKiller();
-        if (killer != null) {
-            this.getCurrentRound().recordKill(event.getEntity(), killer);
         }
     }
 

@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.tntrun;
 
 import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.util.NMSUtils;
-import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
+import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import net.minecraft.world.phys.AxisAlignedBB;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -12,7 +12,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class FloorRemovalTask extends GameTask {
+public class FloorRemovalTask extends MinigameTask {
     private final Set<BlockVector3> trackedBlocks = new HashSet<>();
 
     public FloorRemovalTask() {

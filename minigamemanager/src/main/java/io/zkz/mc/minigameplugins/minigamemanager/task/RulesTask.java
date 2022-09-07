@@ -9,7 +9,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 
 import java.util.List;
 
-public class RulesTask extends GameTask {
+public class RulesTask extends MinigameTask {
     private static final int TICK_DELAY = 200;
     private int currentIndex = 0;
     private final List<Character> slides;

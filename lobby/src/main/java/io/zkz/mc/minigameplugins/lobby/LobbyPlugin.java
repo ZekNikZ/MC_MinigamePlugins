@@ -28,6 +28,7 @@ public class LobbyPlugin extends GTPlugin<LobbyPlugin> {
         // Services
         this.register(LobbyService.getInstance());
         this.register(TournamentManager.getInstance());
+        this.register(SpinnerService.getInstance());
 
         // Commands
         this.register(new LobbyCommands());

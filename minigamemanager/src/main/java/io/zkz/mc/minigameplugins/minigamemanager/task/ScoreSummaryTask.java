@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ScoreSummaryTask extends GameTask {
+public class ScoreSummaryTask extends MinigameTask {
     public static final int NUM_SLIDES = 4;
     public static final int SECONDS_PER_SLIDE = 5;
 

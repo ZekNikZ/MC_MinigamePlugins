@@ -1,6 +1,5 @@
-package io.zkz.mc.minigameplugins.minigamemanager.task;
+package io.zkz.mc.minigameplugins.gametools.util;
 
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -34,7 +33,7 @@ public abstract class GameTask extends BukkitRunnable {
         if (this.isRepeating) {
             this.task = this.runTaskTimer(plugin, this.delay, this.period);
         } else {
-            this.task =  this.runTaskLater(plugin, this.delay);
+            this.task = this.runTaskLater(plugin, this.delay);
         }
     }
 
@@ -46,9 +45,6 @@ public abstract class GameTask extends BukkitRunnable {
     public synchronized void cancel(boolean removeReference) throws IllegalStateException {
         super.cancel();
         this.task = null;
-        if (removeReference) {
-            MinigameService.getInstance().removeRunningTask(this);
-        }
     }
 
     public synchronized int getTaskId() {

@@ -6,7 +6,7 @@ create table if not exists gt_teams
     teamFormatCode      varchar(10)  not null,
     teamScoreboardColor varchar(2)   not null,
     teamColor           int          not null,
-    teamIsSpectator     boolean   not null,
+    teamIsSpectator     boolean      not null,
     primary key (teamId),
     constraint gt_teams_teamId_uindex
         unique (teamId)
@@ -20,18 +20,7 @@ create table if not exists gt_player_teams
     constraint gt_player_teams_playerId_uindex
         unique (playerId),
     foreign key (teamId)
-        references gt_teams(teamId)
-);
-
-create table if not exists gt_player_teams
-(
-    playerId varchar(36) not null,
-    teamId   varchar(20) not null,
-    primary key (playerId, teamId),
-    constraint gt_player_teams_playerId_uindex
-    unique (playerId),
-    foreign key (teamId)
-    references gt_teams(teamId)
+        references gt_teams (teamId)
 );
 
 create table if not exists mm_minigame_state
@@ -46,9 +35,8 @@ create table if not exists mm_score
     playerId   varchar(40) not null,
     minigame   varchar(20) not null,
     round      int         not null,
-    reason     varchar(50) null,
+    reason     varchar(100) null,
     points     double      null,
-    multiplier double      null,
-    primary key (playerId, minigame, round)
+    multiplier double      null
 );
 

@@ -61,7 +61,7 @@ public class Kits {
                     .unbreakable()
                     .build());
             inv.addItem(
-                ISB.stack(Material.ARROW, 4)
+                ISB.stack(Material.ARROW, 2)
             );
         },
         "creepers", (player, inv) -> {

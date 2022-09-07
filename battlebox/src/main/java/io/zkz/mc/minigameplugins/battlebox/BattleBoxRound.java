@@ -16,6 +16,8 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
@@ -54,11 +56,12 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         // Create arenas (load schematic)
         World world = this.config.world();
         this.config.arenas().stream().map(vec -> BukkitAdapter.adapt(world, vec)).forEach(location -> {
-            SchematicService.getInstance().loadSchematic(
+            SchematicService.getInstance().placeSchematic(
                 BattleBoxRound.class.getResourceAsStream("/schematics/arenas/" + this.config.selectedMapName() + ".schem"),
                 location
             );
         });
+        world.getEntitiesByClass(Item.class).forEach(Entity::remove);
 
         // World setup
         WorldSyncUtils.setDifficulty(Difficulty.HARD);
@@ -80,6 +83,11 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         super.onEnterPreRound();
 
         BukkitUtils.forEachPlayer(player -> {
+            GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+            if (team == null || team.isSpectator()) {
+                return;
+            }
+
             player.getInventory().clear();
             this.setupPlayer(player);
             var match = this.matches.get(this.arenaIndexOf(player));
@@ -93,6 +101,11 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
     public void onPreRoundTimerTick(long currentTimeMillis) {
         if (currentTimeMillis <= 8000 && !movedDown) {
             BukkitUtils.forEachPlayer(player -> {
+                GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+                if (team == null || team.isSpectator()) {
+                    return;
+                }
+
                 int arenaIndex = this.arenaIndexOf(player);
                 int teamIndex = this.teamIndexOf(arenaIndex, TeamService.getInstance().getTeamOfPlayer(player));
                 player.teleport(this.config.computedTeamArenaSpawn(arenaIndex, teamIndex));
@@ -127,6 +140,11 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
     public void onRoundStart() {
         // Assign kits to players who didn't pick
         BukkitUtils.forEachPlayer(player -> {
+            GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+            if (team == null || team.isSpectator()) {
+                return;
+            }
+
             if (this.kitSelections.get(player.getUniqueId()) == null) {
                 for (String kit : this.config.map().kits().keySet()) {
                     if (this.assignKit(player, kit)) {
@@ -134,10 +152,9 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                     }
                 }
             }
-        });
 
-        // Setup players
-        BukkitUtils.forEachPlayer(this::setupPlayerInventory);
+            setupPlayerInventory(player);
+        });
 
         // Wall
         WorldEditService we = WorldEditService.getInstance();
@@ -354,24 +371,27 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
             // Compute winner
             Collection<Player> teamMembers;
             Collection<Player> otherTeamMembers;
-            int points;
+            int points, otherPoints;
             if (woolCount1 > woolCount2) {
                 // Team 1 won
                 this.matchWinners.set(arenaIndex, match.first());
                 teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
                 otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
                 points = Points.WINNING / teamMembers.size();
+                otherPoints = Points.LOSING / otherTeamMembers.size();
             } else if (woolCount2 > woolCount1) {
                 // Team 2 won
                 this.matchWinners.set(arenaIndex, match.second());
                 teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
                 otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
                 points = Points.WINNING / teamMembers.size();
+                otherPoints = Points.LOSING / otherTeamMembers.size();
             } else {
                 // Tie
                 teamMembers = List.of();
                 otherTeamMembers = this.getAllPlayersInArena(arenaIndex);
                 points = 0;
+                otherPoints = 0;
             }
 
             teamMembers.forEach(p -> {
@@ -382,7 +402,8 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                 this.setDead(p);
             });
             otherTeamMembers.forEach(p -> {
-                Chat.sendAlert(p, ChatType.GAME_INFO, "Your team lost! Better luck next time!");
+                Chat.sendAlert(p, ChatType.GAME_INFO, "Your team lost! Better luck next time!", otherPoints);
+                ScoreService.getInstance().earnPoints(p, "losing", otherPoints);
                 this.setDead(p);
             });
 

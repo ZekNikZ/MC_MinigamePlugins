@@ -2,14 +2,10 @@ package io.zkz.mc.minigameplugins.tgttos;
 
 public class Points {
     public static int getPlayerPlacementPointValue(int placement) {
-        int base = 40 - 2 * placement;
-        if (placement < 10) {
-            base += 80 - 5 * placement;
-        }
-        return base;
+        return Math.max(50 - 3 * placement, 0);
     }
 
     public static int getTeamPlacementPointValue(int placement) {
-        return Math.max(100 - 25 * placement, 0);
+        return Math.max(80 - 12 * placement, 0);
     }
 }

@@ -16,6 +16,7 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -33,7 +34,6 @@ import static io.zkz.mc.minigameplugins.survivalgames.SGService.adjustLocation;
 import static io.zkz.mc.minigameplugins.survivalgames.SGService.toLocation;
 
 public class SGRound extends Round {
-    private static final int KILLS_FOR_RESPAWN_CRYSTAL = 3;
     private final String templateWorldName;
     private final List<BlockVector3> spawnLocations;
     private final BlockVector3 cornLocation;
@@ -232,7 +232,6 @@ public class SGRound extends Round {
 
     public void recordKill(Player player, Player killer) {
         String playerTeamId = TeamService.getInstance().getTeamOfPlayer(player).getId();
-        UUID killerId = killer.getUniqueId();
         String killerTeamId = TeamService.getInstance().getTeamOfPlayer(killer).getId();
 
         if (!this.kills.containsKey(killerTeamId)) {
@@ -241,29 +240,11 @@ public class SGRound extends Round {
 
         this.kills.get(killerTeamId).add(playerTeamId);
 
-//        if (this.kills.get(killerTeamId).size() % KILLS_FOR_RESPAWN_CRYSTAL == 0) {
-//            new BukkitRunnable() {
-//                @Override
-//                public void run() {
-//                    Player killer = Bukkit.getPlayer(killerId);
-//                    if (killer == null) {
-//                        return;
-//                    }
-//
-//                    var leftover = killer.getInventory().addItem(
-//                        ISB.material(Material.NETHER_STAR)
-//                            .name(ChatColor.YELLOW + "Respawn Crystal")
-//                            .lore("Right-click this to respawn your")
-//                            .lore("dead teammate.")
-//                            .build()
-//                    );
-//
-//                    if (leftover.isEmpty()) {
-//                        this.cancel();
-//                    }
-//                }
-//            }.runTaskTimer(SGService.getInstance().getPlugin(), 1, 1);
-//        }
+        // Points
+        Chat.sendAlert(killer, ChatType.ACTIVE_INFO, "You got bonus points for eliminating " + player.getDisplayName(), Points.PLAYER_KILL);
+        SoundUtils.playSound(killer, StandardSounds.GOAL_MET_MINOR, 1, 1);
+        killer.spawnParticle(Particle.TOTEM, killer.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
+        ScoreService.getInstance().earnPoints(killer, "killing", Points.PLAYER_KILL);
     }
 
     public void respawnPlayer(Player player) {
@@ -310,7 +291,6 @@ public class SGRound extends Round {
         this.triggerRoundEnd();
         this.alivePlayers.clear();
         BukkitUtils.forEachPlayer(SGService.getInstance()::setupPlayer);
-        this.setMapName(null);
     }
 
     private void fillChests() {

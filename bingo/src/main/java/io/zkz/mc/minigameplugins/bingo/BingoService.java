@@ -70,7 +70,11 @@ public class BingoService extends PluginService<BingoPlugin> {
         minigame.setPostGameDelay(600);
 
         // Player states
-        BasicPlayerState survivalMode = new BasicPlayerState(GameMode.SURVIVAL, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+        BasicPlayerState survivalMode = new BasicPlayerState(
+            GameMode.SURVIVAL,
+            new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true),
+            new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true)
+        );
         BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         BasicPlayerState creativeMode = new BasicPlayerState(GameMode.CREATIVE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
         minigame.registerPlayerState(adventureMode,
@@ -105,19 +109,19 @@ public class BingoService extends PluginService<BingoPlugin> {
                         // intentionally empty
                     } else if (minAlert == 6 && secondsRemaining <= minAlert * 60L) {
                         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                        Chat.sendAlert(ChatType.WARNING, "6 minutes remaining...");
+                        Chat.sendAlert(ChatType.WARNING, "6 minutes remaining");
                         minAlert = 2;
                     } else if (secondsRemaining <= minAlert * 60L) {
                         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                        Chat.sendAlert(ChatType.WARNING, minAlert + " minute" + (minAlert == 1 ? "" : "s") + " remaining.");
+                        Chat.sendAlert(ChatType.WARNING, minAlert + " minute" + (minAlert == 1 ? "" : "s") + " remaining");
                         --minAlert;
                     } else if (secAlert == 30 && secondsRemaining <= secAlert) {
                         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                        Chat.sendAlert(ChatType.WARNING, "30 seconds remaining.");
+                        Chat.sendAlert(ChatType.WARNING, "30 seconds remaining");
                         secAlert = 10;
                     } else if (secondsRemaining <= secAlert) {
                         SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
-                        Chat.sendAlert(ChatType.WARNING, secAlert + " second" + (secAlert == 1 ? "" : "s") + " remaining.");
+                        Chat.sendAlert(ChatType.WARNING, secAlert + " second" + (secAlert == 1 ? "" : "s") + " remaining");
                         --secAlert;
                     }
                 }
@@ -246,6 +250,7 @@ public class BingoService extends PluginService<BingoPlugin> {
     private void onRespawn(PlayerRespawnEvent event) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true));
         }, 1);
     }
 
@@ -256,10 +261,11 @@ public class BingoService extends PluginService<BingoPlugin> {
             inventory.getItemInMainHand().addEnchantment(Enchantment.DIG_SPEED, 3);
         }
     }
-    
+
     private boolean isTool(Material material) {
         return switch (material) {
-            case WOODEN_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE, WOODEN_HOE, IRON_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE, WOODEN_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL, NETHERITE_SHOVEL, WOODEN_PICKAXE, IRON_PICKAXE, GOLDEN_PICKAXE, DIAMOND_PICKAXE, NETHERITE_PICKAXE -> true;
+            case WOODEN_AXE, IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE, WOODEN_HOE, IRON_HOE, GOLDEN_HOE, DIAMOND_HOE, NETHERITE_HOE, WOODEN_SHOVEL, IRON_SHOVEL, GOLDEN_SHOVEL, DIAMOND_SHOVEL, NETHERITE_SHOVEL, WOODEN_PICKAXE, IRON_PICKAXE, GOLDEN_PICKAXE, DIAMOND_PICKAXE, NETHERITE_PICKAXE ->
+                true;
             default -> false;
         };
     }

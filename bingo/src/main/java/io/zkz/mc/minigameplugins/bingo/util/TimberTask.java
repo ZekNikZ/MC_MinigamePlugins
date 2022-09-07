@@ -3,7 +3,7 @@ package io.zkz.mc.minigameplugins.bingo.util;
 import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
+import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import org.bukkit.Location;
 
 import java.util.HashSet;
@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
-public class TimberTask extends GameTask {
+public class TimberTask extends MinigameTask {
     private final Set<BlockVector3> seen = new HashSet<>();
     private final Queue<Location> toBreak = new LinkedList<>();
     private boolean first = true;

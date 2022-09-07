@@ -35,6 +35,7 @@ public class BingoRound extends Round {
     private Map<Material, Integer> possiblePoints;
     private Map<Material, List<String>> teamCollectionOrder;
     private Map<String, Set<Material>> teamCollections;
+    private Map<UUID, Set<Material>> playerItemCollections;
 
     public BingoCard getCard() {
         return this.card;
@@ -46,6 +47,7 @@ public class BingoRound extends Round {
         this.possiblePoints = new HashMap<>();
         this.teamCollectionOrder = new HashMap<>();
         this.teamCollections = new HashMap<>();
+        this.playerItemCollections = new HashMap<>();
     }
 
     @Override
@@ -57,7 +59,7 @@ public class BingoRound extends Round {
         this.setupCollections();
 
         // Setup lobby
-        SchematicService.getInstance().loadSchematic(BingoRound.class.getResourceAsStream("/lobby.schem"), this.spawnLocation);
+        SchematicService.getInstance().placeSchematic(BingoRound.class.getResourceAsStream("/lobby.schem"), this.spawnLocation);
 
         // Gamerules
         WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
@@ -215,11 +217,15 @@ public class BingoRound extends Round {
     private void handleItemCollected(Player collector, String teamId, Material mat) {
         String itemName = WordUtils.capitalizeFully(mat.toString().replaceAll("_", " "));
 
+        // Record player collection
+        this.playerItemCollections.putIfAbsent(collector.getUniqueId(), new HashSet<>());
+        this.playerItemCollections.get(collector.getUniqueId()).add(mat);
+
         // Update team points
         int numPoints = this.possiblePoints.get(mat);
         this.teamCollections.get(teamId).add(mat);
         this.teamCollectionOrder.get(mat).add(teamId);
-        ScoreService.getInstance().earnPoints(collector.getUniqueId(), "collected " + itemName, numPoints);
+        ScoreService.getInstance().earnPoints(collector.getUniqueId(), "collected " + itemName + " (" + Points.ORDINALS.get(numPoints) + ")", numPoints);
 
         // Alert variables
         GameTeam team = TeamService.getInstance().getTeam(teamId);

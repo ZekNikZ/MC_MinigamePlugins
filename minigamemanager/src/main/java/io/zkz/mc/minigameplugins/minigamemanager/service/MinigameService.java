@@ -32,7 +32,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameSco
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamScoresScoreboardEntry;
 import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
-import io.zkz.mc.minigameplugins.minigamemanager.task.GameTask;
+import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
 import net.md_5.bungee.api.ChatColor;
@@ -162,11 +162,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private MinigameState state = MinigameState.SERVER_STARTING;
     private final Map<MinigameState, List<Runnable>> stateSetupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, List<Runnable>> stateCleanupHandlers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
-    private final Map<MinigameState, List<Supplier<GameTask>>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
+    private final Map<MinigameState, List<Supplier<MinigameTask>>> stateTasks = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Map<MinigameState, IPlayerState> statePlayerStates = new HashMap<>();
     private final Map<MinigameState, MinigameScoreboard> scoreboards = new HashMap<>();
     private final Map<MinigameState, List<BiConsumer<MinigameState, GameScoreboard>>> scoreboardModifiers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
-    private final Set<GameTask> runningTasks = new HashSet<>();
+    private final Set<MinigameTask> runningTasks = new HashSet<>();
     private int preRoundDelay = 200;
     private int postRoundDelay = 200;
     private int postGameDelay = 200;
@@ -192,7 +192,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private boolean automaticNextRound = true;
     private boolean glowingTeammates = true;
     private boolean spectatorsCanOnlySeeAliveTeammates = false;
-    private boolean useSecondInGameState = false;
 
     @Override
     protected void onEnable() {
@@ -211,7 +210,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // ==================
 
         // WAITING_FOR_PLAYERS
-        this.addTask(MinigameState.WAITING_FOR_PLAYERS, () -> new GameTask(1, 20) {
+        this.addTask(MinigameState.WAITING_FOR_PLAYERS, () -> new MinigameTask(1, 20) {
             @Override
             public void run() {
                 waitForPlayers();
@@ -313,7 +312,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.drawScoreboard(MinigameState.PRE_ROUND);
     }
 
-    public void removeRunningTask(GameTask task) {
+    public void removeRunningTask(MinigameTask task) {
         this.runningTasks.remove(task);
     }
 
@@ -341,7 +340,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             this.state = newState;
             this.stateSetupHandlers.get(newState).forEach(Runnable::run);
             this.stateTasks.get(this.state).forEach(t -> {
-                GameTask task = t.get();
+                MinigameTask task = t.get();
                 task.start(this.getPlugin());
                 this.getLogger().info("Started task with ID " + task.getTaskId() + " of type " + t.getClass().getName());
                 this.runningTasks.add(task);
@@ -367,7 +366,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.stateCleanupHandlers.get(state).add(handler);
     }
 
-    public void addTask(MinigameState state, Supplier<GameTask> taskSupplier) {
+    public void addTask(MinigameState state, Supplier<MinigameTask> taskSupplier) {
         this.stateTasks.get(state).add(taskSupplier);
     }
 
@@ -744,7 +743,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.setTournamentName(values.get("tournamentName"));
 
         if (Objects.equals(values.get("minigameId"), MinigameConstantsService.getInstance().getMinigameID())) {
-            this.initialRound = Integer.parseInt("roundNumber");
+            this.initialRound = Integer.parseInt(values.get("roundNumber"));
         }
     }
 

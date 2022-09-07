@@ -61,6 +61,11 @@ public class GuessTheBuildRound extends Round {
             we.createCuboidRegion(BlockVector3.at(24, -57, -8), BlockVector3.at(-8, -41, 24)),
             we.createPattern(Material.AIR)
         );
+        Bukkit.getWorld("guessthebuild").getEntities().forEach(entity -> {
+            if (!(entity instanceof Player)) {
+                entity.remove();
+            }
+        });
 
         // TP players
         BukkitUtils.forEachPlayer(this::setupPlayerLocation);
@@ -244,7 +249,7 @@ public class GuessTheBuildRound extends Round {
             // Compute score and placement
             int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
             String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
-            ScoreService.getInstance().earnPoints(player, "correct guess", points);
+            ScoreService.getInstance().earnPoints(player, "correct guess (" + placementOrdinal + ")", points);
 
             // Builder score
             if (this.playerPlacement == 0) {

@@ -3,23 +3,29 @@ package io.zkz.mc.minigameplugins.lobby;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
+import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
 import net.ME1312.Galaxi.Library.Version.Version;
 import net.ME1312.SubServers.Client.Bukkit.Event.SubStartedEvent;
 import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.ME1312.SubServers.Client.Common.Network.API.SubCreator;
 import net.ME1312.SubServers.Client.Common.Network.API.SubServer;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 public class TournamentManager extends PluginService<LobbyPlugin> {
@@ -85,12 +91,35 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     }
 
     public void resetMinigame() {
+        this.resetPodiums();
         String minigameId = this.currentMinigameId;
         this.currentMinigameId = null;
         this.db.addAction(conn -> {
+            List<String> keys = List.of("minigameId", "roundNumber");
 
+            try (PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+            )) {
+                conn.setAutoCommit(false);
+
+                for (String key : keys) {
+                    statement.setString(1, key);
+                    statement.setString(2, null);
+                    statement.setString(3, key);
+                    statement.addBatch();
+                }
+
+                statement.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+            }
         });
         this.removeServer(minigameId);
+    }
+
+    private void resetPodiums() {
+        
     }
 
     @EventHandler
@@ -115,7 +144,62 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
-            this.db = new MySQLDataManager<>(this, (conn) -> {})
+            this.db = new MySQLDataManager<>(this, (conn) -> {
+            })
         );
+    }
+
+    public record MinigameData(int spinnerId, String id, String name, String icon, boolean selected) {
+    }
+
+    public @Nullable List<MinigameData> getMinigames() {
+        try (Connection conn = MySQLService.getInstance().getConnection(); PreparedStatement preparedStatement = conn.prepareStatement("SELECT * from mm_minigames;")) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<MinigameData> minigames = new ArrayList<>();
+            while (resultSet.next()) {
+                minigames.add(new MinigameData(
+                    resultSet.getInt("minigameSpinnerId"),
+                    resultSet.getString("minigameId"),
+                    resultSet.getString("minigameName"),
+                    resultSet.getString("minigameIcon"),
+                    resultSet.getBoolean("minigameSelected")
+                ));
+            }
+            minigames.sort(Comparator.comparing(MinigameData::spinnerId));
+            return minigames;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    public void chooseNextMinigame(MinigameData minigame) {
+        TitleUtils.broadcastTitle("" + ChatColor.GOLD + ChatColor.BOLD + minigame.name(), ChatColor.AQUA + "You will be teleported in a few minutes.");
+        SoundUtils.playSound(StandardSounds.GOAL_MET_MAJOR, 1, 1);
+        this.db.addAction(conn -> {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "UPDATE mm_minigames SET minigameSelected=? WHERE minigameId=?;"
+            )) {
+                statement.setBoolean(1, true);
+                statement.setString(2, minigame.id());
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+            }
+        });
+        this.startMinigame(minigame.id());
+    }
+
+    public void resetAllMinigames() {
+        this.db.addAction(conn -> {
+            try (PreparedStatement statement = conn.prepareStatement(
+                "UPDATE mm_minigames SET minigameSelected=?;"
+            )) {
+                statement.setBoolean(1, false);
+                statement.executeUpdate();
+            } catch (SQLException e) {
+                GameToolsPlugin.logger().log(Level.SEVERE, "Could not store state information", e);
+            }
+        });
+        SpinnerService.getInstance().resetSpinner();
     }
 }

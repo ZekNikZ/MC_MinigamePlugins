@@ -32,8 +32,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -67,8 +65,8 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         minigame.setPostGameDelay(600);
 
         // Player states
-        BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
-        BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+        BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE);
+        BasicPlayerState spectatorMode = new BasicPlayerState(GameMode.SPECTATOR);
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
