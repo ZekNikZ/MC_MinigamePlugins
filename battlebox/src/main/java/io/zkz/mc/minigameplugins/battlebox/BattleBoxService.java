@@ -49,7 +49,7 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
 
         // Rules slides
         minigame.registerRulesSlides(ResourceAssets.SLIDES);
-        minigame.setPreRoundDelay(760);
+        minigame.setPreRoundDelay(800);
         minigame.setPostRoundDelay(200);
         minigame.setPostGameDelay(600);
 
@@ -101,8 +101,13 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
             teams.add(0, team);
         }
 
+        List<BattleBoxRound> roundCopies = new ArrayList<>();
+        this.rounds.forEach(round -> {
+            roundCopies.add(new BattleBoxRound(round.getArenas().stream().map(pair -> new Pair<>(pair.second(), pair.first())).toList()));
+        });
+        this.rounds.addAll(roundCopies);
+
         minigame.registerRounds(this.rounds.toArray(BattleBoxRound[]::new));
-//        minigame.randomizeRoundOrder();
     }
 
     @Override

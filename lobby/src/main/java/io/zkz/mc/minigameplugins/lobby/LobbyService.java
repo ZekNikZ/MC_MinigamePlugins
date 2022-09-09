@@ -53,7 +53,6 @@ public class LobbyService extends PluginService<LobbyPlugin> {
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        this.parkourCheckpoints.remove(player.getUniqueId());
         this.isInParkour.remove(player.getUniqueId());
     }
 

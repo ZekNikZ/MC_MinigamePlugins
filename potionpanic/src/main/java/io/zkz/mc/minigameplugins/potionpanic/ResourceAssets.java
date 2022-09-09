@@ -9,12 +9,12 @@ public class ResourceAssets {
     public static final List<Character> SLIDES = new ArrayList<>();
 
     static {
-        addRuleSlide('\uE800');
-        addRuleSlide('\uE801');
-        addRuleSlide('\uE802');
-        addRuleSlide('\uE803');
-        addRuleSlide('\uE804');
-        addRuleSlide('\uE805');
+//        addRuleSlide('\uE800');
+//        addRuleSlide('\uE801');
+//        addRuleSlide('\uE802');
+//        addRuleSlide('\uE803');
+//        addRuleSlide('\uE804');
+//        addRuleSlide('\uE805');
     }
 
     public static void main(String[] args) {

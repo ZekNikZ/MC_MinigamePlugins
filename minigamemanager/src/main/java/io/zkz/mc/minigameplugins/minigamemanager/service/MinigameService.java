@@ -157,7 +157,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private static void addTeamInformation(GameScoreboard scoreboard, GameTeam team) {
         scoreboard.addSpace();
-        scoreboard.addEntry(new TeamScoresScoreboardEntry(team));
+        scoreboard.addEntry("teamScores", new TeamScoresScoreboardEntry(team));
     }
 
     private MinigameState state = MinigameState.SERVER_STARTING;
@@ -192,6 +192,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private boolean automaticNextRound = true;
     private boolean glowingTeammates = true;
     private boolean spectatorsCanOnlySeeAliveTeammates = false;
+    private boolean showScoreSummary = true;
 
     @Override
     protected void onEnable() {
@@ -770,5 +771,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void earnPoints(Player player, String reason, double points) {
         ScoreService.getInstance().earnPoints(player, reason, points, this.getCurrentRoundIndex());
+    }
+
+    public void setShowScoreSummary(boolean showScoreSummary) {
+        this.showScoreSummary = showScoreSummary;
+    }
+
+    public boolean showScoreSummary() {
+        return this.showScoreSummary;
     }
 }

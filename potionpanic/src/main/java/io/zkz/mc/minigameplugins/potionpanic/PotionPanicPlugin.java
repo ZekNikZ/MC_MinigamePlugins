@@ -24,6 +24,7 @@ public class PotionPanicPlugin extends GTPlugin<PotionPanicPlugin> {
     public PotionPanicPlugin() {
         // Services
         register(PotionPanicService.getInstance());
+        register(new PotionCommands());
     }
 
     @Override

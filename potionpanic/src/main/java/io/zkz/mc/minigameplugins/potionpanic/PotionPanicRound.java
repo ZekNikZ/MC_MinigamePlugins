@@ -1,64 +1,49 @@
 package io.zkz.mc.minigameplugins.potionpanic;
 
-import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
-import io.zkz.mc.minigameplugins.gametools.util.*;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.ISB;
+import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
+import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
+import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.ScoreService;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
+import org.bukkit.util.Vector;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Stream;
 
-public class PotionPanicRound extends Round {
-    private int playerPlacement = 0;
-    private final UUID builderId;
-    private String chosenWord;
-    private String hint;
-    private final Set<UUID> correctGuessers = new HashSet<>();
-    private static int wordIndex = 0;
-    private final List<String> wordOptions = new ArrayList<>();
+public class PotionPanicRound extends PlayerAliveDeadRound {
+    private int numThrows = 0;
+    private GameTeam winner;
+    private World world;
+    private boolean isFirstPotion = true;
+    private boolean roundCompleted = false;
 
-    public PotionPanicRound(UUID builderId) {
+    public PotionPanicRound() {
         super(null);
-        this.builderId = builderId;
-    }
-
-    public UUID getBuilderId() {
-        return this.builderId;
-    }
-
-    public Player getBuilder() {
-        return Bukkit.getPlayer(this.builderId);
     }
 
     @Override
     public void onSetup() {
-        // Clear arena
-        WorldEditService we = WorldEditService.getInstance();
-        var weWorld = we.wrapWorld(Bukkit.getWorld("guessthebuild"));
-        we.fillRegion(
-            weWorld,
-            we.createCuboidRegion(BlockVector3.at(24, -60, -8), BlockVector3.at(-8, -58, 24)),
-            we.createPattern(Material.WHITE_TERRACOTTA)
-        );
-        we.fillRegion(
-            weWorld,
-            we.createCuboidRegion(BlockVector3.at(24, -57, -8), BlockVector3.at(-8, -41, 24)),
-            we.createPattern(Material.AIR)
-        );
+        this.world = Bukkit.getWorld("potionpanic");
 
-        // TP players
-        BukkitUtils.forEachPlayer(this::setupPlayerLocation);
+        // Reset floor
+        SchematicService.getInstance().placeSchematic(PotionPanicRound.class.getResourceAsStream("/floor.schem"), Locations.SCHEMATIC_ORIGIN);
 
         // World setup
         WorldSyncUtils.setDifficulty(Difficulty.EASY);
@@ -66,161 +51,137 @@ public class PotionPanicRound extends Round {
         WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         WorldSyncUtils.setWeatherClear();
         WorldSyncUtils.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-        WorldSyncUtils.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-        WorldSyncUtils.setGameRule(GameRule.FALL_DAMAGE, false);
-        WorldSyncUtils.setGameRule(GameRule.DO_TILE_DROPS, false);
-        WorldSyncUtils.setGameRule(GameRule.DO_MOB_LOOT, false);
-        WorldSyncUtils.setGameRule(GameRule.MOB_GRIEFING, false);
-        WorldSyncUtils.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-        WorldSyncUtils.setGameRule(GameRule.DO_FIRE_TICK, false);
+        WorldSyncUtils.setGameRule(GameRule.NATURAL_REGENERATION, false);
+    }
 
-        // Choose word options
-        this.wordOptions.add(PotionPanicService.getInstance().getWords().get(wordIndex++).toUpperCase());
-        this.wordOptions.add(PotionPanicService.getInstance().getWords().get(wordIndex++).toUpperCase());
-        this.wordOptions.add(PotionPanicService.getInstance().getWords().get(wordIndex++).toUpperCase());
+    @Override
+    protected Collection<UUID> getInitialAlivePlayers() {
+        return Stream.concat(
+            TeamService.getInstance().getTeamMembers(PotionPanicService.getInstance().getTeam1()).stream(),
+            TeamService.getInstance().getTeamMembers(PotionPanicService.getInstance().getTeam2()).stream()
+        ).toList();
     }
 
     @Override
     public void onEnterPreRound() {
-        // setup player gamemodes
-        BukkitUtils.forEachPlayer(player -> {
-            player.getInventory().clear();
-        });
-        Player builder = this.getBuilder();
+        super.onEnterPreRound();
+
+        // Clear inventories
+        this.world.getEntitiesByClass(Item.class).forEach(Entity::remove);
+        BukkitUtils.forEachPlayer(player -> player.getInventory().clear());
+
+        // Teleport
+        this.getOnlineAlivePlayers().forEach(this::setupPlayer);
+    }
+
+    @Override
+    protected void onPlayerSetup(Player player, PlayerState playerState) {
+        switch (playerState) {
+            case ALIVE -> {
+                GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+                if (Objects.equals(team, PotionPanicService.getInstance().getTeam1())) {
+                    player.teleport(Locations.TEAM_SPAWNS[0]);
+                } else if (Objects.equals(team, PotionPanicService.getInstance().getTeam2())) {
+                    player.teleport(Locations.TEAM_SPAWNS[1]);
+                }
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(1.0);
+                player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            }
+            case DEAD, SPEC -> player.teleport(Locations.SPEC_SPAWN);
+        }
     }
 
     @Override
     public void onRoundStart() {
-        // Pick word if player didn't already
-        if (this.chosenWord == null) {
-            this.chosenWord = this.wordOptions.get(0);
-        }
-        this.hint = this.chosenWord.replaceAll("[^ ]", "_");
+        // Spawn initial potion
+        this.world.dropItem(
+            Locations.SCHEMATIC_ORIGIN.clone().add(0.5, 2.5, 0.5),
+            ISB.material(Material.SPLASH_POTION)
+                .meta(itemMeta -> ((PotionMeta) itemMeta)
+                    .setBasePotionData(new PotionData(PotionType.INSTANT_DAMAGE))).build()
+        ).setVelocity(new Vector(0, 0.3, 0));
 
-        // Creative mode
-        Player builder = this.getBuilder();
-        BukkitUtils.runNextTick(() -> {
-            builder.setGameMode(GameMode.CREATIVE);
-        });
-
-        // Setup timers
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(PotionPanicService.getInstance().getPlugin(), 20, 120, TimeUnit.SECONDS, this::roundIsOver));
-        MinigameService.getInstance().getTimer().addHook(new Runnable() {
-            private boolean showingWord = false;
-            private boolean hint1 = false;
-            private boolean hint2 = false;
-
-            @Override
-            public void run() {
-                long seconds = MinigameService.getInstance().getTimer().getCurrentTime(TimeUnit.SECONDS);
-                if (seconds < 90 && !showingWord) {
-                    showingWord = true;
-                    SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                }
-                if (seconds < 60 && !hint1) {
-                    hint1 = true;
-                    addHint();
-                    SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                }
-                if (seconds < 30 && !hint2) {
-                    hint2 = true;
-                    addHint();
-                    SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-                }
-
-                Player builder = getBuilder();
-                if (showingWord) {
-                    BukkitUtils.allPlayersExcept(builder).forEach(player -> TitleUtils.sendActionBarMessage(player, "" + ChatColor.AQUA + "Hint: " + ChatColor.RESET + hint));
-                }
-                TitleUtils.sendActionBarMessage(builder, "" + ChatColor.AQUA + "Your word: " + ChatColor.RESET + chosenWord);
-            }
-        });
+        // Clear barriers
+        WorldEditService we = WorldEditService.getInstance();
+        com.sk89q.worldedit.world.World weWorld = we.wrapWorld(this.world);
+        we.replaceRegion(
+            weWorld,
+            we.createCuboidRegion(Locations.ARENA_MIN, Locations.ARENA_MAX),
+            we.createMask(weWorld, Material.BARRIER),
+            we.createPattern(Material.AIR)
+        );
     }
 
-    @Override
-    public void onEnterPostRound() {
-        Chat.sendAlert(ChatType.GAME_INFO, "The prompt was " + ChatColor.AQUA + ChatColor.BOLD + chosenWord);
-    }
-
-    private void addHint() {
-        Random rand = new Random();
-        int hintIndex;
-        do {
-            hintIndex = rand.nextInt(this.chosenWord.length());
-        } while (this.hint.charAt(hintIndex) != '_');
-        this.hint = this.hint.substring(0, hintIndex) + this.chosenWord.charAt(hintIndex) + this.hint.substring(hintIndex + 1);
-    }
-
-    public void setupPlayerLocation(Player player) {
-        player.teleport(new Location(Bukkit.getWorld("guessthebuild"), 8, -46, 8));
-    }
-
-
-    public boolean handlePlayerGuess(Player player, String guess) {
-        if (player.getUniqueId().equals(this.builderId)) {
-            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your own build!"));
-            return true;
-        }
-
-        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        if (team != null && team.isSpectator()) {
-            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You can't guess as a spectator!"));
-            return true;
-        }
-
-//        GameTeam builderTeam = TeamService.getInstance().getTeamOfPlayer(this.builderId);
-//        if (Objects.equals(team, builderTeam)) {
-//            Chat.sendAlert(player, ChatType.WARNING, "You can't guess for your teammate's build!");
-//            return true;
-//        }
-
-        if (this.correctGuessers.contains(player.getUniqueId())) {
-            BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You already guessed correctly!"));
-            return true;
-        }
-
-        if (!guess.strip().equalsIgnoreCase(this.chosenWord)) {
-            return false;
-        }
-
-        this.correctGuessers.add(player.getUniqueId());
-
-        BukkitUtils.runNextTick(() -> {
-            // Compute score and placement
-            int points = Points.getPlayerPlacementPointValue(this.playerPlacement);
-            String placementOrdinal = NumberUtils.ordinal(this.playerPlacement + 1);
-            ScoreService.getInstance().earnPoints(player, "correct guess", points);
-
-            // Builder score
-            if (this.playerPlacement == 0) {
-                ScoreService.getInstance().earnPoints(this.builderId, "successful build", Points.SUCCESSFUL_BUILD);
+    public void handlePlayerThrow(Player player) {
+        // Start timer to spawn next potion
+        BukkitUtils.runLater(() -> {
+            if (this.roundCompleted) {
+                return;
             }
 
-            // Chat message
-            Chat.sendAlert(player, ChatType.SUCCESS, "You correctly guessed the build! (" + ChatColor.AQUA + ChatColor.BOLD + placementOrdinal + ChatColor.GREEN + ChatColor.BOLD + " place)", points);
-            Chat.sendAlert(BukkitUtils.allPlayersExcept(player), ChatType.ACTIVE_INFO, player.getDisplayName() + ChatColor.GRAY + " correctly guessed the build!");
-            SoundUtils.playSound(player, StandardSounds.GOAL_MET_MAJOR, 1, 1);
-            SoundUtils.playSound(BukkitUtils.allPlayersExcept(player), StandardSounds.ALERT_WARNING, 1, 1);
-            player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
-
-            // Increment placement
-            this.playerPlacement++;
-
-            // Check if round is over
-            if (this.correctGuessers.size() == MinigameService.getInstance().getPlayers().size() - 1) {
-                this.roundIsOver();
+            GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
+            if (PotionPanicService.getInstance().getTeam1().equals(team)) {
+                // Spawn team 2 potion
+                this.world.dropItem(
+                    Locations.TEAM_SPAWNS[1].clone().add(0, 2, 0),
+                    ISB.material(Material.SPLASH_POTION)
+                        .meta(itemMeta -> ((PotionMeta) itemMeta)
+                            .setBasePotionData(new PotionData(PotionType.INSTANT_DAMAGE))).build()
+                ).setVelocity(new Vector(0, 0.3, 0));
+            } else {
+                // Spawn team 1 potion
+                this.world.dropItem(
+                    Locations.TEAM_SPAWNS[0].clone().add(0, 2, 0),
+                    ISB.material(Material.SPLASH_POTION)
+                        .meta(itemMeta -> ((PotionMeta) itemMeta)
+                            .setBasePotionData(new PotionData(PotionType.INSTANT_DAMAGE))).build()
+                ).setVelocity(new Vector(0, 0.3, 0));
             }
-        });
+        }, 40);
 
-        return true;
+        // Check if arena needs to shrink (every 6 throws)
+        if (++numThrows % 6 == 0) {
+            this.shrinkArena();
+        }
+    }
+
+    private void shrinkArena() {
+        // TODO: shrink arena
+    }
+
+    public void handlePlayerDeath(Player player) {
+        // Mark as dead
+        this.setDead(player);
+        SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
+
+        // Check if round is over
+        if (!this.isTeamAlive(player)) {
+            this.roundIsOver();
+        }
     }
 
     private void roundIsOver() {
-        this.triggerRoundEnd();
+        this.roundCompleted = true;
+        this.winner = this.isTeamAlive(PotionPanicService.getInstance().getTeam1()) ? PotionPanicService.getInstance().getTeam1() : PotionPanicService.getInstance().getTeam2();
+
+        PotionPanicService.getInstance().getWins().compute(this.winner, (k, v) -> v + 1);
+        PotionPanicService.getInstance().notifyObservers();
+
+        if (PotionPanicService.getInstance().getWins().get(this.winner) >= 3) {
+            MinigameService.getInstance().setState(MinigameState.POST_GAME);
+        } else {
+            this.triggerRoundEnd();
+        }
     }
 
-    @Override
-    public @NotNull String getMapName() {
-        return super.getMapName();
+    public GameTeam getWinner() {
+        return this.winner;
+    }
+
+    public void handlePotionPickUp(Player player) {
+        if (this.isFirstPotion) {
+            player.setCooldown(Material.SPLASH_POTION, 100);
+            this.isFirstPotion = false;
+        }
     }
 }

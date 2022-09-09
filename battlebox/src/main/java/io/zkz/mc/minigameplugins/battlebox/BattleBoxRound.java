@@ -89,6 +89,9 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
             }
 
             player.getInventory().clear();
+            player.setHealth(20.0);
+            player.setFoodLevel(20);
+
             this.setupPlayer(player);
             var match = this.matches.get(this.arenaIndexOf(player));
             Chat.sendAlertFormatted(player, ChatType.GAME_INFO, "Round %d: %s vs %s", (Object) (MinigameService.getInstance().getCurrentRoundIndex() + 1), match.first().getDisplayName() + ChatColor.RESET, match.second().getDisplayName());
@@ -99,7 +102,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
-        if (currentTimeMillis <= 8000 && !movedDown) {
+        if (currentTimeMillis <= 10000 && !movedDown) {
             BukkitUtils.forEachPlayer(player -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
                 if (team == null || team.isSpectator()) {
@@ -109,6 +112,16 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                 int arenaIndex = this.arenaIndexOf(player);
                 int teamIndex = this.teamIndexOf(arenaIndex, TeamService.getInstance().getTeamOfPlayer(player));
                 player.teleport(this.config.computedTeamArenaSpawn(arenaIndex, teamIndex));
+
+                // Assign kits to players who didn't pick
+                if (this.kitSelections.get(player.getUniqueId()) == null) {
+                    for (String kit : this.config.map().kits().keySet()) {
+                        if (this.assignKit(player, kit)) {
+                            break;
+                        }
+                    }
+                }
+                setupPlayerInventory(player);
             });
             movedDown = true;
             return;
@@ -138,24 +151,6 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
     @Override
     public void onRoundStart() {
-        // Assign kits to players who didn't pick
-        BukkitUtils.forEachPlayer(player -> {
-            GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-            if (team == null || team.isSpectator()) {
-                return;
-            }
-
-            if (this.kitSelections.get(player.getUniqueId()) == null) {
-                for (String kit : this.config.map().kits().keySet()) {
-                    if (this.assignKit(player, kit)) {
-                        break;
-                    }
-                }
-            }
-
-            setupPlayerInventory(player);
-        });
-
         // Wall
         WorldEditService we = WorldEditService.getInstance();
         var weWorld = we.wrapWorld(this.config.world());
@@ -416,5 +411,9 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         if (this.activeMatches.stream().noneMatch(x -> x)) {
             this.triggerRoundEnd();
         }
+    }
+
+    public List<Pair<GameTeam, GameTeam>> getArenas() {
+        return this.matches;
     }
 }

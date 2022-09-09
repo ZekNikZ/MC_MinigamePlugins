@@ -187,6 +187,10 @@ public class GuessTheBuildRound extends Round {
                     SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
                 }
 
+                if (seconds < 10) {
+                    SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
+                }
+
                 Player builder = getBuilder();
                 if (showingWord) {
                     BukkitUtils.allPlayersExcept(builder).forEach(player -> TitleUtils.sendActionBarMessage(player, "" + ChatColor.AQUA + "Hint: " + ChatColor.RESET + hint));

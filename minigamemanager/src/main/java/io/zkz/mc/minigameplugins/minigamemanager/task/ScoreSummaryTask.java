@@ -32,6 +32,11 @@ public class ScoreSummaryTask extends MinigameTask {
 
     @Override
     public void run() {
+        if (!MinigameService.getInstance().showScoreSummary()) {
+            this.cancel();
+            return;
+        }
+
         Chat.sendMessage(" ");
         switch (this.slideNum) {
             case 0 -> {
@@ -123,7 +128,7 @@ public class ScoreSummaryTask extends MinigameTask {
             .limit(numToDisplay)
             .forEach(entry -> {
                 String placementStr = StringUtils.padOnLeftWithPixels("" + placement.getAndIncrement(), 20) + ". ";
-                String entryNameStr = StringUtils.padOnRightWithPixels(entry.name() + ChatColor.RESET, 128);
+                String entryNameStr = StringUtils.padOnRightWithPixels(entry.name() + ChatColor.RESET, 160);
                 String pointsStr;
                 if (entry.multiplier() == 1) {
                     pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + Chat.Constants.POINT_CHAR).formatted(entry.points()), 45);

@@ -6,6 +6,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.*;
 
 public class PlayerAliveDeadRound extends Round {
@@ -30,6 +31,7 @@ public class PlayerAliveDeadRound extends Round {
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void onEnterPreRound() {
         this.alivePlayers.addAll(this.getInitialAlivePlayers());
     }
@@ -97,5 +99,9 @@ public class PlayerAliveDeadRound extends Round {
 
     public boolean isTeamAlive(GameTeam team) {
         return this.alivePlayers.stream().anyMatch(playerId -> Objects.equals(TeamService.getInstance().getTeamOfPlayer(playerId), team));
+    }
+
+    public boolean isTeamAlive(Player player) {
+        return this.isTeamAlive(TeamService.getInstance().getTeamOfPlayer(player));
     }
 }

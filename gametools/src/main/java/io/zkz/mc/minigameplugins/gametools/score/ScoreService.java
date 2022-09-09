@@ -120,6 +120,7 @@ public class ScoreService extends PluginService<GameToolsPlugin> implements IObs
         this.loadAllData();
 
         return this.entries.stream()
+            .filter(e -> TeamService.getInstance().getTeamOfPlayer(e.playerId()) != null)
             .collect(Collectors.groupingBy(
                 entry -> TeamService.getInstance().getTeamOfPlayer(entry.playerId()),
                 Collectors.summingDouble(ScoreEntry::getTotalPoints)
