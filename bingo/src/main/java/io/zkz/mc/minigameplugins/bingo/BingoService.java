@@ -248,10 +248,10 @@ public class BingoService extends PluginService<BingoPlugin> {
 
     @EventHandler
     private void onRespawn(PlayerRespawnEvent event) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this.getPlugin(), () -> {
+        BukkitUtils.runNextTick(() -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true));
-        }, 1);
+        });
     }
 
     @EventHandler
