@@ -133,4 +133,8 @@ public class GameTeam {
     public Material getWoolColor() {
         return BlockUtils.getWoolColor(this.scoreboardColor);
     }
+
+    public Material getConcreteColor() {
+        return BlockUtils.getConcreteColor(this.scoreboardColor);
+    }
 }

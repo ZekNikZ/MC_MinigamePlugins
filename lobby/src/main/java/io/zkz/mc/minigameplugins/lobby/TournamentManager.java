@@ -1,22 +1,27 @@
 package io.zkz.mc.minigameplugins.lobby;
 
+import com.sk89q.worldedit.math.BlockVector3;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
-import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
+import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.util.*;
+import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import net.ME1312.Galaxi.Library.Version.Version;
 import net.ME1312.SubServers.Client.Bukkit.Event.SubStartedEvent;
+import net.ME1312.SubServers.Client.Bukkit.Event.SubStoppedEvent;
 import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.ME1312.SubServers.Client.Common.Network.API.SubCreator;
 import net.ME1312.SubServers.Client.Common.Network.API.SubServer;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +31,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class TournamentManager extends PluginService<LobbyPlugin> {
     private static final TournamentManager INSTANCE = new TournamentManager();
@@ -92,6 +99,11 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
 
     public void resetMinigame() {
         this.resetPodiums();
+
+        if (this.currentMinigameId == null) {
+            return;
+        }
+
         String minigameId = this.currentMinigameId;
         this.currentMinigameId = null;
         this.db.addAction(conn -> {
@@ -118,8 +130,28 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
         this.removeServer(minigameId);
     }
 
-    private void resetPodiums() {
-
+    public void resetPodiums() {
+        Map<GameTeam, Double> scores = TeamService.getInstance().getAllNonSpectatorTeams().stream().collect(Collectors.toMap(team -> team, team -> 0.0));
+        ScoreService.getInstance().loadAllData();
+        ScoreService.getInstance().getEventTeamScoreSummary().forEach((team, score) -> {
+            if (scores.containsKey(team)) {
+                scores.put(team, score);
+            }
+        });
+        List<Map.Entry<GameTeam, Double>> entries = scores.entrySet().stream()
+            .sorted(Comparator.comparing((Function<Map.Entry<GameTeam, Double>, Double>) Map.Entry::getValue).reversed().thenComparing(entry -> entry.getKey().getDisplayName()))
+            .toList();
+        WorldEditService we = WorldEditService.getInstance();
+        var weWorld = we.wrapWorld(Bukkit.getWorld("world"));
+        for (int i = 0; i < entries.size(); i++) {
+            Pair<BlockVector3, BlockVector3> podium = Podiums.PODIUMS.get(i);
+            we.replaceRegion(
+                weWorld,
+                we.createCuboidRegion(podium.first(), podium.second()),
+                we.createMask(weWorld, BlockUtils.allConcretes().toArray(new Material[0])),
+                we.createPattern(entries.get(i).getKey().getConcreteColor())
+            );
+        }
     }
 
     @EventHandler
@@ -127,6 +159,13 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
         if (this.currentMinigameId != null && event.getServer().equals(this.currentMinigameId)) {
             this.sendPlayersToServer(this.currentMinigameId);
         }
+    }
+
+    @EventHandler
+    private void onSubServerStop(SubStoppedEvent event) {
+        ScoreService.getInstance().loadAllData();
+        this.resetPodiums();
+        SpinnerService.getInstance().resetSpinner();
     }
 
     @EventHandler
@@ -201,5 +240,6 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
             }
         });
         SpinnerService.getInstance().resetSpinner();
+        this.resetPodiums();
     }
 }

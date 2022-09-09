@@ -780,4 +780,12 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     public boolean showScoreSummary() {
         return this.showScoreSummary;
     }
+
+    public boolean isSpectatorsCanOnlySeeAliveTeammates() {
+        return spectatorsCanOnlySeeAliveTeammates;
+    }
+
+    public void setSpectatorsCanOnlySeeAliveTeammates(boolean spectatorsCanOnlySeeAliveTeammates) {
+        this.spectatorsCanOnlySeeAliveTeammates = spectatorsCanOnlySeeAliveTeammates;
+    }
 }

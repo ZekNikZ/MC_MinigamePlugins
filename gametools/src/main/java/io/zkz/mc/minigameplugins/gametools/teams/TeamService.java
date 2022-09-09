@@ -146,6 +146,10 @@ public class TeamService extends GameToolsService {
         return this.teams.values().stream().toList();
     }
 
+    public Collection<GameTeam> getAllNonSpectatorTeams() {
+        return this.teams.values().stream().filter(team -> !team.isSpectator()).toList();
+    }
+
     /**
      * Remove all teams.
      */

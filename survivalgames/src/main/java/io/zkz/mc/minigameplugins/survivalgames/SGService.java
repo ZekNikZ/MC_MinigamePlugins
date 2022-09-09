@@ -398,6 +398,10 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onSpectateTeleport(PlayerTeleportEvent event) {
+        if (!MinigameService.getInstance().isSpectatorsCanOnlySeeAliveTeammates()) {
+            return;
+        }
+
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.SPECTATE) {
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
             if (team != null && event.getPlayer().getSpectatorTarget() == null && this.getCurrentRound().isTeamAlive(team)) {
@@ -408,6 +412,10 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
+        if (!MinigameService.getInstance().isSpectatorsCanOnlySeeAliveTeammates()) {
+            return;
+        }
+
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
         if (event.getPlayer().getGameMode() == GameMode.SPECTATOR && this.getCurrentRound().isTeamAlive(team)) {
             event.setCancelled(true);

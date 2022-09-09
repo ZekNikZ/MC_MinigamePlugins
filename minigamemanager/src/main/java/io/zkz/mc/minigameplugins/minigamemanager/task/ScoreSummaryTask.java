@@ -100,6 +100,7 @@ public class ScoreSummaryTask extends MinigameTask {
             }
             case 3 -> {
                 Chat.sendMessage(ChatColor.BOLD + "The current event standings:");
+                ScoreService.getInstance().loadAllData();
                 Map<GameTeam, Double> teamScores = ScoreService.getInstance().getEventTeamScoreSummary();
                 this.displayScoreboard(
                     MinigameService.getInstance().getGameTeams().stream()

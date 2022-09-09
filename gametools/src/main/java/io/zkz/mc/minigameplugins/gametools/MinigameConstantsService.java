@@ -5,6 +5,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class MinigameConstantsService extends GameToolsService {
     private static final MinigameConstantsService INSTANCE = new MinigameConstantsService();
+
     public static MinigameConstantsService getInstance() {
         return INSTANCE;
     }
@@ -13,7 +14,7 @@ public class MinigameConstantsService extends GameToolsService {
     private String id;
 
     private String chatPrefixFormat = ChatColor.GRAY + "[" + ChatColor.AQUA + "%s" + ChatColor.GRAY + "]" + ChatColor.RESET + " ";
-    private String scoreboardTitleFormat = ChatColor.AQUA + "%s";
+    private String scoreboardTitleFormat = "" + ChatColor.GOLD + ChatColor.BOLD + "%s";
 
     @Override
     protected void setup() {
@@ -58,7 +59,7 @@ public class MinigameConstantsService extends GameToolsService {
         this.chatPrefixFormat = format;
     }
 
-    public void setScoreboardTitleFormat(String format) {
+    public void setScoreboardTitle(String format) {
         this.scoreboardTitleFormat = format;
     }
 }

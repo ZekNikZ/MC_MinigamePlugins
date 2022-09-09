@@ -6,14 +6,14 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -38,6 +38,13 @@ public class LobbyService extends PluginService<LobbyPlugin> {
 
     private final Map<UUID, Location> parkourCheckpoints = new HashMap<>();
     private final Map<UUID, Boolean> isInParkour = new HashMap<>();
+
+    @Override
+    protected void onEnable() {
+        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + "MC Tournament 1");
+        scoreboard.addEntry(new EventTeamScoresScoreboardEntry());
+        ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+    }
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {

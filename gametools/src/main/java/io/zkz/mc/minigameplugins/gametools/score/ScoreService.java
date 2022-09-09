@@ -117,8 +117,6 @@ public class ScoreService extends PluginService<GameToolsPlugin> implements IObs
     }
 
     public Map<GameTeam, Double> getEventTeamScoreSummary() {
-        this.loadAllData();
-
         return this.entries.stream()
             .filter(e -> TeamService.getInstance().getTeamOfPlayer(e.playerId()) != null)
             .collect(Collectors.groupingBy(
@@ -208,6 +206,8 @@ public class ScoreService extends PluginService<GameToolsPlugin> implements IObs
         } catch (SQLException e) {
             GameToolsPlugin.logger().log(Level.SEVERE, "Could not load score data", e);
         }
+
+        this.notifyObservers();
     }
 
     public void setMultiplier(double multiplier) {

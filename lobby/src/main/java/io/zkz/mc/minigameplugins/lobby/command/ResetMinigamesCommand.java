@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.lobby.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.lobby.Permissions;
-import io.zkz.mc.minigameplugins.lobby.SpinnerService;
+import io.zkz.mc.minigameplugins.lobby.TournamentManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
@@ -27,7 +27,7 @@ public class ResetMinigamesCommand extends ArgumentCommandExecutor {
 
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
-        SpinnerService.getInstance().resetSpinner();
+        TournamentManager.getInstance().resetAllMinigames();
         return true;
     }
 }
