@@ -127,7 +127,7 @@ public class SGRound extends Round {
             player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
             player.setFoodLevel(20);
             player.setTotalExperience(0);
-            player.setLevel(10);
+            player.setLevel(4);
             player.setExp(0);
         });
     }

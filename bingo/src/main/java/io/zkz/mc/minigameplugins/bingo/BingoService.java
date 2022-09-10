@@ -20,7 +20,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -73,10 +72,21 @@ public class BingoService extends PluginService<BingoPlugin> {
         BasicPlayerState survivalMode = new BasicPlayerState(
             GameMode.SURVIVAL,
             new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true),
-            new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true)
+            new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true),
+            new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 1000000, 0, true)
         );
-        BasicPlayerState adventureMode = new BasicPlayerState(GameMode.ADVENTURE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
-        BasicPlayerState creativeMode = new BasicPlayerState(GameMode.CREATIVE, new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
+        BasicPlayerState adventureMode = new BasicPlayerState(
+            GameMode.ADVENTURE,
+            new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true),
+            new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true),
+            new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 1000000, 0, true)
+        );
+        BasicPlayerState creativeMode = new BasicPlayerState(
+            GameMode.CREATIVE,
+            new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true),
+            new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true),
+            new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 1000000, 0, true)
+        );
         minigame.registerPlayerState(adventureMode,
             MinigameState.SETUP,
             MinigameState.WAITING_FOR_PLAYERS,
@@ -141,7 +151,7 @@ public class BingoService extends PluginService<BingoPlugin> {
         // State change titles
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-            TitleUtils.broadcastTitle(ChatColor.RED + "Round starts in 20 seconds", ChatColor.GOLD + "Get ready to go!", 10, 70, 20);
+            TitleUtils.broadcastTitle(ChatColor.RED + "Round starts in 45 seconds", ChatColor.GOLD + "Get ready to go!", 10, 70, 20);
         });
         minigame.addSetupHandler(MinigameState.POST_ROUND, () -> {
             SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
@@ -251,6 +261,7 @@ public class BingoService extends PluginService<BingoPlugin> {
         BukkitUtils.runNextTick(() -> {
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1000000, 1, true));
             event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 0, true));
+            event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 1000000, 0, true));
         });
     }
 
