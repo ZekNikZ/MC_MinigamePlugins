@@ -15,6 +15,7 @@ public class ResourceAssets {
         addRuleSlide('\uE103');
         addRuleSlide('\uE104');
         addRuleSlide('\uE105');
+        addRuleSlide('\uE106');
     }
 
     public static void main(String[] args) {
