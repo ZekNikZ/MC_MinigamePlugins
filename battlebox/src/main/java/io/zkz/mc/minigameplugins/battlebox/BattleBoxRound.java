@@ -314,14 +314,12 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         // Tell system they are dead
         this.setDead(player);
 
-        if (killer == null) {
-            return;
+        if (killer != null) {
+            // Assign scores
+            SoundUtils.playSound(killer, StandardSounds.GOAL_MET_MINOR, 1, 1);
+            player.spawnParticle(Particle.TOTEM, killer.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
+            MinigameService.getInstance().earnPoints(killer, "kill", Points.KILL);
         }
-
-        // Assign scores
-        SoundUtils.playSound(player, StandardSounds.GOAL_MET_MINOR, 1, 1);
-        player.spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 200, 1.5, 0.6, 1.5, 0);
-        MinigameService.getInstance().earnPoints(killer, "kill", Points.KILL);
 
         // Check if this match is over (if so, play a sound and title and assign winning scores)
         this.checkIfMatchIsOver(this.arenaIndexOf(player));
@@ -372,15 +370,15 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
                 this.matchWinners.set(arenaIndex, match.first());
                 teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
                 otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
-                points = Points.WINNING / teamMembers.size();
-                otherPoints = Points.LOSING / otherTeamMembers.size();
+                points = teamMembers.size() > 0 ? Points.WINNING / teamMembers.size() : 0;
+                otherPoints = otherTeamMembers.size() > 0 ? Points.LOSING / otherTeamMembers.size() : 0;
             } else if (woolCount2 > woolCount1) {
                 // Team 2 won
                 this.matchWinners.set(arenaIndex, match.second());
                 teamMembers = TeamService.getInstance().getOnlineTeamMembers(match.second());
                 otherTeamMembers = TeamService.getInstance().getOnlineTeamMembers(match.first());
-                points = Points.WINNING / teamMembers.size();
-                otherPoints = Points.LOSING / otherTeamMembers.size();
+                points = teamMembers.size() > 0 ? Points.WINNING / teamMembers.size() : 0;
+                otherPoints = otherTeamMembers.size() > 0 ? Points.LOSING / otherTeamMembers.size() : 0;
             } else {
                 // Tie
                 teamMembers = List.of();

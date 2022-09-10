@@ -242,7 +242,7 @@ public abstract class TGTTOSRound extends PlayerAliveDeadRound {
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
         if (!this.isTeamAlive(team)) {
             // Compute score and placement
-            int teamPoints = Points.getTeamPlacementPointValue(this.teamPlacement) / TeamService.getInstance().getTeamMembers(team).size();
+            int teamPoints = TeamService.getInstance().getTeamMembers(team).size() > 0 ? Points.getTeamPlacementPointValue(this.teamPlacement) / TeamService.getInstance().getTeamMembers(team).size() : 0;
             String teamPlacementOrdinal = NumberUtils.ordinal(this.teamPlacement + 1);
             MinigameService.getInstance().earnPoints(player, "team completion", points);
 

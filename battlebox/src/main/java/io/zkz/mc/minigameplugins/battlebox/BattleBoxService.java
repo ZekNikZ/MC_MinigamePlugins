@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.nio.file.Path;
@@ -198,5 +199,10 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
         BukkitUtils.runNextTick(() -> this.getCurrentRound().setupPlayerLocation(event.getPlayer()));
+    }
+
+    @EventHandler
+    private void onPlayerQuit(PlayerQuitEvent event) {
+        this.getCurrentRound().recordKill(event.getPlayer(), null);
     }
 }
