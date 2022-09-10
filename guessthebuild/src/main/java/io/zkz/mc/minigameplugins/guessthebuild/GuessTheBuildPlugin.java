@@ -25,6 +25,7 @@ public class GuessTheBuildPlugin extends GTPlugin<GuessTheBuildPlugin> {
     public GuessTheBuildPlugin() {
         // Services
         register(GuessTheBuildService.getInstance());
+        register(new GuessTheBuildCommands());
     }
 
     @Override

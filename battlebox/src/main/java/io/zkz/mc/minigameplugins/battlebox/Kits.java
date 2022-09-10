@@ -56,12 +56,13 @@ public class Kits {
             );
         },
         "crossbow", (player, inv) -> {
+            inv.remove(Material.BOW);
             inv.setItemInOffHand(
                 ISB.material(Material.CROSSBOW)
                     .unbreakable()
                     .build());
             inv.addItem(
-                ISB.stack(Material.ARROW, 2)
+                ISB.stack(Material.ARROW, 1)
             );
         },
         "creepers", (player, inv) -> {

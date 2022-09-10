@@ -64,7 +64,7 @@ public class SGService extends PluginService<SGPlugin> {
         minigame.setAutomaticPreRound(false);
         minigame.setAutomaticShowRules(false);
 //        minigame.setAutomaticNextRound(false);
-        minigame.setGlowingTeammates(false);
+        minigame.setGlowingTeammates(true);
         minigame.setPostRoundDelay(1);
 
         MinigameConstantsService.getInstance().setMinigameID("survivalgames");
@@ -91,7 +91,7 @@ public class SGService extends PluginService<SGPlugin> {
                 .filter(this.getCurrentRound()::isAlive)
                 .forEach(p -> p.setGameMode(GameMode.SURVIVAL));
 
-            minigame.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 30, TimeUnit.MINUTES));
+            minigame.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, 15, TimeUnit.MINUTES));
         });
         minigame.registerPlayerState(spectatorMode,
             MinigameState.POST_ROUND,
@@ -104,7 +104,6 @@ public class SGService extends PluginService<SGPlugin> {
         // State change titles
         minigame.addSetupHandler(MinigameState.PRE_ROUND, () -> {
             BukkitUtils.forEachPlayer(player -> {
-                MinigameService.getInstance().setGlowingTeammates(true);
 
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
                 if (team.isSpectator()) {
@@ -123,7 +122,6 @@ public class SGService extends PluginService<SGPlugin> {
 
         // In game scoreboard
         minigame.registerGlobalScoreboard((state, scoreboard) -> {
-            scoreboard.removeEntry("gameName");
         });
         BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
             scoreboard.addSpace();
@@ -161,6 +159,8 @@ public class SGService extends PluginService<SGPlugin> {
 
     private void setDead(Player player) {
         player.teleport(this.lobbySpawnLocation);
+        BukkitUtils.forEachPlayer(p -> p.hidePlayer(this.getPlugin(), player));
+
         this.setDead(player.getUniqueId(), player.getDisplayName());
     }
 

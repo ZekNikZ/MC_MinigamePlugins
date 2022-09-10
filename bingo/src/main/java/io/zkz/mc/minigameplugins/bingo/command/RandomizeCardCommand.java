@@ -29,7 +29,7 @@ public class RandomizeCardCommand extends ArgumentCommandExecutor {
 
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
-        ((BingoRound) MinigameService.getInstance().getCurrentRound()).getCard().randomizeItems();
+        ((BingoRound) MinigameService.getInstance().getCurrentRound()).randomizeCard();
         BukkitUtils.runNextTick(BingoCardMap::markDirty);
 
         return true;

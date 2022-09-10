@@ -10,18 +10,18 @@ import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
+import io.zkz.mc.minigameplugins.gametools.util.PlayerUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONObject;
 
@@ -80,11 +80,15 @@ public class SGRound extends Round {
         world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
         world.getWorldBorder().setCenter(this.cornLocation.getX(), this.cornLocation.getZ());
         world.getWorldBorder().setSize(this.mapWorldborderSize);
-        world.getWorldBorder().setDamageBuffer(0);
+        world.getWorldBorder().setDamageBuffer(3);
+        world.getWorldBorder().setDamageAmount(0.2);
     }
 
     @Override
     public void onEnterPreRound() {
+        MinigameService.getInstance().refreshGlowing();
+        PlayerUtils.showAllPlayers(SGService.getInstance().getPlugin());
+
         this.alivePlayers.addAll(MinigameService.getInstance().getPlayers());
         SGService.getInstance().updateGameState();
 
@@ -120,10 +124,10 @@ public class SGRound extends Round {
         this.getAliveOnlinePlayers().forEach(player -> {
             player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
             player.getInventory().clear();
-            player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 10));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 100, 10));
+            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            player.setFoodLevel(20);
             player.setTotalExperience(0);
-            player.setLevel(0);
+            player.setLevel(10);
             player.setExp(0);
         });
     }
@@ -132,24 +136,42 @@ public class SGRound extends Round {
     public void onRoundStart() {
         // every 5 minutes
         this.eventTimer = new GameCountupTimer(SGService.getInstance().getPlugin(), 1200) {
-            private static final long CHEST_REFILL = 15;
-            private static final long SUDDEN_DEATH = 21;
+//            private static final long CHEST_REFILL = 15;
+//            private static final long SUDDEN_DEATH = 21;
+//
+//            @Override
+//            protected void onUpdate() {
+//                final long min = this.getModuloCurrentTime(TimeUnit.MINUTES);
+//                if (min == CHEST_REFILL - 5) {
+//                    Chat.sendAlert(ChatType.ALERT, "Chest refill in 5 minutes.");
+//                } else if (min == CHEST_REFILL - 1) {
+//                    Chat.sendAlert(ChatType.ALERT, "Chest refill in 1 minute.");
+//                } else if (min == CHEST_REFILL) {
+//                    SGRound.this.refillChests();
+//                } else if (min == SUDDEN_DEATH - 5) {
+//                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 5 minutes.");
+//                } else if (min == SUDDEN_DEATH - 2) {
+//                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 2 minutes.");
+//                } else if (min == SUDDEN_DEATH - 1) {
+//                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 1 minute.");
+//                } else if (min == SUDDEN_DEATH) {
+//                    SGRound.this.startSuddenDeath();
+//                    this.stop();
+//                    SGRound.this.eventTimer = null;
+//                }
+//            }
+
+            private static final long SUDDEN_DEATH = 6;
 
             @Override
             protected void onUpdate() {
                 final long min = this.getModuloCurrentTime(TimeUnit.MINUTES);
-                if (min == CHEST_REFILL - 5) {
-                    Chat.sendAlert(ChatType.ALERT, "Chest refill in 5 minutes.");
-                } else if (min == CHEST_REFILL - 1) {
-                    Chat.sendAlert(ChatType.ALERT, "Chest refill in 1 minute.");
-                } else if (min == CHEST_REFILL) {
-                    SGRound.this.refillChests();
-                } else if (min == SUDDEN_DEATH - 5) {
-                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 5 minutes.");
+                if (min == SUDDEN_DEATH - 5) {
+                    Chat.sendAlert(ChatType.ALERT, "World border closing in 5 minutes.");
                 } else if (min == SUDDEN_DEATH - 2) {
-                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 2 minutes.");
+                    Chat.sendAlert(ChatType.ALERT, "World border closing in 2 minutes.");
                 } else if (min == SUDDEN_DEATH - 1) {
-                    Chat.sendAlert(ChatType.ALERT, "Sudden death in 1 minute.");
+                    Chat.sendAlert(ChatType.ALERT, "World border closing in 1 minute.");
                 } else if (min == SUDDEN_DEATH) {
                     SGRound.this.startSuddenDeath();
                     this.stop();
@@ -162,7 +184,9 @@ public class SGRound extends Round {
     @Override
     public void onEnterPostRound() {
         SoundUtils.playSound(StandardSounds.GAME_OVER, 10, 1);
-        this.eventTimer.stop();
+        if (this.eventTimer != null) {
+            this.eventTimer.stop();
+        }
     }
 
     @Override
@@ -224,7 +248,8 @@ public class SGRound extends Round {
         }
 
         this.getWorld().getWorldBorder().setSize(this.cornWorldborderSize, 120);
-        Chat.sendAlert(ChatType.WARNING, "Sudden death! The world border is closing rapidly, make your way towards the center!");
+        Chat.sendAlert(ChatType.WARNING, "The world border is closing rapidly, make your way towards the center!");
+//        Chat.sendAlert(ChatType.WARNING, "Sudden death! The world border is closing rapidly, make your way towards the center!");
         SoundUtils.playSound(StandardSounds.ALERT_WARNING, 1, 1);
         this.inSuddenDeath = true;
     }
@@ -287,18 +312,24 @@ public class SGRound extends Round {
     }
 
     public void endRound() {
-        this.triggerRoundEnd();
+//        BukkitUtils.forEachPlayer(SGService.getInstance()::setupPlayer);
         this.alivePlayers.clear();
-        BukkitUtils.forEachPlayer(SGService.getInstance()::setupPlayer);
+        this.triggerRoundEnd();
     }
 
     private void fillChests() {
         World world = this.getWorld();
         this.chests.forEach(chest -> {
             Block block = world.getBlockAt(chest.pos().getX(), chest.pos().getY(), chest.pos().getZ());
-            Chest state = (Chest) block.getState();
-            state.setLootTable(Bukkit.getLootTable(NamespacedKey.fromString(chest.lootTable())));
-            state.update();
+            if (block.getState() instanceof Chest state) {
+                state.setLootTable(Bukkit.getLootTable(NamespacedKey.fromString(chest.lootTable())));
+                state.update();
+            } else if (block.getState() instanceof Barrel state) {
+                state.setLootTable(Bukkit.getLootTable(NamespacedKey.fromString(chest.lootTable())));
+                state.update();
+            } else {
+                SGService.getInstance().getLogger().warning("Tried to fill non-existent chest at " + chest.pos());
+            }
         });
     }
 

@@ -180,7 +180,7 @@ public class PotionPanicRound extends PlayerAliveDeadRound {
 
     public void handlePotionPickUp(Player player) {
         if (this.isFirstPotion) {
-            player.setCooldown(Material.SPLASH_POTION, 100);
+            player.setCooldown(Material.SPLASH_POTION, 60);
             this.isFirstPotion = false;
         }
     }

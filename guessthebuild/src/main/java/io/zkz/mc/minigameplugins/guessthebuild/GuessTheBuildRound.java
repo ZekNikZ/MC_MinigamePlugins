@@ -17,6 +17,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -285,5 +286,35 @@ public class GuessTheBuildRound extends Round {
     @Override
     public @NotNull String getMapName() {
         return super.getMapName();
+    }
+
+    public void setFloor(Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        if (itemInHand == null || itemInHand.getType() == Material.AIR) {
+            player.sendMessage(ChatColor.RED + "Hold an item to change the floor to it.");
+            return;
+        }
+
+
+        Material mat = itemInHand.getType();
+
+        if (mat == Material.WATER_BUCKET) {
+            mat = Material.WATER;
+        } else if (mat == Material.LAVA_BUCKET) {
+            mat = Material.LAVA;
+        }
+
+        if (!mat.isBlock()) {
+            player.sendMessage(ChatColor.RED + "You must be holding a block.");
+            return;
+        }
+
+        WorldEditService we = WorldEditService.getInstance();
+        var weWorld = we.wrapWorld(Bukkit.getWorld("guessthebuild"));
+        we.fillRegion(
+            weWorld,
+            we.createCuboidRegion(BlockVector3.at(24, -60, -8), BlockVector3.at(-8, -58, 24)),
+            we.createPattern(mat)
+        );
     }
 }

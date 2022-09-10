@@ -7,7 +7,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class SpinnerService extends PluginService<LobbyPlugin> {
     private static final SpinnerService INSTANCE = new SpinnerService();
@@ -37,7 +38,10 @@ public class SpinnerService extends PluginService<LobbyPlugin> {
     public void startSpinner() {
         this.resetSpinner();
 
-        this.spinner = new SpinnerTask(Set.of(), i -> TournamentManager.getInstance().chooseNextMinigame(this.minigames.get(i)));
+        this.spinner = new SpinnerTask(
+            IntStream.range(0, minigames.size()).filter(i -> minigames.get(i).selected()).boxed().collect(Collectors.toSet()),
+            i -> TournamentManager.getInstance().chooseNextMinigame(this.minigames.get(i))
+        );
         this.spinner.start(this.getPlugin());
     }
 

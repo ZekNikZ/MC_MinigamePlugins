@@ -212,7 +212,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     }
 
     public void chooseNextMinigame(MinigameData minigame) {
-        TitleUtils.broadcastTitle("" + ChatColor.GOLD + ChatColor.BOLD + minigame.name(), ChatColor.AQUA + "You will be teleported in a few minutes.");
+        TitleUtils.broadcastTitle("" + ChatColor.GOLD + ChatColor.BOLD + minigame.name(), ChatColor.AQUA + "You will be teleported in a few minutes.", 20, 120);
         SoundUtils.playSound(StandardSounds.GOAL_MET_MAJOR, 1, 1);
         this.db.addAction(conn -> {
             try (PreparedStatement statement = conn.prepareStatement(
