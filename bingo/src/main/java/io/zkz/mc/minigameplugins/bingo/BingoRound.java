@@ -53,7 +53,7 @@ public class BingoRound extends Round {
     @Override
     public void onSetup() {
         // TODO: remove
-        this.card.randomizeItems();
+//        this.card.randomizeItems();
         BingoCardMap.markDirty();
 
         this.setupCollections();

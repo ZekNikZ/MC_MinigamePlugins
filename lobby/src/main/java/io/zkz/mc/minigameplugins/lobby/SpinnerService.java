@@ -52,7 +52,7 @@ public class SpinnerService extends PluginService<LobbyPlugin> {
     public void resetSpinner() {
         this.minigames = TournamentManager.getInstance().getMinigames();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             if (minigames.get(i).selected()) {
                 SchematicService.getInstance().placeSchematic(i + "_red", SpinnerService.getInstance().spinnerLocation(), true);
             } else {
