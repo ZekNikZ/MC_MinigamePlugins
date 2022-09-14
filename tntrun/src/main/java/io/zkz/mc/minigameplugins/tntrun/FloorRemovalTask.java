@@ -30,9 +30,7 @@ public class FloorRemovalTask extends MinigameTask {
             }
 
             // Otherwise, find the block the player is crouching on
-            TNTRunService.getInstance().getLogger().info("--");
             final AABB playerBB = NMSUtils.getEntityBoundingBox(player).move(0, -0.1, 0);
-            TNTRunService.getInstance().getLogger().info(playerBB.toString());
             Map<Block, AABB> blockBoxes = new HashMap<>();
             ArrayList<Block> supportingBlocks = new ArrayList<>();
             final Location cornerLoc = player.getLocation().clone().add(-1, -1, -1);
@@ -41,7 +39,6 @@ public class FloorRemovalTask extends MinigameTask {
                     Block block = cornerLoc.clone().add(x, 0, z).getBlock();
                     if (block.getType() != Material.AIR) {
                         AABB boundingBox = NMSUtils.getBlockBoundingBox(block);
-                        TNTRunService.getInstance().getLogger().info(boundingBox.toString());
                         blockBoxes.put(block, boundingBox);
                     }
                 }
