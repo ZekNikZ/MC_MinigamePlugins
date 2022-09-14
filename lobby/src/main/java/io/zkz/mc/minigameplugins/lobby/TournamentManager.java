@@ -70,12 +70,12 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
         this.currentMinigameId = minigameId;
         this.db.addAction(conn -> {
             Map<String, String> values = Map.of(
-                "minigameId", minigameId,
-                "roundNumber", "0"
+                    "minigameId", minigameId,
+                    "roundNumber", "0"
             );
 
             try (PreparedStatement statement = conn.prepareStatement(
-                "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+                    "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
             )) {
                 conn.setAutoCommit(false);
 
@@ -110,7 +110,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
             List<String> keys = List.of("minigameId", "roundNumber");
 
             try (PreparedStatement statement = conn.prepareStatement(
-                "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
+                    "INSERT INTO mm_minigame_state (id, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE id = ?;"
             )) {
                 conn.setAutoCommit(false);
 
@@ -139,17 +139,17 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
             }
         });
         List<Map.Entry<GameTeam, Double>> entries = scores.entrySet().stream()
-            .sorted(Comparator.comparing((Function<Map.Entry<GameTeam, Double>, Double>) Map.Entry::getValue).reversed().thenComparing(entry -> entry.getKey().getDisplayName()))
-            .toList();
+                .sorted(Comparator.comparing((Function<Map.Entry<GameTeam, Double>, Double>) Map.Entry::getValue).reversed().thenComparing(entry -> entry.getKey().getDisplayName()))
+                .toList();
         WorldEditService we = WorldEditService.getInstance();
         var weWorld = we.wrapWorld(Bukkit.getWorld("world"));
         for (int i = 0; i < entries.size(); i++) {
             Pair<BlockVector3, BlockVector3> podium = Podiums.PODIUMS.get(i);
             we.replaceRegion(
-                weWorld,
-                we.createCuboidRegion(podium.first(), podium.second()),
-                we.createMask(weWorld, BlockUtils.allConcretes().toArray(new Material[0])),
-                we.createPattern(entries.get(i).getKey().getConcreteColor())
+                    weWorld,
+                    we.createCuboidRegion(podium.first(), podium.second()),
+                    we.createMask(weWorld, BlockUtils.allConcretes().toArray(new Material[0])),
+                    we.createPattern(entries.get(i).getKey().getConcreteColor())
             );
         }
     }
@@ -164,8 +164,10 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     @EventHandler
     private void onSubServerStop(SubStoppedEvent event) {
         ScoreService.getInstance().loadAllData();
-        this.resetPodiums();
-        SpinnerService.getInstance().resetSpinner();
+        BukkitUtils.runNextTick(() -> {
+            this.resetPodiums();
+            SpinnerService.getInstance().resetSpinner();
+        });
     }
 
     @EventHandler
@@ -183,8 +185,8 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
-            this.db = new MySQLDataManager<>(this, (conn) -> {
-            })
+                this.db = new MySQLDataManager<>(this, (conn) -> {
+                })
         );
     }
 
@@ -197,11 +199,11 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
             List<MinigameData> minigames = new ArrayList<>();
             while (resultSet.next()) {
                 minigames.add(new MinigameData(
-                    resultSet.getInt("minigameSpinnerId"),
-                    resultSet.getString("minigameId"),
-                    resultSet.getString("minigameName"),
-                    resultSet.getString("minigameIcon"),
-                    resultSet.getBoolean("minigameSelected")
+                        resultSet.getInt("minigameSpinnerId"),
+                        resultSet.getString("minigameId"),
+                        resultSet.getString("minigameName"),
+                        resultSet.getString("minigameIcon"),
+                        resultSet.getBoolean("minigameSelected")
                 ));
             }
             minigames.sort(Comparator.comparing(MinigameData::spinnerId));
@@ -216,7 +218,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
         SoundUtils.playSound(StandardSounds.GOAL_MET_MAJOR, 1, 1);
         this.db.addAction(conn -> {
             try (PreparedStatement statement = conn.prepareStatement(
-                "UPDATE mm_minigames SET minigameSelected=? WHERE minigameId=?;"
+                    "UPDATE mm_minigames SET minigameSelected=? WHERE minigameId=?;"
             )) {
                 statement.setBoolean(1, true);
                 statement.setString(2, minigame.id());
@@ -231,7 +233,7 @@ public class TournamentManager extends PluginService<LobbyPlugin> {
     public void resetAllMinigames() {
         this.db.addAction(conn -> {
             try (PreparedStatement statement = conn.prepareStatement(
-                "UPDATE mm_minigames SET minigameSelected=?;"
+                    "UPDATE mm_minigames SET minigameSelected=?;"
             )) {
                 statement.setBoolean(1, false);
                 statement.executeUpdate();

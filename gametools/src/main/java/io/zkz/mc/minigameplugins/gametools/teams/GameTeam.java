@@ -4,10 +4,13 @@ import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.UUID;
 
 public class GameTeam {
     private String id;
@@ -136,5 +139,33 @@ public class GameTeam {
 
     public Material getConcreteColor() {
         return BlockUtils.getConcreteColor(this.scoreboardColor);
+    }
+
+    public void removeAllMembers() {
+        TeamService.getInstance().clearTeam(this.id);
+    }
+
+    public void addMember(Player player) {
+        TeamService.getInstance().joinTeam(player, this);
+    }
+
+    public void addMember(UUID playerId) {
+        TeamService.getInstance().joinTeam(playerId, this.id);
+    }
+
+    public boolean contains(Player player) {
+        return this.equals(TeamService.getInstance().getTeamOfPlayer(player));
+    }
+
+    public boolean contains(UUID playerId) {
+        return this.equals(TeamService.getInstance().getTeamOfPlayer(playerId));
+    }
+
+    public Collection<UUID> getAllMembers() {
+        return TeamService.getInstance().getTeamMembers(this);
+    }
+
+    public Collection<Player> getAllOnlineMembers() {
+        return TeamService.getInstance().getOnlineTeamMembers(this);
     }
 }

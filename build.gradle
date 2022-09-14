@@ -1,86 +1,103 @@
-apply plugin: 'idea'
-
-ext {
-  junitVersion = '5.7.0'
-  spigotVersion = '1.19.2-R0.1-SNAPSHOT'
-  protocolLibVersion = '5.0.0-SNAPSHOT'
-  worldeditVersion = '7.2.12-SNAPSHOT'
-  worldguardVersion = '7.0.8-SNAPSHOT'
-  smartInvsVersion = '1.2.7'
-  subserversClientVersion = '22w24a'
-  multiverseVersion = '4.3.1'
+plugins {
+    id 'idea'
+    id "io.papermc.paperweight.userdev" version "1.3.8" apply false
 }
 
-allprojects {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-  }
+ext {
+    junitVersion = '5.7.0'
+    spigotVersion = '1.19.2-R0.1-SNAPSHOT'
+    paperVersion = '1.19.2-R0.1-SNAPSHOT'
+    paperweightVersion = '1.3.8'
+    protocolLibVersion = '5.0.0-SNAPSHOT'
+    worldeditVersion = '7.2.12-SNAPSHOT'
+    worldguardVersion = '7.0.8-SNAPSHOT'
+    smartInvsVersion = '1.2.7'
+    subserversClientVersion = '22w24a'
+    multiverseVersion = '4.3.1'
 }
 
 subprojects {
-  apply plugin: 'java'
+    apply plugin: 'java'
+    apply plugin: "io.papermc.paperweight.userdev"
 
-  group = "io.zkz.mc.${rootProject.name}"
-
-  repositories {
-    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url "https://maven.enginehub.org/repo/" }
-    maven { url 'https://dev.ME1312.net/maven' }
-    maven { url "https://repo.dmulloy2.net/repository/public/" }
-    maven { url = "https://repo.onarandombox.com/content/groups/public/" }
-  }
-
-  dependencies {
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
-    compileOnly "org.spigotmc:spigot-api:${spigotVersion}"
-    compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-    annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-    compileOnly 'org.jetbrains:annotations:16.0.2'
-
-    if (project.hasProperty("resourceMainClass")) {
-      implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
     }
-  }
 
-  test {
-    useJUnitPlatform()
-  }
+    group = "io.zkz.mc.${rootProject.name}"
 
-  task buildAll(type: Copy) {
-    dependsOn build
-    from('build/libs') {
-      include "**/*.jar"
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url "https://maven.enginehub.org/repo/" }
+        maven { url 'https://dev.ME1312.net/maven' }
+        maven { url "https://repo.dmulloy2.net/repository/public/" }
+        maven { url = "https://repo.onarandombox.com/content/groups/public/" }
+        maven { url = "https://repo.papermc.io/repository/maven-public/" }
     }
-    into '../build'
-  }
 
-  task resourceGen(type: JavaExec) {
-    dependsOn build
-    if (project.hasProperty("resourceMainClass")) {
-      mainClass = project.property("resourceMainClass")
+    dependencies {
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+
+        paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:${paperVersion}")
+
+        compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+        annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+
+        compileOnly 'org.jetbrains:annotations:16.0.2'
+
+        implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     }
-    classpath = sourceSets.main.runtimeClasspath
-  }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    tasks {
+        assemble {
+            dependsOn(reobfJar)
+        }
+
+        compileJava {
+            options.release.set(17)
+        }
+    }
+
+    task buildAll(type: Copy) {
+        dependsOn build
+        from('build/libs') {
+            include "**/*.jar"
+        }
+        into '../build'
+    }
+
+    task resourceGen(type: JavaExec) {
+        dependsOn build
+        if (project.hasProperty("resourceMainClass")) {
+            mainClass = project.property("resourceMainClass")
+        }
+        classpath = sourceSets.main.runtimeClasspath
+    }
 }
 
 evaluationDependsOnChildren()
 
 task deleteResourceCache(type: Delete) {
-  delete 'build/resources'
+    delete 'build/resources'
 }
 
 task compileResourcePack(type: JavaExec) {
-  dependsOn deleteResourceCache
+    dependsOn deleteResourceCache
 
-  subprojects {
-    if (project.hasProperty("resourceMainClass")) {
-      dependsOn project.resourceGen
+    subprojects {
+        if (project.hasProperty("resourceMainClass")) {
+            dependsOn project.resourceGen
+        }
     }
-  }
 
-  mainClass = "io.zkz.mc.${rootProject.name}.gametools.resourcepack.ResourceManager"
-  classpath = project('gametools').sourceSets.main.runtimeClasspath
+    mainClass = "io.zkz.mc.${rootProject.name}.gametools.resourcepack.ResourceManager"
+    classpath = project('gametools').sourceSets.main.runtimeClasspath
 }
