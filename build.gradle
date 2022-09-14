@@ -44,12 +44,31 @@ subprojects {
 
         paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:${paperVersion}")
 
-        compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-        annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
+        compileOnly('org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT') {
+            exclude group: "org.spigotmc", module: "spigot-api"
+            exclude group: "org.bukkit", module: "bukkit"
+        }
+        annotationProcessor('org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT') {
+            exclude group: "org.spigotmc", module: "spigot-api"
+            exclude group: "org.bukkit", module: "bukkit"
+        }
 
         compileOnly 'org.jetbrains:annotations:16.0.2'
 
         implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
+        compileOnly("com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}") {
+            exclude group: "org.spigotmc", module: "spigot-api"
+            exclude group: "org.bukkit", module: "bukkit"
+        }
+        compileOnly("com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}") {
+            exclude group: "org.spigotmc", module: "spigot-api"
+            exclude group: "org.bukkit", module: "bukkit"
+        }
+        compileOnly("fr.minuskube.inv:smart-invs:${smartInvsVersion}") {
+            exclude group: "org.spigotmc", module: "spigot-api"
+            exclude group: "org.bukkit", module: "bukkit"
+        }
     }
 
     test {

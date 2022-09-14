@@ -3,7 +3,5 @@ version "2.0-SNAPSHOT"
 dependencies {
     implementation project(':gametools')
     implementation project(':minigamemanager')
-    compileOnly "com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}"
-    compileOnly "com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}"
     compileOnly "com.onarandombox.multiversecore:Multiverse-Core:${multiverseVersion}"
 }
