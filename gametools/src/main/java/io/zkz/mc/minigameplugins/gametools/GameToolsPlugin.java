@@ -11,13 +11,17 @@ import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.util.VanishingService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
+import org.bukkit.GameMode;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
@@ -65,7 +69,7 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         // Misc
         StringUtils.init(this);
 
-//        test();
+        test();
     }
 
     @Override
@@ -105,13 +109,31 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 //    }
 
     public void test() {
-        MinecraftServer.getServer()
+        var dispatcher = MinecraftServer.getServer()
             .vanillaCommandDispatcher
-            .getDispatcher()
-            .register(new TestCommand(
-                () -> this.getServer().getOnlinePlayers().stream().map(Player::getName).toList(),
-                (String st) -> this.getServer().getPlayer(st),
-                CommandSourceStack::getBukkitSender
-            ).builder("testcommand"));
+            .getDispatcher();
+        dispatcher.register(new TestCommand(
+            () -> this.getServer().getOnlinePlayers().stream().map(Player::getName).toList(),
+            (String st) -> this.getServer().getPlayer(st),
+            CommandSourceStack::getBukkitSender
+        ).builder("testcommand"));
+        dispatcher.register(
+            Commands.literal("testvanish")
+                .executes(cmd -> {
+                    CommandSender bukkitSender = cmd.getSource().getBukkitSender();
+                    if (bukkitSender instanceof Player player) {
+                        player.setGameMode(GameMode.ADVENTURE);
+                        player.teleport(player.getLocation().clone().add(0, 1, 0));
+                        player.setAllowFlight(true);
+                        player.setFlying(true);
+                        player.setCollidable(false);
+                        BukkitUtils.allPlayersExcept(player).forEach(p -> {
+                            p.hidePlayer(this, player);
+                        });
+                    }
+
+                    return 1;
+                })
+        );
     }
 }
