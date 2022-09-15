@@ -48,10 +48,7 @@ subprojects {
             exclude group: "org.spigotmc", module: "spigot-api"
             exclude group: "org.bukkit", module: "bukkit"
         }
-        annotationProcessor('org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT') {
-            exclude group: "org.spigotmc", module: "spigot-api"
-            exclude group: "org.bukkit", module: "bukkit"
-        }
+        annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
 
         compileOnly 'org.jetbrains:annotations:16.0.2'
 

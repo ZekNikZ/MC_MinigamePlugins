@@ -16,6 +16,9 @@ import io.zkz.mc.minigameplugins.gametools.util.VanishingService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
@@ -61,6 +64,8 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 
         // Misc
         StringUtils.init(this);
+
+//        test();
     }
 
     @Override
@@ -98,4 +103,15 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 //    public ProtocolManager getProtocolManager() {
 //        return this.protocolManager;
 //    }
+
+    public void test() {
+        MinecraftServer.getServer()
+            .vanillaCommandDispatcher
+            .getDispatcher()
+            .register(new TestCommand(
+                () -> this.getServer().getOnlinePlayers().stream().map(Player::getName).toList(),
+                (String st) -> this.getServer().getPlayer(st),
+                CommandSourceStack::getBukkitSender
+            ).builder("testcommand"));
+    }
 }
