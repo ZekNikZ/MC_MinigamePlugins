@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
@@ -16,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+@Service(GameToolsPlugin.PLUGIN_NAME)
 public class ReadyUpService extends GameToolsService {
     private static final ReadyUpService INSTANCE = new ReadyUpService();
 

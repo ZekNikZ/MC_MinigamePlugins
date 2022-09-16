@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.event;
 
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import org.bukkit.Material;
@@ -17,6 +19,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 
 import static io.zkz.mc.minigameplugins.gametools.event.PlayerInventoryChangeEvent.Reason.*;
 
+@Service(GameToolsPlugin.PLUGIN_NAME)
 public class CustomEventService extends GameToolsService {
     private static final CustomEventService INSTANCE = new CustomEventService();
 

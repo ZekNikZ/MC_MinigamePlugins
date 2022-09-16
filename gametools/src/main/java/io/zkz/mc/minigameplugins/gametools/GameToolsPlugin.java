@@ -1,25 +1,21 @@
 package io.zkz.mc.minigameplugins.gametools;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
-import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
-import io.zkz.mc.minigameplugins.gametools.http.HTTPService;
-import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.command.ReadyUpCommands;
-import io.zkz.mc.minigameplugins.gametools.resourcepack.ResourcePackService;
-import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
-import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
-import io.zkz.mc.minigameplugins.gametools.util.VanishingService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,35 +28,22 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.util.logging.Logger;
 
-@Plugin(name = "GameTools", version = "4.0")
+@Plugin(name = GameToolsPlugin.PLUGIN_NAME, version = "4.1")
 @Description("A library for making minigame plugins")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
-//@Dependency("ProtocolLib")
 @SoftDependency("WorldEdit")
 @SoftDependency("WorldGuard")
 public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
+    public static final String PLUGIN_NAME = "GameTools";
+
     private static Logger logger;
 
     public static Logger logger() {
         return logger;
     }
 
-//    private ProtocolManager protocolManager;
-
     public GameToolsPlugin() {
-        // Services
-        this.register(MySQLService.getInstance());
-        this.register(MinigameConstantsService.getInstance());
-        this.register(TeamService.getInstance());
-        this.register(ScoreboardService.getInstance());
-        this.register(ReadyUpService.getInstance());
-        this.register(CustomEventService.getInstance());
-        this.register(HTTPService.getInstance());
-        this.register(ResourcePackService.getInstance());
-        this.register(VanishingService.getInstance());
-        this.register(ScoreService.getInstance());
-
         // Command Groups
         this.register(new TeamCommands());
         this.register(new ReadyUpCommands());
@@ -68,8 +51,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 
         // Misc
         StringUtils.init(this);
-
-        test();
     }
 
     @Override
@@ -96,7 +77,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     public void onEnable() {
         logger = this.getLogger();
         super.onEnable();
-//        this.protocolManager = ProtocolLibrary.getProtocolManager();
     }
 
     @Override
@@ -104,20 +84,14 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
         super.onDisable();
     }
 
-//    public ProtocolManager getProtocolManager() {
-//        return this.protocolManager;
-//    }
-
-    public void test() {
-        var dispatcher = MinecraftServer.getServer()
-            .vanillaCommandDispatcher
-            .getDispatcher();
-        dispatcher.register(new TestCommand(
-            () -> this.getServer().getOnlinePlayers().stream().map(Player::getName).toList(),
-            (String st) -> this.getServer().getPlayer(st),
+    @RegisterCommands
+    public static void test(CommandRegistry registry) {
+        registry.register(new TestCommand(
+            () -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
+            Bukkit::getPlayer,
             CommandSourceStack::getBukkitSender
         ).builder("testcommand"));
-        dispatcher.register(
+        registry.register(
             Commands.literal("testvanish")
                 .executes(cmd -> {
                     CommandSender bukkitSender = cmd.getSource().getBukkitSender();
@@ -128,7 +102,7 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
                         player.setFlying(true);
                         player.setCollidable(false);
                         BukkitUtils.allPlayersExcept(player).forEach(p -> {
-                            p.hidePlayer(this, player);
+                            p.hidePlayer(CustomEventService.getInstance().getPlugin(), player);
                         });
                     }
 

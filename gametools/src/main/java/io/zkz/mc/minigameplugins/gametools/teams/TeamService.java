@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.teams;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 8)
 public class TeamService extends GameToolsService {
     private static final TeamService INSTANCE = new TeamService();
 

@@ -2,9 +2,11 @@ package io.zkz.mc.minigameplugins.gametools.http;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import org.bukkit.Bukkit;
 import org.json.simple.JSONObject;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 1)
 public class HTTPService extends GameToolsService {
     private static final HTTPService INSTANCE = new HTTPService();
 

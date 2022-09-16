@@ -1,8 +1,10 @@
 package io.zkz.mc.minigameplugins.gametools;
 
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import net.md_5.bungee.api.ChatColor;
 
+@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 9)
 public class MinigameConstantsService extends GameToolsService {
     private static final MinigameConstantsService INSTANCE = new MinigameConstantsService();
 

@@ -1,12 +1,14 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
+@Service(GameToolsPlugin.PLUGIN_NAME)
 public class VanishingService extends PluginService<GameToolsPlugin> {
     private static final VanishingService INSTANCE = new VanishingService();
 

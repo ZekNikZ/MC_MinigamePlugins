@@ -1,11 +1,13 @@
 package io.zkz.mc.minigameplugins.gametools.resourcepack;
 
 import com.google.common.hash.Hashing;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.http.HTTPService;
 import io.zkz.mc.minigameplugins.gametools.http.ResourcePackHandler;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import org.json.simple.JSONObject;
 
@@ -17,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
+@Service(GameToolsPlugin.PLUGIN_NAME)
 public class ResourcePackService extends GameToolsService {
     // TODO: this should probably be the resource pack hash instead
     private static final String URL = "/resourcepack/v1";

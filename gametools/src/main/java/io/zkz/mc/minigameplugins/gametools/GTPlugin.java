@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
+import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,10 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     @Override
     @SuppressWarnings("unchecked")
     public void onEnable() {
+        // Find annotated services
+        this.services.addAll(ReflectionHelper.findAllServices(this.getClassLoader(), this));
+        ReflectionHelper.findAllCommands(this.getClassLoader(), this);
+
         PluginManager pluginManager = this.getServer().getPluginManager();
 
         this.registerPluginDependents(pluginManager);
@@ -46,7 +51,6 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         // Register and enable services
         this.getLogger().info("Initializing services... ");
         services.forEach(service -> service.init((T) this, pluginManager));
-
 
         // Register commands
         this.getLogger().info("Initializing commands... ");

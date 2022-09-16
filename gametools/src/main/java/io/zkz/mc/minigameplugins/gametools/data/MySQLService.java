@@ -1,7 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.data;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import org.json.simple.JSONObject;
 
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 10)
 public class MySQLService extends GameToolsService {
     private static final MySQLService INSTANCE = new MySQLService();
     private final List<String> setupList = new ArrayList<>();
