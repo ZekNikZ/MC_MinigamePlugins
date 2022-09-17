@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.readyup;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -14,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 public class ReadyUpSession {
     private final int sessionId;
@@ -78,7 +81,7 @@ public class ReadyUpSession {
             if (player.equals(p)) {
                 return;
             }
-            Chat.sendAlert(p, ChatType.PASSIVE_INFO, player.getDisplayName() + " is ready!");
+            Chat.sendMessage(p, ChatType.PASSIVE_INFO, mm("<0> is ready!", player.displayName()));
         });
 
         this.updateBossbar();
@@ -110,30 +113,44 @@ public class ReadyUpSession {
         return true;
     }
 
-    public List<String> getReadyPlayerNames() {
+    public List<Component> getReadyPlayerDisplayNames() {
         return this.readyPlayers.entrySet().stream()
             .filter(Map.Entry::getValue)
             .map(entry -> {
                 Player player = Bukkit.getPlayer(entry.getKey());
                 if (player != null) {
-                    return player.getDisplayName();
+                    return player.displayName();
                 }
 
-                return Bukkit.getOfflinePlayer(entry.getKey()).getName() + ChatColor.DARK_RED + " (offline)";
+                return mm("<dark_red>" + Bukkit.getOfflinePlayer(entry.getKey()).getName() + " (offline)");
             })
             .toList();
     }
 
-    public List<String> getNotReadyPlayerNames() {
+    public List<Component> getReadyPlayerNames() {
         return this.readyPlayers.entrySet().stream()
-            .filter(entry -> !entry.getValue())
+            .filter(Map.Entry::getValue)
             .map(entry -> {
                 Player player = Bukkit.getPlayer(entry.getKey());
                 if (player != null) {
-                    return player.getDisplayName();
+                    return player.name();
                 }
 
-                return Bukkit.getOfflinePlayer(entry.getKey()).getName() + ChatColor.DARK_RED + " (offline)";
+                return mm(Bukkit.getOfflinePlayer(entry.getKey()).getName());
+            })
+            .toList();
+    }
+
+    public List<Component> getNotReadyPlayerDisplayNames() {
+        return this.readyPlayers.entrySet().stream()
+            .filter(key -> !key.getValue())
+            .map(entry -> {
+                Player player = Bukkit.getPlayer(entry.getKey());
+                if (player != null) {
+                    return player.displayName();
+                }
+
+                return mm("<dark_red>" + Bukkit.getOfflinePlayer(entry.getKey()).getName() + " (offline)");
             })
             .toList();
     }

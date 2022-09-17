@@ -64,7 +64,7 @@ public class CustomEventService extends GameToolsService {
 
     @EventHandler
     public void onUseBucket(PlayerInteractAtEntityEvent event) {
-        if (event.getPlayer().getInventory().getItemInHand().getType() != Material.BUCKET && event.getPlayer().getInventory().getItemInHand().getType() != Material.WATER_BUCKET) {
+        if (event.getPlayer().getInventory().getItemInMainHand().getType() != Material.BUCKET && event.getPlayer().getInventory().getItemInMainHand().getType() != Material.WATER_BUCKET) {
             return;
         }
 

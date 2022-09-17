@@ -261,7 +261,7 @@ public class BingoRound extends Round {
             int index = Points.POINT_VALUES.indexOf(val);
             if (index == Points.POINT_VALUES.size() - 1) {
                 SoundUtils.playSound(StandardSounds.PLAYER_ELIMINATION, 1, 1);
-                Chat.sendAlert(ChatType.WARNING, "" + ChatColor.RESET + ChatColor.RED + "No more " + Chat.Constants.POINT_CHAR + ChatColor.RED + " available for " + ChatColor.AQUA + "[" + itemName + "]");
+                Chat.sendAlert(ChatType.WARNING, "" + ChatColor.RESET + ChatColor.RED + "No more " + ChatType.Constants.POINT_CHAR + ChatColor.RED + " available for " + ChatColor.AQUA + "[" + itemName + "]");
                 return 0;
             } else {
                 return Points.POINT_VALUES.get(index + 1);

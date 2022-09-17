@@ -7,6 +7,7 @@ import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
@@ -19,6 +20,9 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static net.kyori.adventure.audience.Audience.audience;
 
 public class ScoreSummaryTask extends MinigameTask {
     public static final int NUM_SLIDES = 4;
@@ -37,10 +41,10 @@ public class ScoreSummaryTask extends MinigameTask {
             return;
         }
 
-        Chat.sendMessage(" ");
+        Chat.sendMessage(mm(" "));
         switch (this.slideNum) {
             case 0 -> {
-                Chat.sendMessage(ChatColor.BOLD + "Top 5 players this game:");
+                Chat.sendMessage(mm("<bold>Top 5 players this game:"));
                 this.displayScoreboard(
                     ScoreService.getInstance().getGamePlayerScoreSummary().entrySet().stream()
                         .map((playerId) -> {
@@ -60,7 +64,7 @@ public class ScoreSummaryTask extends MinigameTask {
                 );
             }
             case 1 -> {
-                Chat.sendMessage(ChatColor.BOLD + "Best players on your team:");
+                Chat.sendMessage(mm("<bold>Best players on your team:"));
                 MinigameService.getInstance().getGameTeams()
                     .forEach(team -> this.displayScoreboard(
                         TeamService.getInstance().getOnlineTeamMembers(team.getId()),
@@ -80,12 +84,12 @@ public class ScoreSummaryTask extends MinigameTask {
                             .toList(),
                         10
                     ));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.SPECTATOR.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.GAME_MASTER.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.CASTER.getId()).forEach(player -> Chat.sendMessage(player, "" + ChatColor.GRAY + ChatColor.ITALIC + "You are a spectator."));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.SPECTATOR.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.GAME_MASTER.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.CASTER.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
             }
             case 2 -> {
-                Chat.sendMessage(ChatColor.BOLD + "The game results:");
+                Chat.sendMessage(mm("<bold>The game results:"));
                 Map<GameTeam, Double> teamScores = ScoreService.getInstance().getGameTeamScoreSummary();
                 this.displayScoreboard(
                     MinigameService.getInstance().getGameTeams().stream()
@@ -99,7 +103,7 @@ public class ScoreSummaryTask extends MinigameTask {
                 );
             }
             case 3 -> {
-                Chat.sendMessage(ChatColor.BOLD + "The current event standings:");
+                Chat.sendMessage(mm("<bold>The current event standings:"));
                 ScoreService.getInstance().loadAllData();
                 Map<GameTeam, Double> teamScores = ScoreService.getInstance().getEventTeamScoreSummary();
                 this.displayScoreboard(
@@ -132,12 +136,12 @@ public class ScoreSummaryTask extends MinigameTask {
                 String entryNameStr = StringUtils.padOnRightWithPixels(entry.name() + ChatColor.RESET, 160);
                 String pointsStr;
                 if (entry.multiplier() == 1) {
-                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + Chat.Constants.POINT_CHAR).formatted(entry.points()), 45);
+                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points()), 45);
                 } else {
-                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + Chat.Constants.POINT_CHAR).formatted(entry.points() * entry.multiplier()), 45)
-                        + (" (%.1f" + Chat.Constants.POINT_CHAR + " \u00d7 %.1f)").formatted(entry.points(), entry.multiplier());
+                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points() * entry.multiplier()), 45)
+                        + (" (%.1f" + ChatType.Constants.POINT_CHAR + " \u00d7 %.1f)").formatted(entry.points(), entry.multiplier());
                 }
-                Chat.sendMessage(players, placementStr + entryNameStr + pointsStr);
+                Chat.sendMessage(audience(players), mm(placementStr + entryNameStr + pointsStr));
             });
         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
     }

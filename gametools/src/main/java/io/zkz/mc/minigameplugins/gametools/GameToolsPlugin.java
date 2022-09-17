@@ -1,10 +1,8 @@
 package io.zkz.mc.minigameplugins.gametools;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
 import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
-import io.zkz.mc.minigameplugins.gametools.readyup.command.ReadyUpCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
@@ -14,7 +12,6 @@ import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
@@ -46,7 +43,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     public GameToolsPlugin() {
         // Command Groups
         this.register(new TeamCommands());
-        this.register(new ReadyUpCommands());
         this.register(new MiscCommands());
 
         // Misc
@@ -82,32 +78,5 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     @Override
     public void onDisable() {
         super.onDisable();
-    }
-
-    @RegisterCommands
-    public static void test(CommandRegistry registry) {
-        registry.register(new TestCommand(
-            () -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
-            Bukkit::getPlayer,
-            CommandSourceStack::getBukkitSender
-        ).builder("testcommand"));
-        registry.register(
-            Commands.literal("testvanish")
-                .executes(cmd -> {
-                    CommandSender bukkitSender = cmd.getSource().getBukkitSender();
-                    if (bukkitSender instanceof Player player) {
-                        player.setGameMode(GameMode.ADVENTURE);
-                        player.teleport(player.getLocation().clone().add(0, 1, 0));
-                        player.setAllowFlight(true);
-                        player.setFlying(true);
-                        player.setCollidable(false);
-                        BukkitUtils.allPlayersExcept(player).forEach(p -> {
-                            p.hidePlayer(CustomEventService.getInstance().getPlugin(), player);
-                        });
-                    }
-
-                    return 1;
-                })
-        );
     }
 }

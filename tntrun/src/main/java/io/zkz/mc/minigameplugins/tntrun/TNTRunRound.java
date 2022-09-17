@@ -53,7 +53,7 @@ public class TNTRunRound extends Round {
         BukkitUtils.forEachPlayer(player -> {
             double points = ScoreService.getInstance().getRoundEntries(player, MinigameService.getInstance().getCurrentRoundIndex()).stream().mapToDouble(ScoreEntry::points).sum();
             Chat.sendMessage(player, " ");
-            Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
+            Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + ChatColor.GREEN + ChatColor.BOLD + "%.1f" + ChatType.Constants.POINT_CHAR + " this round.", points);
         });
     }
 

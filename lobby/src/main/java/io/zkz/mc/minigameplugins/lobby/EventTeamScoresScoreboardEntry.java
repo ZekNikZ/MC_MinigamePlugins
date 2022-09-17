@@ -5,6 +5,7 @@ import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -50,7 +51,7 @@ public class EventTeamScoresScoreboardEntry extends ScoreboardEntry implements I
     private void displayScore(int scoreboardPos, int placement, Map.Entry<GameTeam, Double> entry) {
         String placementStr = StringUtils.padOnLeftWithPixels("" + (placement + 1) + ". ", 20);
         String nameStr = StringUtils.padOnRightWithPixels(entry.getKey().getDisplayName(), 100);
-        String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + Chat.Constants.POINT_CHAR, 45);
+        String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + ChatType.Constants.POINT_CHAR, 45);
         this.getScoreboard().setString(scoreboardPos, placementStr + nameStr + pointsStr);
     }
 

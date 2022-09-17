@@ -1,29 +1,25 @@
 package io.zkz.mc.minigameplugins.gametools.reflection;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.Pair;
-import net.minecraft.commands.CommandSourceStack;
-import org.checkerframework.checker.units.qual.C;
-import org.reflections.ReflectionUtils;
+import org.bukkit.permissions.Permission;
 import org.reflections.Reflections;
-import org.reflections.scanners.MethodAnnotationsScanner;
-import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.ReflectionUtilsPredicates;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.logging.Level;
 
+import static org.reflections.ReflectionUtils.Fields;
 import static org.reflections.ReflectionUtils.Methods;
 import static org.reflections.scanners.Scanners.MethodsAnnotated;
+import static org.reflections.scanners.Scanners.TypesAnnotated;
 
 public class ReflectionHelper {
     public static <T extends GTPlugin<T>> List<PluginService<T>> findAllServices(ClassLoader loader, GTPlugin<T> plugin) {
@@ -80,7 +76,7 @@ public class ReflectionHelper {
             .toList();
     }
 
-    public static void findAllCommands(ClassLoader loader, GTPlugin<?> plugin) {
+    public static void findAndRegisterCommands(ClassLoader loader, GTPlugin<?> plugin) {
         Reflections reflections = new Reflections(
             new ConfigurationBuilder()
                 .forPackage(plugin.getClass().getPackageName(), loader)
@@ -97,10 +93,45 @@ public class ReflectionHelper {
             )
         ).forEach(method -> {
             try {
+                method.setAccessible(true);
                 method.invoke(null, registry);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                plugin.getLogger().warning("Could not register commands using method " + method.getName() + " in " + method.getDeclaringClass().getCanonicalName());
+                plugin.getLogger().log(Level.WARNING, "Could not register commands using method " + method.getName() + " in " + method.getDeclaringClass().getCanonicalName(), e);
             }
         });
+    }
+
+    public static List<Permission> findPermissions(ClassLoader loader, GTPlugin<?> plugin) {
+        Reflections reflections = new Reflections(
+            new ConfigurationBuilder()
+                .forPackage(plugin.getClass().getPackageName(), loader)
+                .addScanners(TypesAnnotated)
+        );
+
+        List<Permission> res = new ArrayList<>();
+        reflections.get(TypesAnnotated.with(RegisterPermissions.class)
+            .asClass()
+        ).forEach(clazz -> {
+            reflections.get(Fields.of(clazz)
+                .as(Field.class)
+                .filter(
+                    ReflectionUtilsPredicates.withType(Permission.class)
+                        .and(ReflectionUtilsPredicates.withStatic())
+                )
+            ).forEach(field -> {
+                if (!Modifier.isFinal(field.getModifiers())) {
+                    plugin.getLogger().warning("Field" + field.getName() + " in " + field.getDeclaringClass().getCanonicalName() + " will be registered as a permission node but is not final.");
+                }
+
+                try {
+                    field.setAccessible(true);
+                    res.add((Permission) field.get(null));
+                } catch (IllegalAccessException e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not register permission in field " + field.getName() + " in " + field.getDeclaringClass().getCanonicalName(), e);
+                }
+            });
+        });
+
+        return res;
     }
 }

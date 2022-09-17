@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+
 public class GameTeam {
     private String id;
     private String name;
@@ -115,7 +117,7 @@ public class GameTeam {
         }
         scoreboardTeam.setPrefix("" + this.getFormatCode() + this.getPrefix() + ChatColor.RESET + this.getScoreboardColor() + " ");
         scoreboardTeam.setColor(this.getScoreboardColor() != null ? this.getScoreboardColor() : org.bukkit.ChatColor.WHITE);
-        scoreboardTeam.setSuffix("" + ChatColor.RESET);
+//        scoreboardTeam.suffix(mm(""));
         scoreboardTeam.setCanSeeFriendlyInvisibles(true);
         scoreboardTeam.setAllowFriendlyFire(TeamService.getInstance().getFriendlyFire());
         scoreboardTeam.setOption(Team.Option.COLLISION_RULE, TeamService.getInstance().getCollisionRule());

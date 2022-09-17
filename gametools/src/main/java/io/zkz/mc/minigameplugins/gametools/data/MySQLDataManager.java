@@ -16,6 +16,7 @@ public class MySQLDataManager<T extends PluginService<?>> extends AbstractDataMa
 
     private final int taskId;
 
+    @SuppressWarnings("deprecation")
     public MySQLDataManager(T service, @NotNull Consumer<Connection> loader) {
         super(service);
         this.loader = loader;

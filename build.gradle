@@ -101,6 +101,10 @@ subprojects {
         }
         classpath = sourceSets.main.runtimeClasspath
     }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs += ['-Xlint:deprecation']
+    }
 }
 
 evaluationDependsOnChildren()

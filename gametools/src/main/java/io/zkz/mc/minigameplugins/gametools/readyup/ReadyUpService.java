@@ -6,9 +6,10 @@ import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -17,6 +18,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 @Service(GameToolsPlugin.PLUGIN_NAME)
 public class ReadyUpService extends GameToolsService {
@@ -84,7 +88,7 @@ public class ReadyUpService extends GameToolsService {
     }
 
     private void displayInitialReadyMessage(Player player) {
-        Chat.sendAlert(player, ChatType.GAME_INFO, "Are you ready? Type " + ChatColor.AQUA + "/ready" + ChatColor.RESET + " to confirm.");
+        Chat.sendMessage(player, ChatType.GAME_INFO, mm("Are you ready? Type <aqua>/ready</aqua> to confirm."));
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
     }
 
@@ -95,11 +99,15 @@ public class ReadyUpService extends GameToolsService {
         }
     }
 
-    public void sendStatus(CommandSender sender) {
+    public void sendStatus(Audience sender) {
         this.sessions.forEach((id, session) -> {
-            Chat.sendMessageFormatted(sender, ChatColor.GOLD + "Session %d:", id);
-            Chat.sendMessage(sender, ChatColor.GREEN + " - ready: " + String.join(", ", session.getReadyPlayerNames()));
-            Chat.sendMessage(sender, ChatColor.RED + " - not ready: " + String.join(", ", session.getNotReadyPlayerNames()));
+            Chat.sendMessage(sender, mmArgs("<gold>Session <0>:", id));
+            Chat.sendMessage(sender, mm("<green> - ready: <0>", ComponentUtils.join(mm(", "), session.getReadyPlayerDisplayNames())));
+            Chat.sendMessage(sender, mm("<red> - not ready: <0>", ComponentUtils.join(mm(", "), session.getNotReadyPlayerDisplayNames())));
         });
+    }
+
+    public Set<String> getAllReadyPlayerNames() {
+        return this.sessions.values().stream().flatMap(s -> s.getReadyPlayerNames().stream().map(PlainTextComponentSerializer.plainText()::serialize)).collect(Collectors.toSet());
     }
 }

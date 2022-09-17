@@ -215,7 +215,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
             BukkitUtils.forEachPlayer(player -> {
                 double points = ScoreService.getInstance().getRoundEntries(player, MinigameService.getInstance().getCurrentRoundIndex()).stream().mapToDouble(ScoreEntry::points).sum();
                 Chat.sendMessage(player, " ");
-                Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + net.md_5.bungee.api.ChatColor.GREEN + ChatColor.BOLD + "%.1f" + Chat.Constants.POINT_CHAR + " this round.", points);
+                Chat.sendAlertFormatted(player, ChatType.ACTIVE_INFO, "You earned " + net.md_5.bungee.api.ChatColor.GREEN + ChatColor.BOLD + "%.1f" + ChatType.Constants.POINT_CHAR + " this round.", points);
             });
         }, 100);
     }

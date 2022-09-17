@@ -1,47 +1,62 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
-import static io.zkz.mc.minigameplugins.gametools.util.Chat.Constants.*;
-import static net.md_5.bungee.api.ChatColor.*;
+import static io.zkz.mc.minigameplugins.gametools.util.ChatType.Constants.*;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
 
 public enum ChatType {
+    NORMAL(
+        "<message>",
+        POINT_PREFIX + "<message>"
+    ),
     ALERT(
-        INFO_PREFIX + AQUA + BOLD + "%message%",
-        POINT_PREFIX + INFO_PREFIX + AQUA + BOLD + "%message%"
+        INFO_PREFIX + "<aqua><b><message>",
+        POINT_PREFIX + INFO_PREFIX + "<aqua><b><message>"
     ),
     WARNING(
-        INFO_PREFIX + DARK_RED + BOLD + "%message%",
-        POINT_PREFIX + INFO_PREFIX + DARK_RED + BOLD + "%message%"
+        INFO_PREFIX + "<dark_red><b><message>",
+        POINT_PREFIX + INFO_PREFIX + "<dark_red><b><message>"
     ),
     PASSIVE_INFO(
-        INFO_PREFIX + GRAY + "%message%",
-        POINT_PREFIX + GRAY + "%message%"
+        INFO_PREFIX + "<gray><message>",
+        POINT_PREFIX + "<gray><message>"
     ),
     ACTIVE_INFO(
-        INFO_PREFIX + "%message%",
-        POINT_PREFIX + "%message%"
+        INFO_PREFIX + "<message>",
+        POINT_PREFIX + "<message>"
     ),
     SUCCESS(
-        INFO_PREFIX + GREEN + BOLD + "%message%",
-        POINT_PREFIX + GREEN + BOLD + "%message%"
+        INFO_PREFIX + "<green><b><message>",
+        POINT_PREFIX + "<green><b><message>"
     ),
     ELIMINATION(
-        GRAY + "[" + RED + "\u2620" + GRAY + "] " + GRAY + "%message%",
-        POINT_PREFIX + GRAY + "[" + RED + "\u2620" + GRAY + "] " + RESET + "%message%"
+        "<gray>[<red>\u2620<gray>] <message>",
+        POINT_PREFIX + "<gray>[<red>\u2620<gray>]<reset> <message>"
     ),
     TEAM_ELIMINATION(
-        "[" + RED + "\u2620\u2620\u2620" + RESET + "] " + "%message%",
-        POINT_PREFIX + "[" + RED + "\u2620\u2620\u2620" + RESET + "] " + "%message%"
+        "[<red>\u2620\u2620\u2620<reset>] <message>",
+        POINT_PREFIX + "[<red>\u2620\u2620\u2620<reset>] <message>"
     ),
     GAME_INFO(
-        GAME_PREFIX + "%message%",
-        POINT_PREFIX + GAME_PREFIX + "%message%"
+        GAME_PREFIX + "<message>",
+        POINT_PREFIX + GAME_PREFIX + "<message>"
     ),
     GAME_SUCCESS(
-        GAME_PREFIX + GREEN  + "%message%",
-        POINT_PREFIX + GAME_PREFIX + GREEN  + "%message%"
+        GAME_PREFIX + "<green><message>",
+        POINT_PREFIX + GAME_PREFIX + "<green><message>"
     );
+
+    public static class Constants {
+        public static final String INFO_CHAR = "<yellow>\u25B6</yellow>";
+        public static final String POINT_CHAR = "<yellow>\u2605</yellow>";
+        public static final String INFO_PREFIX = "[" + INFO_CHAR + "] ";
+        public static final String POINT_PREFIX = "[+<points>" + POINT_CHAR + "] ";
+        public static final String GAME_PREFIX = "[<gold><b><name><reset>] ";
+    }
 
     private final String withoutPointsFormat;
     private final String withPointsFormat;
@@ -51,22 +66,28 @@ public enum ChatType {
         this.withPointsFormat = withPointsFormat;
     }
 
-    public String format(String message) {
+    public Component format(Component message) {
         return this.format(this.withoutPointsFormat, message);
     }
 
-    public String format(String message, float points) {
+    public Component format(Component message, double points) {
         return this.format(this.withPointsFormat, message, points);
     }
 
-    private String format(String format, String message) {
-        return format
-            .replace("%message%", message)
-            .replace("%name%", MinigameConstantsService.getInstance().getMinigameName());
+    private Component format(String format, Component message) {
+        return mmResolve(
+            format,
+            Placeholder.component("message", message),
+            Placeholder.unparsed("name", MinigameConstantsService.getInstance().getMinigameName())
+        );
     }
 
-    private String format(String format, String message, float points) {
-        return this.format(format, message)
-            .replace("%points%", String.valueOf(points));
+    private Component format(String format, Component message, double points) {
+        return mmResolve(
+            format,
+            Placeholder.component("message", message),
+            Placeholder.unparsed("name", MinigameConstantsService.getInstance().getMinigameName()),
+            Placeholder.unparsed("points", String.valueOf(points))
+        );
     }
 }

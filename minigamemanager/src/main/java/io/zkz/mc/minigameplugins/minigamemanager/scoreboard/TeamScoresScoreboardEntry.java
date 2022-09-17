@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.minigamemanager.scoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
@@ -60,7 +61,7 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
         // TODO: truncate this
         String placementStr = StringUtils.padOnLeftWithPixels("" + (placement + 1) + ". ", 20);
         String nameStr = StringUtils.padOnRightWithPixels(entry.getKey().getDisplayName(), 100);
-        String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + Chat.Constants.POINT_CHAR, 45);
+        String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + ChatType.Constants.POINT_CHAR, 45);
         this.getScoreboard().setString(scoreboardPos, placementStr + nameStr + pointsStr);
     }
 

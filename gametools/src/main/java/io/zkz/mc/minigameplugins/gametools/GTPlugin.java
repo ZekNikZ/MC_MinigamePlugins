@@ -4,6 +4,8 @@ import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
+import org.bukkit.Bukkit;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,7 +35,6 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     public void onEnable() {
         // Find annotated services
         this.services.addAll(ReflectionHelper.findAllServices(this.getClassLoader(), this));
-        ReflectionHelper.findAllCommands(this.getClassLoader(), this);
 
         PluginManager pluginManager = this.getServer().getPluginManager();
 
@@ -55,6 +56,15 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         // Register commands
         this.getLogger().info("Initializing commands... ");
         commands.forEach(commandGroup -> commandGroup.registerCommands(this));
+        ReflectionHelper.findAndRegisterCommands(this.getClassLoader(), this);
+
+        // Register permissions
+        this.getLogger().info("Initializing permissions... ");
+        List<Permission> permissions = ReflectionHelper.findPermissions(this.getClassLoader(), this);
+        permissions.forEach(perm -> {
+            pluginManager.addPermission(perm);
+            this.getLogger().info("Registered permission node " + perm.getName());
+        });
 
         this.getLogger().info("Enabled " + this.getName());
     }

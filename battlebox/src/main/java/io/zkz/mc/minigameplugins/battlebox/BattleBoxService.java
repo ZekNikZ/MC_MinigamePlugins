@@ -13,6 +13,8 @@ import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.JustGamemodePlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -29,6 +31,9 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
 
 public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     private static final BattleBoxService INSTANCE = new BattleBoxService();
@@ -177,11 +182,11 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
         this.getCurrentRound().recordKill(event.getEntity(), killer);
 
         // Only show death message to those in the arena
-        String deathMessage = event.getDeathMessage();
-        event.setDeathMessage(null);
+        Component deathMessage = event.deathMessage();
+        event.deathMessage(null);
         this.getCurrentRound().getAllPlayersInArena(event.getEntity()).forEach(p -> {
             if (p.equals(killer)) {
-                p.sendMessage(Chat.Constants.POINT_PREFIX.replace("%points%", String.valueOf(Points.KILL)) + deathMessage);
+                p.sendMessage(mmResolve(ChatType.Constants.POINT_PREFIX + " <message>", Placeholder.unparsed("points", "" + Points.KILL), Placeholder.component("message", deathMessage)));
             } else {
                 p.sendMessage(deathMessage);
             }
