@@ -1,9 +1,11 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 
-import java.util.*;
+import java.util.Set;
+
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public class BlockUtils {
     private static final Set<Material> WOOLS = Set.of(
@@ -69,26 +71,41 @@ public class BlockUtils {
         return WOOLS.contains(material);
     }
 
-    public static Material getWoolColor(ChatColor color) {
-        return switch (color) {
-            case BLACK -> Material.BLACK_WOOL;
-            case DARK_BLUE -> Material.BLUE_WOOL;
-            case DARK_GREEN -> Material.GREEN_WOOL;
-            case DARK_AQUA -> Material.CYAN_WOOL;
-            case DARK_RED -> Material.RED_WOOL;
-            case DARK_PURPLE -> Material.PURPLE_WOOL;
-            case GOLD -> Material.ORANGE_WOOL;
-            case GRAY -> Material.LIGHT_GRAY_WOOL;
-            case DARK_GRAY -> Material.GRAY_WOOL;
-            case BLUE -> Material.BLUE_WOOL;
-            case GREEN -> Material.LIME_WOOL;
-            case AQUA -> Material.LIGHT_BLUE_WOOL;
-            case RED -> Material.PINK_WOOL;
-            case LIGHT_PURPLE -> Material.MAGENTA_WOOL;
-            case YELLOW -> Material.YELLOW_WOOL;
-            case WHITE -> Material.WHITE_WOOL;
-            default -> null;
-        };
+    public static Material getWoolColor(NamedTextColor color) {
+        if (color.value() == BLACK.value()) {
+            return Material.BLACK_WOOL;
+        } else if (color.value() == DARK_BLUE.value()) {
+            return Material.BLUE_WOOL;
+        } else if (color.value() == DARK_GREEN.value()) {
+            return Material.GREEN_WOOL;
+        } else if (color.value() == DARK_AQUA.value()) {
+            return Material.CYAN_WOOL;
+        } else if (color.value() == DARK_RED.value()) {
+            return Material.RED_WOOL;
+        } else if (color.value() == DARK_PURPLE.value()) {
+            return Material.PURPLE_WOOL;
+        } else if (color.value() == GOLD.value()) {
+            return Material.ORANGE_WOOL;
+        } else if (color.value() == GRAY.value()) {
+            return Material.LIGHT_GRAY_WOOL;
+        } else if (color.value() == DARK_GRAY.value()) {
+            return Material.GRAY_WOOL;
+        } else if (color.value() == BLUE.value()) {
+            return Material.BLUE_WOOL;
+        } else if (color.value() == GREEN.value()) {
+            return Material.LIME_WOOL;
+        } else if (color.value() == AQUA.value()) {
+            return Material.LIGHT_BLUE_WOOL;
+        } else if (color.value() == RED.value()) {
+            return Material.PINK_WOOL;
+        } else if (color.value() == LIGHT_PURPLE.value()) {
+            return Material.MAGENTA_WOOL;
+        } else if (color.value() == YELLOW.value()) {
+            return Material.YELLOW_WOOL;
+        } else if (color.value() == WHITE.value()) {
+            return Material.WHITE_WOOL;
+        }
+        return null;
     }
 
     public static Set<Material> allConcretes() {
@@ -99,26 +116,41 @@ public class BlockUtils {
         return CONCRETES.contains(material);
     }
 
-    public static Material getConcreteColor(ChatColor color) {
-        return switch (color) {
-            case BLACK -> Material.BLACK_CONCRETE;
-            case DARK_BLUE -> Material.BLUE_CONCRETE;
-            case DARK_GREEN -> Material.GREEN_CONCRETE;
-            case DARK_AQUA -> Material.CYAN_CONCRETE;
-            case DARK_RED -> Material.RED_CONCRETE;
-            case DARK_PURPLE -> Material.PURPLE_CONCRETE;
-            case GOLD -> Material.ORANGE_CONCRETE;
-            case GRAY -> Material.LIGHT_GRAY_CONCRETE;
-            case DARK_GRAY -> Material.GRAY_CONCRETE;
-            case BLUE -> Material.BLUE_CONCRETE;
-            case GREEN -> Material.LIME_CONCRETE;
-            case AQUA -> Material.LIGHT_BLUE_CONCRETE;
-            case RED -> Material.PINK_CONCRETE;
-            case LIGHT_PURPLE -> Material.MAGENTA_CONCRETE;
-            case YELLOW -> Material.YELLOW_CONCRETE;
-            case WHITE -> Material.WHITE_CONCRETE;
-            default -> null;
-        };
+    public static Material getConcreteColor(NamedTextColor color) {
+        if (color.value() == BLACK.value()) {
+            return Material.BLACK_CONCRETE;
+        } else if (color.value() == DARK_BLUE.value()) {
+            return Material.BLUE_CONCRETE;
+        } else if (color.value() == DARK_GREEN.value()) {
+            return Material.GREEN_CONCRETE;
+        } else if (color.value() == DARK_AQUA.value()) {
+            return Material.CYAN_CONCRETE;
+        } else if (color.value() == DARK_RED.value()) {
+            return Material.RED_CONCRETE;
+        } else if (color.value() == DARK_PURPLE.value()) {
+            return Material.PURPLE_CONCRETE;
+        } else if (color.value() == GOLD.value()) {
+            return Material.ORANGE_CONCRETE;
+        } else if (color.value() == GRAY.value()) {
+            return Material.LIGHT_GRAY_CONCRETE;
+        } else if (color.value() == DARK_GRAY.value()) {
+            return Material.GRAY_CONCRETE;
+        } else if (color.value() == BLUE.value()) {
+            return Material.BLUE_CONCRETE;
+        } else if (color.value() == GREEN.value()) {
+            return Material.LIME_CONCRETE;
+        } else if (color.value() == AQUA.value()) {
+            return Material.LIGHT_BLUE_CONCRETE;
+        } else if (color.value() == RED.value()) {
+            return Material.PINK_CONCRETE;
+        } else if (color.value() == LIGHT_PURPLE.value()) {
+            return Material.MAGENTA_CONCRETE;
+        } else if (color.value() == YELLOW.value()) {
+            return Material.YELLOW_CONCRETE;
+        } else if (color.value() == WHITE.value()) {
+            return Material.WHITE_CONCRETE;
+        }
+        return null;
     }
 
     public static boolean isLog(Material type) {

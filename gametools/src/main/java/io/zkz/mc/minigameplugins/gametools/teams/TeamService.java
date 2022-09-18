@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
@@ -9,25 +10,31 @@ import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
+import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 8)
 public class TeamService extends GameToolsService {
@@ -312,36 +319,34 @@ public class TeamService extends GameToolsService {
         return this.collisionRule;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST) // lowest so that the player's team is updated before other services get access to their team information
+    @EventHandler(priority = EventPriority.LOWEST)
+    // lowest so that the player's team is updated before other services get access to their team information
     private void onPlayerJoin(PlayerJoinEvent event) {
         // reload team entry in database
         this.reloadPlayerTeamEntry(event.getPlayer().getUniqueId());
 
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
-            event.getPlayer().setDisplayName(ChatColor.RESET + team.getFormatCode() + team.getPrefix() + " " + event.getPlayer().getName() + ChatColor.RESET);
+            event.getPlayer().displayName(mm(team.getFormatTag() + "<0> <1>", team.getPrefix(), event.getPlayer().name()));
         }
 
-        event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getDisplayName() + ChatColor.YELLOW + " joined the game.");
+        event.joinMessage(mm("<yellow><0> joined the game.", event.getPlayer().displayName()));
     }
 
     @EventHandler
     private void onPlayerLeave(PlayerQuitEvent event) {
-        event.setQuitMessage(ChatColor.YELLOW + event.getPlayer().getDisplayName() + ChatColor.YELLOW + " left the game.");
+        event.quitMessage(mm("<yellow><0> left the game.", event.getPlayer().displayName()));
     }
 
     @EventHandler
-    private void onPlayerChat(AsyncPlayerChatEvent event) {
-        GameTeam team = this.getTeamOfPlayer(event.getPlayer());
-        if (team != null) {
-            event.setFormat("%1$s" + ChatColor.RESET + ": %2$s");
-        }
+    private void onPlayerChat(AsyncChatEvent event) {
+        event.message(mm("<0>: <1>", event.getPlayer().displayName(), event.originalMessage()));
     }
 
     @EventHandler
     private void onTeamCreate(TeamCreateEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) created: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
+        GameToolsPlugin.logger().info("Team(s) created: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::getName).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.createTeamsInDB(c, event.getTeams()));
@@ -350,7 +355,7 @@ public class TeamService extends GameToolsService {
     @EventHandler
     private void onTeamDelete(TeamRemoveEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) deleted: " + event.getTeams().stream().map(GameTeam::getName).collect(Collectors.joining(", ")));
+        GameToolsPlugin.logger().info("Team(s) deleted: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::getName).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.removeTeamsFromDB(c, event.getTeams()));
@@ -358,9 +363,9 @@ public class TeamService extends GameToolsService {
 
     @EventHandler
     private void onPlayerTeamChange(TeamChangeEvent event) {
-        String oldTeam = event.getOldTeam() != null ? event.getOldTeam().getName() : "<none>";
-        String newTeam = event.getNewTeam() != null ? event.getNewTeam().getName() : "<none>";
-        GameToolsPlugin.logger().info("Team changed: " + oldTeam + " -> " + newTeam + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
+        Component oldTeam = event.getOldTeam() != null ? event.getOldTeam().getName() : mm("\\<none>");
+        Component newTeam = event.getNewTeam() != null ? event.getNewTeam().getName() : mm("\\<none>");
+        GameToolsPlugin.logger().info("Team changed: " + PlainTextComponentSerializer.plainText().serialize(oldTeam) + " -> " + PlainTextComponentSerializer.plainText().serialize(newTeam) + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
 
         // Update database
         this.db.addAction(c -> this.changePlayerTeamInDB(c, event.getPlayers(), event.getNewTeam()));
@@ -371,9 +376,9 @@ public class TeamService extends GameToolsService {
             .filter(Objects::nonNull)
             .forEach(player -> {
                 if (event.getNewTeam() != null) {
-                    player.setDisplayName(ChatColor.RESET + event.getNewTeam().getFormatCode() + event.getNewTeam().getPrefix() + " " + player.getName() + ChatColor.RESET);
+                    player.displayName(mm(event.getNewTeam().getFormatTag() + "<0> <1>", event.getNewTeam().getPrefix(), player.name()));
                 } else {
-                    player.setDisplayName(player.getName());
+                    player.displayName(player.name());
                 }
             });
     }
@@ -398,11 +403,11 @@ public class TeamService extends GameToolsService {
             while (resultSet.next()) {
                 GameTeam team = new GameTeam(
                     resultSet.getString("teamId"),
-                    resultSet.getString("teamName"),
-                    resultSet.getString("teamPrefix")
+                    GsonComponentSerializer.gson().deserialize(resultSet.getString("teamName")),
+                    GsonComponentSerializer.gson().deserialize(resultSet.getString("teamPrefix"))
                 );
-                team.setScoreboardColor(org.bukkit.ChatColor.getByChar(resultSet.getString("teamScoreboardColor")));
-                team.setFormatCode(resultSet.getString("teamFormatCode"));
+                team.setScoreboardColor(NamedTextColor.namedColor(resultSet.getInt("teamScoreboardColor")));
+                team.setFormatTag(resultSet.getString("teamFormatCode"));
                 team.setColor(new Color(resultSet.getInt("teamColor")));
                 team.setSpectator(resultSet.getBoolean("teamIsSpectator"));
                 this.createTeam(team, true);
@@ -463,11 +468,11 @@ public class TeamService extends GameToolsService {
 
             for (GameTeam team : teams) {
                 statement.setString(1, team.getId());
-                statement.setString(2, team.getName());
-                statement.setString(3, team.getPrefix());
-                statement.setString(4, String.valueOf(team.getFormatCode()));
+                statement.setString(2, GsonComponentSerializer.gson().serialize(team.getName()));
+                statement.setString(3, GsonComponentSerializer.gson().serialize(team.getPrefix()));
+                statement.setString(4, String.valueOf(team.getFormatTag()));
                 statement.setInt(5, team.getColor().getRGB());
-                statement.setString(6, String.valueOf(team.getScoreboardColor().getChar()));
+                statement.setInt(6, team.getScoreboardColor().value());
                 statement.setBoolean(7, team.isSpectator());
                 statement.addBatch();
             }

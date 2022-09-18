@@ -33,6 +33,7 @@ public class NMSUtils {
         return toNMS(entity).getBoundingBox();
     }
 
+    @SuppressWarnings("deprecation")
     public static AABB getBlockBoundingBox(org.bukkit.block.Block block) {
         BlockState nmsBlockData = toNMS(block);
         Block nmsBlock = nmsBlockData.getBlock();

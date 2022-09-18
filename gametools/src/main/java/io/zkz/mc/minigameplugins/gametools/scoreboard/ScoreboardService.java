@@ -8,7 +8,7 @@ import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -19,6 +19,8 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.*;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 // TODO: reduce how often vanilla scoreboard team and team entries are updated
 @Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 7)
@@ -111,7 +113,7 @@ public class ScoreboardService extends GameToolsService {
         return scoreboards;
     }
 
-    public GameScoreboard createNewScoreboard(String title) {
+    public GameScoreboard createNewScoreboard(Component title) {
         GameScoreboard scoreboard = new GameScoreboard(title);
         this.setupGlobalTeamsOnScoreboard(scoreboard.getScoreboard());
         return scoreboard;
@@ -151,9 +153,9 @@ public class ScoreboardService extends GameToolsService {
                 oldTeam.unregister();
             }
             Team team = scoreboard.registerNewTeam(gameTeam.getId());
-            team.setPrefix("" + gameTeam.getFormatCode() + gameTeam.getPrefix() + ChatColor.RESET + gameTeam.getScoreboardColor() + " ");
-            team.setColor(gameTeam.getScoreboardColor() != null ? gameTeam.getScoreboardColor() : org.bukkit.ChatColor.WHITE);
-            team.setSuffix("" + ChatColor.RESET);
+            team.prefix(mm(gameTeam.getFormatTag() + "<0> ", gameTeam.getPrefix()));
+            team.color(gameTeam.getScoreboardColor());
+            team.suffix(mm(""));
             team.setCanSeeFriendlyInvisibles(true);
             team.setAllowFriendlyFire(TeamService.getInstance().getFriendlyFire());
             team.setOption(Team.Option.COLLISION_RULE, TeamService.getInstance().getCollisionRule());

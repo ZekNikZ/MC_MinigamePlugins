@@ -9,7 +9,7 @@ import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ComponentEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.TimerEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -68,7 +68,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
         GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + getInstance().getTournamentName());
-        scoreboard.addEntry("gameName", new StringEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + MinigameConstantsService.getInstance().getMinigameName()));
+        scoreboard.addEntry("gameName", new ComponentEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + MinigameConstantsService.getInstance().getMinigameName()));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
                 scoreboard.addSpace();
@@ -106,7 +106,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 if (getInstance().timer != null) {
                     scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "%s", getInstance().timer));
                 } else {
-                    scoreboard.addEntry(new StringEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "waiting..."));
+                    scoreboard.addEntry(new ComponentEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "waiting..."));
                 }
                 addTeamInformation(scoreboard, team);
             }
@@ -129,7 +129,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 if (getInstance().timer != null) {
                     scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "%s", getInstance().timer));
                 } else {
-                    scoreboard.addEntry(new StringEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "waiting..."));
+                    scoreboard.addEntry(new ComponentEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "waiting..."));
                 }
                 addTeamInformation(scoreboard, team);
             }

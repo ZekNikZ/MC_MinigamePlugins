@@ -4,7 +4,8 @@ import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -14,6 +15,8 @@ import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
 
 import java.util.Arrays;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = LeaveTeamCommand.COMMAND_NAME,
@@ -35,7 +38,7 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
     @Override
     public boolean handleCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Please specify at least one player.");
+            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>Please specify at least one player."));
             return true;
         }
 
@@ -44,17 +47,17 @@ public class LeaveTeamCommand extends AbstractCommandExecutor {
             if (player == null) {
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
                 if (!offlinePlayer.hasPlayedBefore()) {
-                    sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Could not find player '" + playerName + "'.");
+                    Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>Could not find player '<0>'.", mm(playerName)));
                     return;
                 }
 
                 TeamService.getInstance().leaveTeam(offlinePlayer.getUniqueId());
-                sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed offline player '" + playerName + "' from their team.");
+                Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Removed offline player '<0>' from their team.", mm(playerName)));
                 return;
             }
 
             TeamService.getInstance().leaveTeam(player);
-            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Removed player '" + playerName + "' from their team.");
+            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Removed player '<0>' from their team.", mm(playerName)));
         });
 
         return true;

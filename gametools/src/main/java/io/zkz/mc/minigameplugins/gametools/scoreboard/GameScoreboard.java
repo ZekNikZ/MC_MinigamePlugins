@@ -2,13 +2,11 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.SpaceEntry;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.StringEntry;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ComponentEntry;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -17,6 +15,7 @@ import java.util.*;
  * Wrapper around a Bukkit scoreboard to allow additional functionality.
  */
 public class GameScoreboard {
+    @SuppressWarnings("deprecation")
     private static final String[] INVISIBLE_STRINGS = new String[]{
         "\u00A70" + ChatColor.RESET,
         "\u00A71" + ChatColor.RESET,
@@ -43,31 +42,30 @@ public class GameScoreboard {
     private final Objective objective;
     private final List<ScoreboardEntry> entries = new ArrayList<>();
     private final Map<String, ScoreboardEntry> mappedEntries = new HashMap<>();
-    private final List<String> strings = new ArrayList<>(15);
-    private String title;
+    private final List<Component> components = new ArrayList<>(15);
+    private Component title;
 
-    protected GameScoreboard(String title) {
+    protected GameScoreboard(Component title) {
         this.id = nextId++;
 
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        this.objective = this.scoreboard.registerNewObjective("display", "dummy");
+        this.objective = this.scoreboard.registerNewObjective("display", Criteria.DUMMY, title);
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        this.setTitle(title);
 
         for (int i = 0; i < 15; i++) {
-            strings.add(null);
+            components.add(null);
         }
 
         this.redraw();
     }
 
-    public String getTitle() {
+    public Component getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(Component title) {
         this.title = title;
-        this.objective.setDisplayName(title);
+        this.objective.displayName(title);
     }
 
     public <T extends ScoreboardEntry> T addEntry(T entry) {
@@ -91,8 +89,8 @@ public class GameScoreboard {
         return entry;
     }
 
-    public StringEntry addEntry(String entry) {
-        return this.addEntry(new StringEntry(entry));
+    public ComponentEntry addEntry(Component entry) {
+        return this.addEntry(new ComponentEntry(entry));
     }
 
     public void redraw() {
@@ -111,23 +109,23 @@ public class GameScoreboard {
         this.addEntry(new SpaceEntry());
     }
 
-    public void setString(int pos, String str) {
+    public void setString(int pos, Component component) {
         if (pos < 0 || pos >= 15) {
             throw new IndexOutOfBoundsException("Scoreboard position must be between 0 and 15");
         }
 
-        String existing = this.strings.get(pos);
-        if (Objects.equals(existing, str)) {
+        Component existing = this.components.get(pos);
+        if (Objects.equals(existing, component)) {
             return;
         }
 
-        if (str == null) {
-            this.strings.set(pos, null);
+        if (component == null) {
+            this.components.set(pos, null);
             this.scoreboard.resetScores(INVISIBLE_STRINGS[pos]);
             return;
         }
 
-        this.strings.set(pos, str);
+        this.components.set(pos, component);
         this.objective.getScore(INVISIBLE_STRINGS[pos]).setScore(15 - pos);
 
         Team team = this.scoreboard.getTeam("" + pos);
@@ -137,7 +135,7 @@ public class GameScoreboard {
             team.addEntry(INVISIBLE_STRINGS[pos]);
         }
 
-        team.setSuffix(str);
+        team.suffix(component);
     }
 
     public @Nullable ScoreboardEntry getEntry(String id) {

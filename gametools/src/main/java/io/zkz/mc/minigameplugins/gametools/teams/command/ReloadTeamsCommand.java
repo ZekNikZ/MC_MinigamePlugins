@@ -4,11 +4,14 @@ import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = ReloadTeamsCommand.COMMAND_NAME,
@@ -34,7 +37,7 @@ public class ReloadTeamsCommand extends ArgumentCommandExecutor {
 
         // TODO: error checking?
 
-        sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Successfully reloaded teams.");
+        Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Successfully reloaded teams."));
 
         return true;
     }

@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.gametools.readyup;
 
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import io.zkz.mc.minigameplugins.gametools.util.TitleUtils;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
@@ -61,7 +62,7 @@ public class ReadyUpSession {
      * Mark a player as ready
      *
      * @param player the player
-     * @return whether or not the player was marked as ready (= whether the player was tracked and not already ready)
+     * @return whether the player was marked as ready (= whether the player was tracked and not already ready)
      */
     public boolean markPlayerAsReady(Player player) {
         if (!this.isPlayerTracked(player) || this.readyPlayers.get(player.getUniqueId())) {
@@ -95,12 +96,14 @@ public class ReadyUpSession {
     }
 
     private void displayReadyActionbarMessages() {
-        this.readyPlayers.entrySet().stream().filter(entry -> !entry.getValue()).forEach(entry -> {
-            Player player = Bukkit.getPlayer(entry.getKey());
-            if (player != null) {
-                TitleUtils.sendActionBarMessage(player, ChatColor.GOLD + "Are you ready? Type /ready to confirm.");
-            }
-        });
+        Audience.audience(
+            this.readyPlayers.entrySet().stream()
+                .filter(entry -> !entry.getValue())
+                .map(Map.Entry::getKey)
+                .map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+        ).sendActionBar(mm("<gold>Are you ready? Type <aqua>/ready</aqua> to confirm."));
     }
 
     public boolean isPlayerTracked(Player player) {

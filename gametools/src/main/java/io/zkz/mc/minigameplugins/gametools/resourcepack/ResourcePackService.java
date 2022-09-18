@@ -69,7 +69,7 @@ public class ResourcePackService extends GameToolsService {
         this.resourcePackPath = Optional.ofNullable(json.getString("path")).map(Path::of).orElse(null);
     }
 
-    @SuppressWarnings("UnstableApiUsage")
+    @SuppressWarnings({"UnstableApiUsage", "deprecation"})
     private void computeHash() {
         try {
             this.hash = com.google.common.io.Files.asByteSource(this.resourcePackPath.toFile()).hash(Hashing.sha1()).asBytes();

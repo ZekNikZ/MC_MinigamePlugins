@@ -2,6 +2,7 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard.entry;
 
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.ObservableValue;
+import net.kyori.adventure.text.Component;
 
 public class ObservableValueEntry<T, O extends ObservableValue<T>> extends ValueEntry<O> implements IObserver<O> {
     public ObservableValueEntry(String format, O value) {
@@ -16,8 +17,8 @@ public class ObservableValueEntry<T, O extends ObservableValue<T>> extends Value
     }
 
     @Override
-    protected String getValueString() {
-        return this.getValue().get().toString();
+    protected Component getValueComponent() {
+        return Component.text(this.getValue().get().toString());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.nbt.*;
 import org.bukkit.Material;
@@ -7,6 +8,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -16,11 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+
 public class ItemStackBuilder {
     private final ItemStack stack;
-    private final List<String> lore = new ArrayList<>();
-    private String name = null;
+    private final List<Component> lore = new ArrayList<>();
+    private Component name = null;
     private Boolean unbreakable = null;
+    private Integer damage = null;
     private final List<Material> canPlaceOn = new ArrayList<>();
     private final List<Material> canBreak = new ArrayList<>();
 
@@ -28,20 +33,12 @@ public class ItemStackBuilder {
         this.stack = stack.clone();
     }
 
-    private ItemStackBuilder(Material material, short damage) {
-        this.stack = new ItemStack(material, 1, damage);
-    }
-
     public static ItemStackBuilder builder() {
         return fromMaterial(Material.AIR);
     }
 
     public static ItemStackBuilder fromMaterial(Material material) {
-        return fromMaterial(material, (short) 0);
-    }
-
-    public static ItemStackBuilder fromMaterial(Material material, short damage) {
-        return new ItemStackBuilder(material, damage);
+        return new ItemStackBuilder(new ItemStack(material));
     }
 
     public static ItemStackBuilder fromStack(ItemStack stack) {
@@ -58,8 +55,8 @@ public class ItemStackBuilder {
         return this;
     }
 
-    public ItemStackBuilder damage(short damage) {
-        this.stack.setDurability(damage);
+    public ItemStackBuilder damage(int damage) {
+        this.damage = damage;
         return this;
     }
 
@@ -75,41 +72,22 @@ public class ItemStackBuilder {
         return this;
     }
 
-    public ItemStackBuilder name(String name) {
-        this.name = ChatColor.RESET + name;
+    public ItemStackBuilder name(Component name) {
+        this.name = mm("<!i><0>", name);
         return this;
     }
 
-    public ItemStackBuilder unformattedName(String name) {
-        this.name = name;
+    public ItemStackBuilder lore(Component lore) {
+        this.lore.add(mm("<!i><gray><0>", lore));
         return this;
     }
 
-    public ItemStackBuilder unformattedLore(String lore) {
-        this.lore.add(lore);
+    public ItemStackBuilder lore(List<Component> lore) {
+        lore.forEach(this::lore);
         return this;
     }
 
-    public ItemStackBuilder unformattedLore(List<String> lore) {
-        this.lore.addAll(lore);
-        return this;
-    }
-
-    public ItemStackBuilder unformattedLore(String... lore) {
-        return this.unformattedLore(Arrays.asList(lore));
-    }
-
-    public ItemStackBuilder lore(String lore) {
-        this.lore.add("" + ChatColor.RESET + ChatColor.GRAY + lore);
-        return this;
-    }
-
-    public ItemStackBuilder lore(List<String> lore) {
-        this.lore.addAll(lore.stream().map(line -> "" + ChatColor.RESET + ChatColor.GRAY + line).toList());
-        return this;
-    }
-
-    public ItemStackBuilder lore(String... lore) {
+    public ItemStackBuilder lore(Component... lore) {
         return this.lore(Arrays.asList(lore));
     }
 
@@ -129,6 +107,7 @@ public class ItemStackBuilder {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     public ItemStackBuilder skullOwner(String name) {
         SkullMeta meta = ((SkullMeta) this.stack.getItemMeta());
         meta.setOwner(name);
@@ -170,15 +149,19 @@ public class ItemStackBuilder {
         ItemMeta meta = stack.getItemMeta();
 
         if (this.name != null) {
-            meta.setDisplayName(this.name);
+            meta.displayName(this.name);
         }
 
         if (!this.lore.isEmpty()) {
-            meta.setLore(this.lore);
+            meta.lore(this.lore);
         }
 
         if (this.unbreakable != null) {
             meta.setUnbreakable(this.unbreakable);
+        }
+
+        if (this.damage != null) {
+            ((Damageable) meta).setDamage(this.damage);
         }
 
         stack.setItemMeta(meta);

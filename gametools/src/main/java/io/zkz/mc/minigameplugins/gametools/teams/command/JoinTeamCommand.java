@@ -5,7 +5,8 @@ import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import net.md_5.bungee.api.ChatColor;
+import io.zkz.mc.minigameplugins.gametools.util.Chat;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -14,6 +15,8 @@ import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
 
 import java.util.Arrays;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @Commands(@org.bukkit.plugin.java.annotation.command.Command(
     name = JoinTeamCommand.COMMAND_NAME,
@@ -39,26 +42,26 @@ public class JoinTeamCommand extends AbstractCommandExecutor {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "Please specify at least one player.");
+            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>Please specify at least one player."));
             return true;
         }
 
         // Get the team
         GameTeam team = TeamService.getInstance().getTeam(args[0]);
         if (team == null) {
-            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "The team with ID '" + args[0] + "' does not exist.");
+            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>The team with id '<0>' does not exist.", mm(args[0])));
             return true;
         }
 
         Arrays.stream(args).skip(1).forEach(playerName -> {
             Player player = Bukkit.getPlayer(playerName);
             if (player == null) {
-                sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.RED + "The player '" + playerName + "' is not online.");
+                Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>The player '<0>' is not online.", mm(playerName)));
                 return;
             }
 
             TeamService.getInstance().joinTeam(player, team);
-            sender.sendMessage(MinigameConstantsService.getInstance().getChatPrefix() + ChatColor.GRAY + "Added player '" + playerName + "' to team '" + team.getDisplayName() + "'.");
+            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Added player '<0>' to team '<1>'.", mm(playerName), team.getDisplayName()));
         });
 
         return true;

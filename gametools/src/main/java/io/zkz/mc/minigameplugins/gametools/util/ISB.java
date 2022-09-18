@@ -12,11 +12,7 @@ public class ISB {
     }
 
     public static ItemStackBuilder material(Material material) {
-        return ItemStackBuilder.fromMaterial(material, (short) 0);
-    }
-
-    public static ItemStackBuilder material(Material material, short damage) {
-        return ItemStackBuilder.fromMaterial(material, damage);
+        return ItemStackBuilder.fromMaterial(material);
     }
 
     public static ItemStackBuilder fromItemStack(ItemStack stack) {
@@ -29,13 +25,5 @@ public class ISB {
 
     public static ItemStack stack(Material material, int amount) {
         return new ItemStack(material, amount);
-    }
-
-    public static ItemStack stack(Material material, short damage) {
-        return new ItemStack(material, 1, damage);
-    }
-
-    public static ItemStack stack(Material material, int amount, short damage) {
-        return new ItemStack(material, amount, damage);
     }
 }
