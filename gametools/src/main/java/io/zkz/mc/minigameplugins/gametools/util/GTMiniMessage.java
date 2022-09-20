@@ -1,25 +1,32 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
-import com.google.common.collect.Iterables;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.bukkit.Bukkit;
+import net.kyori.adventure.text.minimessage.tag.standard.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.stream.IntStream;
 
 public class GTMiniMessage {
     public static final MiniMessage MM = MiniMessage.builder()
         .tags(
             TagResolver.builder()
-                .resolver(StandardTags.defaults())
+                .resolver(StandardTags.hoverEvent())
+                .resolver(StandardTags.clickEvent())
+                .resolver(StandardTags.keybind())
+                .resolver(StandardTags.translatable())
+                .resolver(StandardTags.insertion())
+                .resolver(StandardTags.font())
+                .resolver(StandardTags.decorations())
+                .resolver(StandardTags.gradient())
+                .resolver(StandardTags.rainbow())
+                .resolver(StandardTags.reset())
+                .resolver(StandardTags.newline())
+                .resolver(StandardTags.transition())
+                .resolver(StandardTags.selector())
+                .resolver(GTColors.INSTANCE)
                 .build()
         )
         .build();

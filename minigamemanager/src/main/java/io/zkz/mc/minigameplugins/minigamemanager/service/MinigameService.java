@@ -142,7 +142,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         getInstance().scoreboardModifiers.get(currentState).forEach(consumer -> consumer.accept(currentState, scoreboard));
 
-        ScoreboardService.getInstance().setTeamScoreboard(team.getId(), scoreboard);
+        ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
     };
 
     private static void addRoundInformation(GameScoreboard scoreboard) {
@@ -510,7 +510,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     public Collection<GameTeam> getGameTeams() {
-        return TeamService.getInstance().getAllTeams().stream().filter(team -> !team.isSpectator()).toList();
+        return TeamService.getInstance().getAllTeams().stream().filter(team -> !team.spectator()).toList();
     }
 
     public Collection<UUID> getPlayers() {
@@ -518,7 +518,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         return players.stream()
             .filter(uuid -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && !team.isSpectator();
+                return team != null && !team.spectator();
             })
             .toList();
     }
@@ -528,7 +528,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         return players.stream()
             .filter(uuid -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && (team.equals(DefaultTeams.GAME_MASTER) || !team.isSpectator());
+                return team != null && (team.equals(DefaultTeams.GAME_MASTER) || !team.spectator());
             })
             .toList();
     }
@@ -607,7 +607,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         // Apply spectator player state
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
-        if (team == null || team.isSpectator()) {
+        if (team == null || team.spectator()) {
             event.getPlayer().setGameMode(GameMode.SPECTATOR);
             return;
         }

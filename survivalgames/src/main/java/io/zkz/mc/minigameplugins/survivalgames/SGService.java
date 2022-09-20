@@ -106,7 +106,7 @@ public class SGService extends PluginService<SGPlugin> {
             BukkitUtils.forEachPlayer(player -> {
 
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-                if (team.isSpectator()) {
+                if (team.spectator()) {
                     this.activateSpectatorMode(player);
                 }
             });
@@ -125,7 +125,7 @@ public class SGService extends PluginService<SGPlugin> {
         });
         BiConsumer<MinigameState, GameScoreboard> scoreboardModifier = (state, scoreboard) -> {
             scoreboard.addSpace();
-            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().stream().map(TeamService.getInstance()::getTeamOfPlayer).map(GameTeam::getId).distinct().count(), this.aliveTeamCount));
+            scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Teams Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().stream().map(TeamService.getInstance()::getTeamOfPlayer).map(GameTeam::id).distinct().count(), this.aliveTeamCount));
             scoreboard.addEntry(new ObservableValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players Alive: " + ChatColor.RESET + "%s/" + MinigameService.getInstance().getPlayers().size(), this.alivePlayerCount));
         };
         minigame.registerScoreboard(MinigameState.PRE_ROUND, scoreboardModifier);
@@ -218,7 +218,7 @@ public class SGService extends PluginService<SGPlugin> {
         }
 
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        if (team == null || team.isSpectator()) {
+        if (team == null || team.spectator()) {
             player.setGameMode(GameMode.SPECTATOR);
         } else {
             player.setGameMode(GameMode.ADVENTURE);

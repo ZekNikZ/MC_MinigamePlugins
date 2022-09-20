@@ -125,7 +125,7 @@ public class ScoreboardService extends GameToolsService {
         if (playerScoreboard == null) {
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
             if (team != null) {
-                playerScoreboard = teamScoreboards.get(team.getId());
+                playerScoreboard = teamScoreboards.get(team.id());
             }
             if (playerScoreboard == null) {
                 playerScoreboard = globalScoreboard;
@@ -148,13 +148,13 @@ public class ScoreboardService extends GameToolsService {
 
     private void setupGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
-            Team oldTeam = scoreboard.getTeam(gameTeam.getId());
+            Team oldTeam = scoreboard.getTeam(gameTeam.id());
             if (oldTeam != null) {
                 oldTeam.unregister();
             }
-            Team team = scoreboard.registerNewTeam(gameTeam.getId());
-            team.prefix(mm(gameTeam.getFormatTag() + "<0> ", gameTeam.getPrefix()));
-            team.color(gameTeam.getScoreboardColor());
+            Team team = scoreboard.registerNewTeam(gameTeam.id());
+            team.prefix(mm(gameTeam.formatTag() + "<0> ", gameTeam.prefix()));
+            team.color(gameTeam.scoreboardColor());
             team.suffix(mm(""));
             team.setCanSeeFriendlyInvisibles(true);
             team.setAllowFriendlyFire(TeamService.getInstance().getFriendlyFire());
@@ -169,10 +169,10 @@ public class ScoreboardService extends GameToolsService {
 
     private void updateGlobalTeamsOnScoreboard(Scoreboard scoreboard) {
         TeamService.getInstance().getAllTeams().forEach(gameTeam -> {
-            Team team = scoreboard.getTeam(gameTeam.getId());
+            Team team = scoreboard.getTeam(gameTeam.id());
             if (team != null) {
                 team.getEntries().forEach(team::removeEntry);
-                TeamService.getInstance().getTeamMembers(gameTeam).forEach(uuid -> {
+                gameTeam.getAllMembers().forEach(uuid -> {
                     OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
                     if (offlinePlayer.getName() == null) {
                         return;
@@ -209,7 +209,7 @@ public class ScoreboardService extends GameToolsService {
     private void onTeamRemove(TeamRemoveEvent event) {
         // Remove obsolete team scoreboards
         event.getTeams().stream()
-            .map(GameTeam::getId)
+            .map(GameTeam::id)
             .forEach(teamId -> this.setTeamScoreboard(teamId, null));
 
         // Setup team colors on scoreboards

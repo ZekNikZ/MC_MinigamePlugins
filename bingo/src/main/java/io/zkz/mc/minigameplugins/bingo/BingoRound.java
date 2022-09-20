@@ -84,7 +84,7 @@ public class BingoRound extends Round {
 
         // Player setup
         Bukkit.getOnlinePlayers().stream()
-            .filter(player -> !TeamService.getInstance().getTeamOfPlayer(player).isSpectator())
+            .filter(player -> !TeamService.getInstance().getTeamOfPlayer(player).spectator())
             .forEach(player -> {
                 // Tools
                 player.getInventory().clear();
@@ -118,7 +118,7 @@ public class BingoRound extends Round {
                 // Armor
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
                 if (team != null) {
-                    Color color = ColorUtils.toBukkitColor(team.getColor());
+                    Color color = ColorUtils.toBukkitColor(team.color());
                     LeatherArmorMeta meta = ((LeatherArmorMeta) Bukkit.getItemFactory().getItemMeta(Material.LEATHER_HELMET));
                     meta.setColor(color);
                     player.getInventory().setItem(
@@ -185,11 +185,11 @@ public class BingoRound extends Round {
 
     public void checkForItemCollection(Player player, PlayerInventory inventory) {
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        Set<Material> availableItems = getAvailableItems(team.getId());
+        Set<Material> availableItems = getAvailableItems(team.id());
         availableItems.forEach(mat -> {
             if (inventory.contains(mat)) {
                 PlayerUtils.consumeItem(player, 1, mat);
-                this.handleItemCollected(player, team.getId(), mat);
+                this.handleItemCollected(player, team.id(), mat);
             }
         });
     }
@@ -248,7 +248,7 @@ public class BingoRound extends Round {
 
         // Non-team alerts
         Bukkit.getOnlinePlayers().forEach(player -> {
-            if (TeamService.getInstance().getTeamOfPlayer(player).getId().equals(teamId)) {
+            if (TeamService.getInstance().getTeamOfPlayer(player).id().equals(teamId)) {
                 return;
             }
 
@@ -284,6 +284,6 @@ public class BingoRound extends Round {
         Set<Material> uniqueItems = new HashSet<>(this.card.getItems());
         this.possiblePoints = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> Points.INITIAL_POINTS));
         this.teamCollectionOrder = uniqueItems.stream().collect(Collectors.toMap(m -> m, m -> new ArrayList<>()));
-        this.teamCollections = TeamService.getInstance().getAllTeams().stream().collect(Collectors.toMap(GameTeam::getId, t -> new HashSet<>()));
+        this.teamCollections = TeamService.getInstance().getAllTeams().stream().collect(Collectors.toMap(GameTeam::id, t -> new HashSet<>()));
     }
 }

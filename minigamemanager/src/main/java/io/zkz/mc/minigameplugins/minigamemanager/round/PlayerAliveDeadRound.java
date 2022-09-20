@@ -82,7 +82,7 @@ public class PlayerAliveDeadRound extends Round {
      */
     public final void setupPlayer(Player player) {
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        if (team != null && team.isSpectator()) {
+        if (team != null && team.spectator()) {
             this.onPlayerSetup(player, PlayerState.SPEC);
         } else {
             this.onPlayerSetup(player, this.isAlive(player) ? PlayerState.ALIVE : PlayerState.DEAD);

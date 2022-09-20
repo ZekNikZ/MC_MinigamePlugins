@@ -60,7 +60,7 @@ public class GameScoreboard {
     }
 
     public Component getTitle() {
-        return title;
+        return this.title;
     }
 
     public void setTitle(Component title) {

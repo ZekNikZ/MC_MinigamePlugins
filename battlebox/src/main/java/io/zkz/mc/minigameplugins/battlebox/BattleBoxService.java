@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
 
 public class BattleBoxService extends PluginService<BattleBoxPlugin> {
@@ -87,7 +86,7 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
     protected void onEnable() {
         MinigameService minigame = MinigameService.getInstance();
 
-        List<GameTeam> teams = minigame.getGameTeams().stream().sorted(Comparator.comparing(GameTeam::getId)).collect(Collectors.toCollection(ArrayList::new));
+        List<GameTeam> teams = minigame.getGameTeams().stream().sorted(Comparator.comparing(GameTeam::id)).collect(Collectors.toCollection(ArrayList::new));
         // note: assumes even number of teams
         int numMatches = teams.size() - 1;
         int halfSize = teams.size() / 2;
@@ -96,7 +95,7 @@ public class BattleBoxService extends PluginService<BattleBoxPlugin> {
             List<Pair<GameTeam, GameTeam>> match = new ArrayList<>();
             for (int j = 0; j < halfSize; j++) {
                 match.add(new Pair<>(teams.get(j), teams.get(teams.size() - j - 1)));
-                System.out.println(match.get(j).first().getId() + " vs. " + match.get(j).second().getId());
+                System.out.println(match.get(j).first().id() + " vs. " + match.get(j).second().id());
             }
 
             System.out.println("-----");

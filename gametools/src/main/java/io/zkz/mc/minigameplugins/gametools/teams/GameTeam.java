@@ -1,7 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
-import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
+import io.zkz.mc.minigameplugins.gametools.util.GTColor;
+import io.zkz.mc.minigameplugins.gametools.util.GTColors;
+import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
@@ -10,115 +12,64 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
-public class GameTeam implements ForwardingAudience {
-    private String id;
-    private Component name;
-    private Component prefix;
-    private String formatTag;
-    private Color color;
-    private NamedTextColor scoreboardColor;
-    private boolean spectator;
+public record GameTeam(String id, Component name, Component prefix, String formatTag, GTColor color,
+                       NamedTextColor scoreboardColor, boolean spectator) implements ForwardingAudience {
+    public static final class Builder {
+        private final String id;
+        private final Component name;
+        private Component prefix = mm("");
+        private String formatTag = "";
+        private GTColor color = GTColors.WHITE;
+        private NamedTextColor scoreboardColor = NamedTextColor.WHITE;
+        private boolean spectator = false;
 
-    public GameTeam() {
-        this.formatTag = "";
-        this.color = Color.WHITE;
-        this.spectator = false;
+        private Builder(String id, Component name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public Builder prefix(Component prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public Builder formatTag(String formatTag) {
+            this.formatTag = formatTag;
+            return this;
+        }
+
+        public Builder color(GTColor color) {
+            this.color = color;
+            return this;
+        }
+
+        public Builder scoreboardColor(NamedTextColor scoreboardColor) {
+            this.scoreboardColor = scoreboardColor;
+            return this;
+        }
+
+        public Builder spectator(boolean spectator) {
+            this.spectator = spectator;
+            return this;
+        }
+
+        public GameTeam build() {
+            return new GameTeam(this.id, this.name, this.prefix, this.formatTag, this.color, this.scoreboardColor, this.spectator);
+        }
     }
 
-    public GameTeam(String id, Component name, Component prefix) {
-        this();
-        this.prefix = prefix;
-        this.setId(id)
-            .setName(name);
-    }
-
-    public String getFormatTag() {
-        return this.formatTag;
-    }
-
-    public GameTeam setFormatTag(String formatCode) {
-        this.formatTag = formatCode;
-        ScoreboardService.getInstance().setupGlobalTeams();
-        return this;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    private GameTeam setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public Component getName() {
-        return this.name;
+    public static Builder builder(String id, Component name) {
+        return new Builder(id, name);
     }
 
     public Component getDisplayName() {
-        return mm(this.getFormatTag() + "<0> <1>", this.getPrefix(), this.getName());
-    }
-
-    public GameTeam setScoreboardColor(NamedTextColor color) {
-        this.scoreboardColor = color;
-        return this;
-    }
-
-    public NamedTextColor getScoreboardColor() {
-        return this.scoreboardColor;
-    }
-
-    GameTeam setName(Component name) {
-        this.name = name;
-        ScoreboardService.getInstance().setupGlobalTeams();
-        return this;
-    }
-
-    public Component getPrefix() {
-        return this.prefix;
-    }
-
-    GameTeam setPrefix(Component prefix) {
-        this.prefix = prefix;
-        ScoreboardService.getInstance().setupGlobalTeams();
-        return this;
-    }
-
-    public Color getColor() {
-        return this.color;
-    }
-
-    GameTeam setColor(Color color) {
-        this.color = color;
-        return this;
-    }
-
-    public boolean isSpectator() {
-        return this.spectator;
-    }
-
-    public GameTeam setSpectator(boolean spectator) {
-        this.spectator = spectator;
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GameTeam gameTeam)) return false;
-        return Objects.equals(getId(), gameTeam.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
+        return mm(this.formatTag() + "<0> <1>", this.prefix(), this.name());
     }
 
     public Material getWoolColor() {
@@ -160,5 +111,18 @@ public class GameTeam implements ForwardingAudience {
     @Override
     public @NotNull Iterable<? extends Audience> audiences() {
         return this.getAllOnlineMembers();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameTeam gameTeam = (GameTeam) o;
+        return Objects.equals(id, gameTeam.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

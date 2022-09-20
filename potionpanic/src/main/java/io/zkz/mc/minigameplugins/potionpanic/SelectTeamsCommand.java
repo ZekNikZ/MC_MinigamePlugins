@@ -37,7 +37,7 @@ public class SelectTeamsCommand extends ArgumentCommandExecutor {
 
         PotionPanicService.getInstance().setTeam1(team1);
         PotionPanicService.getInstance().setTeam2(team2);
-        sender.sendMessage(ChatColor.GRAY + "Selected teams " + team1.getId() + " and " + team2.getId());
+        sender.sendMessage(ChatColor.GRAY + "Selected teams " + team1.id() + " and " + team2.id());
 
         return true;
     }

@@ -67,7 +67,7 @@ public class ScoreSummaryTask extends MinigameTask {
                 Chat.sendMessage(mm("<bold>Best players on your team:"));
                 MinigameService.getInstance().getGameTeams()
                     .forEach(team -> this.displayScoreboard(
-                        TeamService.getInstance().getOnlineTeamMembers(team.getId()),
+                        TeamService.getInstance().getOnlineTeamMembers(team.id()),
                         ScoreService.getInstance().getGameTeamMemberScoreSummary(team).entrySet().stream()
                             .map((playerId) -> {
                                 Player player = Bukkit.getPlayer(playerId.getKey());
@@ -84,9 +84,9 @@ public class ScoreSummaryTask extends MinigameTask {
                             .toList(),
                         10
                     ));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.SPECTATOR.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.GAME_MASTER.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
-                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.CASTER.getId()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.SPECTATOR.id()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.GAME_MASTER.id()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
+                TeamService.getInstance().getOnlineTeamMembers(DefaultTeams.CASTER.id()).forEach(player -> Chat.sendMessage(player, mm("<gray><italic>You are a spectator.")));
             }
             case 2 -> {
                 Chat.sendMessage(mm("<bold>The game results:"));

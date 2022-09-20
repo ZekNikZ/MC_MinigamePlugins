@@ -87,7 +87,7 @@ public class BingoCardMenu implements InventoryProvider {
 
         BingoRound round = ((BingoRound) MinigameService.getInstance().getCurrentRound());
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        List<Player> teammates = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream()
+        List<Player> teammates = TeamService.getInstance().getOnlineTeamMembers(team.id()).stream()
             .filter(p -> !p.getUniqueId().equals(player.getUniqueId())).toList();
 
         iter.set(ClickableItem.of(

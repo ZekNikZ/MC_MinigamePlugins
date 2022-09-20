@@ -227,7 +227,7 @@ public class GuessTheBuildRound extends Round {
         }
 
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-        if (team != null && team.isSpectator()) {
+        if (team != null && team.spectator()) {
             BukkitUtils.runNextTick(() -> Chat.sendAlert(player, ChatType.WARNING, "You can't guess as a spectator!"));
             return true;
         }

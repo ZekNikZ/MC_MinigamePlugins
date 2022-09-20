@@ -12,7 +12,7 @@ public record BasicPlayerState(GameMode expectedGameMode, PotionEffect... potion
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
 
         // Gamemode
-        if (team != null && team.isSpectator()) {
+        if (team != null && team.spectator()) {
             player.setGameMode(GameMode.SPECTATOR);
         } else {
             player.setGameMode(this.expectedGameMode);

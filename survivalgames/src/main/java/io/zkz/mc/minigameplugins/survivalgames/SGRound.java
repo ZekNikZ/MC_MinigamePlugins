@@ -255,8 +255,8 @@ public class SGRound extends Round {
     }
 
     public void recordKill(Player player, Player killer) {
-        String playerTeamId = TeamService.getInstance().getTeamOfPlayer(player).getId();
-        String killerTeamId = TeamService.getInstance().getTeamOfPlayer(killer).getId();
+        String playerTeamId = TeamService.getInstance().getTeamOfPlayer(player).id();
+        String killerTeamId = TeamService.getInstance().getTeamOfPlayer(killer).id();
 
         if (!this.kills.containsKey(killerTeamId)) {
             this.kills.put(killerTeamId, new ArrayList<>());
@@ -285,7 +285,7 @@ public class SGRound extends Round {
 
         // Teleport
         if (this.isTeamAlive(team)) {
-            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.getId()).stream().filter(this::isAlive).filter(p -> !p.equals(player)).findFirst().orElse(null);
+            Player otherPlayer = TeamService.getInstance().getOnlineTeamMembers(team.id()).stream().filter(this::isAlive).filter(p -> !p.equals(player)).findFirst().orElse(null);
             if (otherPlayer == null) {
                 return;
             }

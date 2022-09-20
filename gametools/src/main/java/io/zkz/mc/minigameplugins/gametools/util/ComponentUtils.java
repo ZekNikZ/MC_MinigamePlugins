@@ -1,16 +1,14 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentBuilder;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.ComponentArgument;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 public class ComponentUtils {
@@ -59,5 +57,9 @@ public class ComponentUtils {
             ComponentJoiner::merge,
             ComponentJoiner::build
         );
+    }
+
+    public static Component extractArgument(CommandContext<CommandSourceStack> cmd, String name) {
+        return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(ComponentArgument.getComponent(cmd, name)));
     }
 }

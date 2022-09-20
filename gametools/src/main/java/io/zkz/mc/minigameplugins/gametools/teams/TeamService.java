@@ -1,6 +1,5 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
@@ -11,6 +10,7 @@ import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
 import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
+import io.zkz.mc.minigameplugins.gametools.util.GTColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -24,7 +24,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -76,7 +75,7 @@ public class TeamService extends GameToolsService {
                 continue;
             }
 
-            if (this.getTeamOfPlayer(playerId) != first) {
+            if (!Objects.equals(this.getTeamOfPlayer(playerId), first)) {
                 return false;
             }
         }
@@ -88,7 +87,7 @@ public class TeamService extends GameToolsService {
         return this.getTrackedPlayers().stream()
             .filter(p -> {
                 GameTeam team = this.getTeamOfPlayer(p);
-                return team != null && !team.isSpectator();
+                return team != null && !team.spectator();
             })
             .allMatch(p -> Bukkit.getPlayer(p) != null);
     }
@@ -105,12 +104,12 @@ public class TeamService extends GameToolsService {
 
     void createTeam(GameTeam team, boolean suppressEvent) throws TeamCreationException {
         // Ensure that the team does not already exist
-        if (this.teams.containsKey(team.getId())) {
+        if (this.teams.containsKey(team.id())) {
             throw new TeamCreationException("team ID already exists");
         }
 
         // Save the team
-        this.teams.put(team.getId(), team);
+        this.teams.put(team.id(), team);
 
         // Call event
         if (!suppressEvent) {
@@ -156,7 +155,7 @@ public class TeamService extends GameToolsService {
     }
 
     public Collection<GameTeam> getAllNonSpectatorTeams() {
-        return this.teams.values().stream().filter(team -> !team.isSpectator()).toList();
+        return this.teams.values().stream().filter(team -> !team.spectator()).toList();
     }
 
     /**
@@ -209,11 +208,11 @@ public class TeamService extends GameToolsService {
     }
 
     public void joinTeam(Player player, GameTeam team) throws TeamJoinException {
-        this.joinTeam(player.getUniqueId(), team.getId());
+        this.joinTeam(player.getUniqueId(), team.id());
     }
 
     public void joinTeam(Player player, GameTeam team, boolean suppressEvent) throws TeamJoinException {
-        this.joinTeam(player.getUniqueId(), team.getId(), suppressEvent);
+        this.joinTeam(player.getUniqueId(), team.id(), suppressEvent);
     }
 
     public void joinTeam(UUID playerId, String teamId) throws TeamJoinException {
@@ -282,7 +281,7 @@ public class TeamService extends GameToolsService {
     }
 
     public Collection<UUID> getTeamMembers(GameTeam team) {
-        return this.getTeamMembers(team.getId());
+        return this.getTeamMembers(team.id());
     }
 
     public Collection<Player> getOnlineTeamMembers(String teamId) {
@@ -295,7 +294,7 @@ public class TeamService extends GameToolsService {
     }
 
     public Collection<Player> getOnlineTeamMembers(GameTeam team) {
-        return this.getOnlineTeamMembers(team.getId());
+        return this.getOnlineTeamMembers(team.id());
     }
 
     public Collection<UUID> getTrackedPlayers() {
@@ -327,7 +326,9 @@ public class TeamService extends GameToolsService {
 
         GameTeam team = this.getTeamOfPlayer(event.getPlayer());
         if (team != null) {
-            event.getPlayer().displayName(mm(team.getFormatTag() + "<0> <1>", team.getPrefix(), event.getPlayer().name()));
+            event.getPlayer().displayName(mm(team.formatTag() + "<0> <1>", team.prefix(), event.getPlayer().name()));
+        } else {
+            event.getPlayer().displayName(event.getPlayer().name());
         }
 
         event.joinMessage(mm("<yellow><0> joined the game.", event.getPlayer().displayName()));
@@ -339,14 +340,9 @@ public class TeamService extends GameToolsService {
     }
 
     @EventHandler
-    private void onPlayerChat(AsyncChatEvent event) {
-        event.message(mm("<0>: <1>", event.getPlayer().displayName(), event.originalMessage()));
-    }
-
-    @EventHandler
     private void onTeamCreate(TeamCreateEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) created: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::getName).collect(ComponentUtils.joining(mm(", ")))));
+        GameToolsPlugin.logger().info("Team(s) created: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.createTeamsInDB(c, event.getTeams()));
@@ -355,7 +351,7 @@ public class TeamService extends GameToolsService {
     @EventHandler
     private void onTeamDelete(TeamRemoveEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) deleted: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::getName).collect(ComponentUtils.joining(mm(", ")))));
+        GameToolsPlugin.logger().info("Team(s) deleted: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.removeTeamsFromDB(c, event.getTeams()));
@@ -363,8 +359,8 @@ public class TeamService extends GameToolsService {
 
     @EventHandler
     private void onPlayerTeamChange(TeamChangeEvent event) {
-        Component oldTeam = event.getOldTeam() != null ? event.getOldTeam().getName() : mm("\\<none>");
-        Component newTeam = event.getNewTeam() != null ? event.getNewTeam().getName() : mm("\\<none>");
+        Component oldTeam = event.getOldTeam() != null ? event.getOldTeam().name() : mm("\\<none>");
+        Component newTeam = event.getNewTeam() != null ? event.getNewTeam().name() : mm("\\<none>");
         GameToolsPlugin.logger().info("Team changed: " + PlainTextComponentSerializer.plainText().serialize(oldTeam) + " -> " + PlainTextComponentSerializer.plainText().serialize(newTeam) + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
 
         // Update database
@@ -376,7 +372,7 @@ public class TeamService extends GameToolsService {
             .filter(Objects::nonNull)
             .forEach(player -> {
                 if (event.getNewTeam() != null) {
-                    player.displayName(mm(event.getNewTeam().getFormatTag() + "<0> <1>", event.getNewTeam().getPrefix(), player.name()));
+                    player.displayName(mm(event.getNewTeam().formatTag() + "<0> <1>", event.getNewTeam().prefix(), player.name()));
                 } else {
                     player.displayName(player.name());
                 }
@@ -404,12 +400,12 @@ public class TeamService extends GameToolsService {
                 GameTeam team = new GameTeam(
                     resultSet.getString("teamId"),
                     GsonComponentSerializer.gson().deserialize(resultSet.getString("teamName")),
-                    GsonComponentSerializer.gson().deserialize(resultSet.getString("teamPrefix"))
+                    GsonComponentSerializer.gson().deserialize(resultSet.getString("teamPrefix")),
+                    resultSet.getString("teamFormatCode"),
+                    new GTColor(resultSet.getInt("teamColor")),
+                    NamedTextColor.namedColor(resultSet.getInt("teamScoreboardColor")),
+                    resultSet.getBoolean("teamIsSpectator")
                 );
-                team.setScoreboardColor(NamedTextColor.namedColor(resultSet.getInt("teamScoreboardColor")));
-                team.setFormatTag(resultSet.getString("teamFormatCode"));
-                team.setColor(new Color(resultSet.getInt("teamColor")));
-                team.setSpectator(resultSet.getBoolean("teamIsSpectator"));
                 this.createTeam(team, true);
             }
         } catch (SQLException e) {
@@ -467,13 +463,13 @@ public class TeamService extends GameToolsService {
             conn.setAutoCommit(false);
 
             for (GameTeam team : teams) {
-                statement.setString(1, team.getId());
-                statement.setString(2, GsonComponentSerializer.gson().serialize(team.getName()));
-                statement.setString(3, GsonComponentSerializer.gson().serialize(team.getPrefix()));
-                statement.setString(4, String.valueOf(team.getFormatTag()));
-                statement.setInt(5, team.getColor().getRGB());
-                statement.setInt(6, team.getScoreboardColor().value());
-                statement.setBoolean(7, team.isSpectator());
+                statement.setString(1, team.id());
+                statement.setString(2, GsonComponentSerializer.gson().serialize(team.name()));
+                statement.setString(3, GsonComponentSerializer.gson().serialize(team.prefix()));
+                statement.setString(4, String.valueOf(team.formatTag()));
+                statement.setInt(5, team.color().rgb());
+                statement.setInt(6, team.scoreboardColor().value());
+                statement.setBoolean(7, team.spectator());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -490,7 +486,7 @@ public class TeamService extends GameToolsService {
             conn.setAutoCommit(false);
 
             for (GameTeam team : teams) {
-                statement.setString(1, team.getId());
+                statement.setString(1, team.id());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -509,8 +505,8 @@ public class TeamService extends GameToolsService {
 
                 for (UUID playerId : players) {
                     statement.setString(1, playerId.toString());
-                    statement.setString(2, newTeam.getId());
-                    statement.setString(3, newTeam.getId());
+                    statement.setString(2, newTeam.id());
+                    statement.setString(3, newTeam.id());
                     statement.addBatch();
                 }
                 statement.executeBatch();

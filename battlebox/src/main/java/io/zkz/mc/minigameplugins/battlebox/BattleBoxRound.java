@@ -84,7 +84,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
 
         BukkitUtils.forEachPlayer(player -> {
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-            if (team == null || team.isSpectator()) {
+            if (team == null || team.spectator()) {
                 return;
             }
 
@@ -105,7 +105,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         if (currentTimeMillis <= 10000 && !movedDown) {
             BukkitUtils.forEachPlayer(player -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
-                if (team == null || team.isSpectator()) {
+                if (team == null || team.spectator()) {
                     return;
                 }
 
@@ -208,8 +208,8 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
             for (int i = 0; i < this.matches.size(); i++) {
                 Pair<GameTeam, GameTeam> match = this.matches.get(i);
                 GameTeam winner = this.matchWinners.get(i);
-                String team1 = match.first().getFormatTag() + match.first().getPrefix() + " " + (match.first().equals(winner) ? "" + ChatColor.BOLD + ChatColor.UNDERLINE : "") + match.first().getName() + ChatColor.RESET;
-                String team2 = match.second().getFormatTag() + match.second().getPrefix() + " " + (match.second().equals(winner) ? "" + ChatColor.BOLD + ChatColor.UNDERLINE : "") + match.second().getName() + ChatColor.RESET;
+                String team1 = match.first().formatTag() + match.first().prefix() + " " + (match.first().equals(winner) ? "" + ChatColor.BOLD + ChatColor.UNDERLINE : "") + match.first().name() + ChatColor.RESET;
+                String team2 = match.second().formatTag() + match.second().prefix() + " " + (match.second().equals(winner) ? "" + ChatColor.BOLD + ChatColor.UNDERLINE : "") + match.second().name() + ChatColor.RESET;
                 Chat.sendMessage(team1 + ChatColor.GRAY + " vs. " + team2);
             }
             BukkitUtils.forEachPlayer(player -> {
@@ -230,7 +230,7 @@ public class BattleBoxRound extends PlayerAliveDeadRound {
         MinigameState currentState = MinigameService.getInstance().getCurrentState();
         GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
 
-        if (team == null || team.isSpectator() || List.of(MinigameState.WAITING_FOR_PLAYERS, MinigameState.RULES, MinigameState.WAITING_TO_BEGIN).contains(currentState)) {
+        if (team == null || team.spectator() || List.of(MinigameState.WAITING_FOR_PLAYERS, MinigameState.RULES, MinigameState.WAITING_TO_BEGIN).contains(currentState)) {
             player.teleport(this.config.computedSpecSpawn());
             return;
         }

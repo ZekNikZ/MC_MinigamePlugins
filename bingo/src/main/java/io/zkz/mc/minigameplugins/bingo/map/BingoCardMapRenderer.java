@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BingoCardMapRenderer extends MapRenderer {
     private static final int IMAGE_START_X = 3;
@@ -86,7 +85,7 @@ public class BingoCardMapRenderer extends MapRenderer {
                 }
                 List<Byte> colors =
                     currentRound.getCollectorsOfItem(items.get(i)).stream()
-                        .map(GameTeam::getColor)
+                        .map(GameTeam::color)
                         .map(MapPalette::matchColor)
                         .toList();
                 switch (colors.size()) {

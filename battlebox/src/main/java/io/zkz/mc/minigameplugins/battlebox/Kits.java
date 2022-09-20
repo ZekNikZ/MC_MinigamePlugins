@@ -2,7 +2,6 @@ package io.zkz.mc.minigameplugins.battlebox;
 
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
-import io.zkz.mc.minigameplugins.gametools.util.ColorUtils;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -44,7 +43,7 @@ public class Kits {
                     .build(),
                 ISB.stack(Material.ARROW, 6)
             );
-            Color color = ColorUtils.toBukkitColor(TeamService.getInstance().getTeamOfPlayer(player).getColor());
+            Color color = ColorUtils.toBukkitColor(TeamService.getInstance().getTeamOfPlayer(player).color());
             LeatherArmorMeta meta = ((LeatherArmorMeta) Bukkit.getItemFactory().getItemMeta(Material.LEATHER_BOOTS));
             meta.setColor(color);
             inv.setItem(

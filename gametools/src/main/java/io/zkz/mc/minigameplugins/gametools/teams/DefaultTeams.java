@@ -1,50 +1,47 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.util.GTColors;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
 
-import java.awt.*;
 import java.util.logging.Level;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 public class DefaultTeams {
-    public static final GameTeam SPECTATOR;
-    public static final GameTeam GAME_MASTER;
-    public static final GameTeam CASTER;
-    public static final GameTeam BLUE;
-    public static final GameTeam RED;
-
-    static {
-        SPECTATOR = new GameTeam("spectators", mm("Spectators"), mm("<dark_gray>[SPEC]"))
-            .setScoreboardColor(NamedTextColor.GRAY)
-            .setFormatTag("<gray>")
-            .setColor(Color.GRAY)
-            .setSpectator(true);
-
-        GAME_MASTER = new GameTeam("game_masters", mm("Game Masters"), mm("<gold>[GM]"))
-            .setScoreboardColor(NamedTextColor.GRAY)
-            .setFormatTag("<gray>")
-            .setColor(Color.GRAY)
-            .setSpectator(true);
-
-        CASTER = new GameTeam("casters", mm("Casters"), mm("<dark_purple>[CASTER]"))
-            .setScoreboardColor(NamedTextColor.GRAY)
-            .setFormatTag("<gray>")
-            .setColor(Color.GRAY)
-            .setSpectator(true);
-
-        BLUE = new GameTeam("blue", mm("Blue Team"), mm("<blue><bold>B"))
-            .setScoreboardColor(NamedTextColor.BLUE)
-            .setFormatTag("<blue>")
-            .setColor(Color.BLUE);
-
-        RED = new GameTeam("red", mm("Red Team"), mm("<red><bold>R"))
-            .setScoreboardColor(NamedTextColor.RED)
-            .setFormatTag("<red>")
-            .setColor(Color.RED);
-    }
+    public static final GameTeam SPECTATOR = GameTeam.builder("spectators", mm("Specators"))
+        .prefix(mm("<dark_gray>[SPEC]"))
+        .formatTag("<light_gray>")
+        .color(GTColors.LIGHT_GRAY)
+        .scoreboardColor(NamedTextColor.GRAY)
+        .spectator(true)
+        .build();
+    public static final GameTeam GAME_MASTER = GameTeam.builder("game_masters", mm("Game Masters"))
+        .prefix(mm("<alert_accent>[GM]"))
+        .formatTag("<light_gray>")
+        .color(GTColors.LIGHT_GRAY)
+        .scoreboardColor(NamedTextColor.GRAY)
+        .spectator(true)
+        .build();
+    public static final GameTeam CASTER = GameTeam.builder("casters", mm("Casters"))
+        .prefix(mm("<purple>[CASTER]"))
+        .formatTag("<light_gray>")
+        .color(GTColors.LIGHT_GRAY)
+        .scoreboardColor(NamedTextColor.GRAY)
+        .spectator(true)
+        .build();
+    public static final GameTeam BLUE = GameTeam.builder("blue", mm("Blue Team"))
+        .prefix(mm("<blue><bold>B"))
+        .formatTag("<blue>")
+        .color(GTColors.BLUE)
+        .scoreboardColor(NamedTextColor.BLUE)
+        .build();
+    public static final GameTeam RED = GameTeam.builder("red", mm("Red Team"))
+        .prefix(mm("<red><bold>R"))
+        .formatTag("<red>")
+        .color(GTColors.RED)
+        .scoreboardColor(NamedTextColor.RED)
+        .build();
 
     public static void addAll() {
         try {

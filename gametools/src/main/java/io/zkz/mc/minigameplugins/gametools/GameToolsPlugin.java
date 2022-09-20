@@ -6,12 +6,15 @@ import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ComponentArgument;
+import net.minecraft.network.chat.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
@@ -78,5 +81,17 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     @Override
     public void onDisable() {
         super.onDisable();
+    }
+
+    @RegisterCommands
+    private static void testCommands(CommandRegistry registry) {
+        registry.register(Commands.literal("testcommand")
+            .then(Commands.argument("message", ComponentArgument.textComponent())
+                .executes(cmd -> {
+                    cmd.getSource().getBukkitSender().sendMessage(ComponentUtils.extractArgument(cmd, "message"));
+                    return 1;
+                })
+            )
+        );
     }
 }
