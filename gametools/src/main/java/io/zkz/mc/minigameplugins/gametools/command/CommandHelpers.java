@@ -1,7 +1,13 @@
 package io.zkz.mc.minigameplugins.gametools.command;
 
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
 import java.util.Collection;

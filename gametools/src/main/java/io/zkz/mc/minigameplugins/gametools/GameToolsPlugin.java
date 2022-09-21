@@ -1,24 +1,17 @@
 package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
+import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
-import io.zkz.mc.minigameplugins.gametools.event.CustomEventService;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
-import io.zkz.mc.minigameplugins.gametools.teams.command.TeamCommands;
-import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import io.zkz.mc.minigameplugins.gametools.teams.TeamCommands;
 import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ComponentArgument;
-import net.minecraft.network.chat.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
@@ -45,7 +38,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 
     public GameToolsPlugin() {
         // Command Groups
-        this.register(new TeamCommands());
         this.register(new MiscCommands());
 
         // Misc
@@ -93,5 +85,10 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
                 })
             )
         );
+    }
+
+    @Override
+    protected void addToCommandRegistry(CommandRegistry registry) {
+        registry.register(TeamArgument.class);
     }
 }

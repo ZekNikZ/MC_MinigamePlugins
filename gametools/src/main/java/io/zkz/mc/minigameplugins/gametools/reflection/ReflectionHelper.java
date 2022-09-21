@@ -76,14 +76,13 @@ public class ReflectionHelper {
             .toList();
     }
 
-    public static void findAndRegisterCommands(ClassLoader loader, GTPlugin<?> plugin) {
+    public static void findAndRegisterCommands(ClassLoader loader, GTPlugin<?> plugin, CommandRegistry registry) {
         Reflections reflections = new Reflections(
             new ConfigurationBuilder()
                 .forPackage(plugin.getClass().getPackageName(), loader)
                 .addScanners(MethodsAnnotated)
         );
 
-        CommandRegistry registry = new CommandRegistry(plugin);
         reflections.get(MethodsAnnotated.with(RegisterCommands.class)
             .as(Method.class)
             .filter(

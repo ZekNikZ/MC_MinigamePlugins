@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
-import io.zkz.mc.minigameplugins.gametools.Permissions;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
@@ -23,14 +22,14 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @RegisterPermissions
 public class ReadyUpCommands {
-    private static final Permission READY_BASE_PERM = new Permission("gametools.ready", "Ready up", PermissionDefault.TRUE);
+    private static final Permission PERM_READY_BASE = new Permission("gametools.ready", "Ready up", PermissionDefault.TRUE);
     private static final Permission PERM_READY_STATUS = new Permission("gametools.ready.status", "See the ready status of the game");
     private static final Permission PERM_READY_UNDO = new Permission("gametools.ready.undo", "Undo the ready up of a player");
 
     @RegisterCommands
     private static void registerCommands(CommandRegistry registry) {
         registry.register(Commands.literal("ready")
-            .requires(hasPermissionOrOp(READY_BASE_PERM))
+            .requires(hasPermissionOrOp(PERM_READY_BASE))
             .executes(cmd -> {
                 CommandSender sender = cmd.getSource().getBukkitSender();
                 if (!(sender instanceof Player player)) {

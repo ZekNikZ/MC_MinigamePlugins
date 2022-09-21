@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
+import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
@@ -53,10 +54,14 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         this.getLogger().info("Initializing services... ");
         services.forEach(service -> service.init((T) this, pluginManager));
 
+        // Register command extras
+        CommandRegistry commandRegistry = new CommandRegistry(this);
+        this.addToCommandRegistry(commandRegistry);
+
         // Register commands
         this.getLogger().info("Initializing commands... ");
         commands.forEach(commandGroup -> commandGroup.registerCommands(this));
-        ReflectionHelper.findAndRegisterCommands(this.getClassLoader(), this);
+        ReflectionHelper.findAndRegisterCommands(this.getClassLoader(), this, commandRegistry);
 
         // Register permissions
         this.getLogger().info("Initializing permissions... ");
@@ -101,6 +106,10 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     }
 
     protected void registerPluginDependents(PluginManager pluginManager) {
+
+    }
+
+    protected void addToCommandRegistry(CommandRegistry registry) {
 
     }
 }
