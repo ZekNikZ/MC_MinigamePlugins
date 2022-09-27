@@ -72,6 +72,9 @@ subprojects {
             exclude group: "org.spigotmc", module: "spigot-api"
             exclude group: "org.bukkit", module: "bukkit"
         }
+
+        implementation "cloud.commandframework:cloud-paper:1.7.1"
+        implementation "cloud.commandframework:cloud-minecraft-extras:1.7.1"
     }
 
     test {

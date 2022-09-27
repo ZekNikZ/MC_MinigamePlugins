@@ -1,44 +1,47 @@
 package io.zkz.mc.minigameplugins.gametools.command;
 
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import cloud.commandframework.Command;
+import cloud.commandframework.arguments.parser.ArgumentParser;
+import cloud.commandframework.arguments.parser.ParserParameters;
+import cloud.commandframework.meta.CommandMeta;
+import io.leangen.geantyref.TypeToken;
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
-import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.synchronization.ArgumentTypeInfo;
-import net.minecraft.commands.synchronization.ArgumentTypeInfos;
-import net.minecraft.commands.synchronization.SingletonArgumentInfo;
-import net.minecraft.core.Registry;
-import net.minecraft.server.MinecraftServer;
+import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.function.Function;
 
 public final class CommandRegistry {
-    private final CommandDispatcher<CommandSourceStack> dispatcher;
     private final GTPlugin<?> plugin;
 
     public CommandRegistry(GTPlugin<?> plugin) {
         this.plugin = plugin;
-        this.dispatcher = MinecraftServer.getServer()
-            .vanillaCommandDispatcher
-            .getDispatcher();
     }
 
-    public void register(LiteralArgumentBuilder<CommandSourceStack> command) {
-        this.dispatcher.register(command);
-        this.plugin.getLogger().info("Registered command /" + command.getLiteral());
+    public Command.Builder<CommandSender> newBaseCommand(String command) {
+        this.plugin.getLogger().info("Registered command /" + command);
+        return this.plugin.getCommandManager().commandBuilder(command);
     }
 
-    public <A extends ArgumentType<?>> void register(Class<? extends A> argumentType) {
-        try {
-            Method method = ArgumentTypeInfos.class.getDeclaredMethod("a", Registry.class, String.class, Class.class, ArgumentTypeInfo.class);
-            method.setAccessible(true);
+    public Command.Builder<CommandSender> newConfirmableCommand(String command) {
+        this.plugin.getLogger().info("Registered confirmable command /" + command);
+        Command.Builder<CommandSender> builder = this.plugin.getCommandManager().commandBuilder(command);
 
-            method.invoke(null, Registry.COMMAND_ARGUMENT_TYPE, "gametools:team", argumentType, SingletonArgumentInfo.contextFree(TeamArgument::team));
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        this.plugin.getCommandManager().command(builder.literal("confirm")
+            .meta(CommandMeta.DESCRIPTION, "Confirm a pending command")
+            .handler(this.plugin.getCommandConfirmationManager().createConfirmationExecutionHandler()));
+
+        return builder;
+    }
+
+    public void registerCommand(Command.Builder<CommandSender> commandBuilder) {
+        this.plugin.getCommandManager().command(commandBuilder);
+    }
+
+    public <T> void registerArgument(@NotNull Class<T> clazz, Function<ParserParameters, ArgumentParser<CommandSender, ?>> supplier) {
+        this.plugin.getCommandManager().parserRegistry().registerParserSupplier(
+            TypeToken.get(clazz),
+            supplier
+        );
     }
 }

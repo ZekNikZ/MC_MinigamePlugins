@@ -1,17 +1,24 @@
 package io.zkz.mc.minigameplugins.gametools;
 
+import cloud.commandframework.ArgumentDescription;
+import cloud.commandframework.Command;
+import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.arguments.standard.UUIDArgument;
+import cloud.commandframework.bukkit.parsers.BlockPredicateArgument;
+import cloud.commandframework.bukkit.parsers.PlayerArgument;
+import cloud.commandframework.bukkit.parsers.location.LocationArgument;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
+import io.zkz.mc.minigameplugins.gametools.command.arguments.TextComponentArgument;
 import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
-import io.zkz.mc.minigameplugins.gametools.teams.TeamCommands;
-import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
+import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ComponentArgument;
+import net.kyori.adventure.text.Component;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
@@ -77,18 +84,23 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 
     @RegisterCommands
     private static void testCommands(CommandRegistry registry) {
-        registry.register(Commands.literal("testcommand")
-            .then(Commands.argument("message", ComponentArgument.textComponent())
-                .executes(cmd -> {
-                    cmd.getSource().getBukkitSender().sendMessage(ComponentUtils.extractArgument(cmd, "message"));
-                    return 1;
+        Command.Builder<CommandSender> builder = registry.newBaseCommand("testcommand");
+
+        registry.registerCommand(
+            builder
+                .argument(PlayerArgument.of("player"))
+                .argument(TeamArgument.of("team"))
+                .argument(TextComponentArgument.of("message"))
+                .handler(cmd -> {
+                    Component component = cmd.get("message");
+                    cmd.getSender().sendMessage(component);
                 })
-            )
         );
     }
 
     @Override
-    protected void addToCommandRegistry(CommandRegistry registry) {
-        registry.register(TeamArgument.class);
+    protected void registerCommandFrameworkExtras(CommandRegistry registry) {
+//        registry.registerArgument(Component.class, options -> new TextComponentArgument.TextComponentParser<>());
+//        registry.registerArgument(GameTeam.class, options -> new TeamArgument.TeamParser<>());
     }
 }

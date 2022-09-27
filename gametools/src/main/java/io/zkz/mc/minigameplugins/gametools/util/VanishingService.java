@@ -5,102 +5,78 @@ import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-@Service(GameToolsPlugin.PLUGIN_NAME)
+@Service
 public class VanishingService extends PluginService<GameToolsPlugin> {
     private static final VanishingService INSTANCE = new VanishingService();
 
     public static VanishingService getInstance() {
         return INSTANCE;
     }
-
-    private final Set<UUID> globallyHiddenPlayers = new HashSet<>();
-
     /**
      * Map of player to players they cannot see.
      */
-    private final Map<UUID, Set<UUID>> hiddenPlayers = new HashMap<>();
+    private final Map<UUID, Set<String>> hiddenPlayers = new HashMap<>();
 
-    public Set<UUID> getHiddenPlayers(UUID playerId) {
+    public Set<UUID> getHiddenPlayers() {
+        return this.hiddenPlayers.keySet();
+    }
+
+    /**
+     * Check if player can see target.
+     */
+    public boolean canSee(Player player) {
+        return this.canSee(player.getUniqueId());
+    }
+
+    /**
+     * Check if player can see target.
+     */
+    public boolean canSee(UUID playerId) {
+        return !this.hiddenPlayers.containsKey(playerId);
+    }
+
+    public void hidePlayer(Player player, String reason) {
+        this.hidePlayer(player.getUniqueId(), reason);
+    }
+
+    public void hidePlayer(UUID playerId, String reason) {
+        this.hiddenPlayers.computeIfAbsent(playerId, u -> new HashSet<>());
+        this.hiddenPlayers.get(playerId).add(reason);
+    }
+
+    public void showPlayer(Player player, String reason) {
+        this.showPlayer(player.getUniqueId(), reason);
+    }
+
+    public void showPlayer(UUID playerId, String reason) {
         if (!this.hiddenPlayers.containsKey(playerId)) {
-            this.hiddenPlayers.put(playerId, new HashSet<>());
+            return;
         }
 
-        return this.hiddenPlayers.get(playerId);
+        this.hiddenPlayers.get(playerId).remove(reason);
     }
 
-    /**
-     * Check if player can see target.
-     */
-    public boolean canSee(Player player, Player target) {
-        return this.canSee(player.getUniqueId(), target.getUniqueId());
+    public void togglePlayer(Player player, String reason) {
+        this.togglePlayer(player.getUniqueId(), reason);
     }
 
-    /**
-     * Check if player can see target.
-     */
-    public boolean canSee(UUID playerId, UUID targetId) {
-        return !this.globallyHiddenPlayers.contains(targetId) && !this.getHiddenPlayers(playerId).contains(targetId);
-    }
-
-    public void hidePlayer(Player player) {
-        this.hidePlayer(player, Bukkit.getOnlinePlayers());
-    }
-
-    public void hidePlayer(UUID playerId) {
-        this.globallyHiddenPlayers.add(playerId);
-    }
-
-    public void hidePlayer(Player player, Collection<? extends Player> otherPlayers) {
-        this.hidePlayer(player.getUniqueId(), otherPlayers.stream().map(Player::getUniqueId).toList());
-    }
-
-    public void hidePlayer(UUID playerId, Collection<UUID> otherPlayerIds) {
-        otherPlayerIds.forEach(op -> this.getHiddenPlayers(op).add(playerId));
-    }
-
-    public void showPlayer(Player player) {
-        this.showPlayer(player.getUniqueId());
-    }
-
-    public void showPlayer(UUID playerId) {
-        this.globallyHiddenPlayers.remove(playerId);
-        this.hiddenPlayers.forEach((p, s) -> s.remove(playerId));
-    }
-
-    public void showPlayer(Player player, Collection<? extends Player> otherPlayers) {
-        this.showPlayer(player.getUniqueId(), otherPlayers.stream().map(Player::getUniqueId).toList());
-    }
-
-    public void showPlayer(UUID playerId, Collection<UUID> otherPlayerIds) {
-        otherPlayerIds.forEach(op -> this.getHiddenPlayers(op).remove(playerId));
-    }
-
-    public void togglePlayer(Player player) {
-        this.togglePlayer(player.getUniqueId());
-    }
-
-    public void togglePlayer(UUID playerId) {
-        // if they are globally hidden, show them
-        if (this.globallyHiddenPlayers.contains(playerId)) {
-            this.showPlayer(playerId);
+    public void togglePlayer(UUID playerId, String reason) {
+        if (this.canSee(playerId)) {
+            this.hidePlayer(playerId, reason);
         } else {
-            this.hidePlayer(playerId);
+            this.showPlayer(playerId, reason);
         }
     }
 
-    public void togglePlayer(Player player, Player otherPlayer) {
-        this.togglePlayer(player.getUniqueId(), otherPlayer.getUniqueId());
+    public @NotNull Optional<Set<String>> getPlayerHiddenReasons(Player player) {
+        return this.getPlayerHiddenReasons(player.getUniqueId());
     }
 
-    public void togglePlayer(UUID playerId, UUID otherPlayerId) {
-        // if they are globally hidden, show them
-        if (this.getHiddenPlayers(otherPlayerId).contains(playerId)) {
-            this.showPlayer(playerId, List.of(otherPlayerId));
-        } else {
-            this.hidePlayer(playerId, List.of(otherPlayerId));
-        }
+    public @NotNull Optional<Set<String>> getPlayerHiddenReasons(UUID playerId) {
+        return Optional.ofNullable(this.hiddenPlayers.get(playerId));
     }
 }

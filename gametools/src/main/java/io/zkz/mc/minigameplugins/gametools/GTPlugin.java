@@ -1,11 +1,19 @@
 package io.zkz.mc.minigameplugins.gametools;
 
+import cloud.commandframework.CommandTree;
+import cloud.commandframework.bukkit.BukkitCommandManager;
+import cloud.commandframework.bukkit.CloudBukkitCapabilities;
+import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
+import cloud.commandframework.execution.CommandExecutionCoordinator;
+import cloud.commandframework.extra.confirmation.CommandConfirmationManager;
+import cloud.commandframework.minecraft.extras.MinecraftHelp;
+import cloud.commandframework.paper.PaperCommandManager;
 import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
-import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,11 +23,19 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
+
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     private final List<CommandGroup> commands = new ArrayList<>();
     protected final List<PluginService<T>> services = new ArrayList<>();
+
+    private BukkitCommandManager<CommandSender> manager;
+    private MinecraftHelp<CommandSender> minecraftHelp;
+    private CommandConfirmationManager<CommandSender> confirmationManager;
 
     protected void register(CommandGroup commandGroup) {
         this.commands.add(commandGroup);
@@ -34,6 +50,83 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     @Override
     @SuppressWarnings("unchecked")
     public void onEnable() {
+        //
+        // This is a function that will provide a command execution coordinator that parses and executes commands
+        // asynchronously
+        //
+        final Function<CommandTree<CommandSender>, CommandExecutionCoordinator<CommandSender>> executionCoordinatorFunction =
+            AsynchronousCommandExecutionCoordinator.<CommandSender>newBuilder().build();
+        // This function maps the command sender type of our choice to the bukkit command sender.
+        // However, in this example we use the Bukkit command sender, and so we just need to map it
+        // to itself
+        //
+        final Function<CommandSender, CommandSender> mapperFunction = Function.identity();
+        try {
+            this.manager = new PaperCommandManager<>(
+                /* Owning plugin */ this,
+                /* Coordinator function */ executionCoordinatorFunction,
+                /* Command Sender -> C */ mapperFunction,
+                /* C -> Command Sender */ mapperFunction
+            );
+        } catch (final Exception e) {
+            this.getLogger().severe("Failed to initialize the command this.manager");
+            /* Disable the plugin */
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        //
+        // Create the Minecraft help menu system
+        //
+        this.minecraftHelp = new MinecraftHelp<>(
+            /* Help Prefix */ "/example help",
+            /* Audience mapper */ s -> s,
+            /* Manager */ this.manager
+        );
+        //
+        // Register Brigadier mappings
+        //
+        if (this.manager.hasCapability(CloudBukkitCapabilities.BRIGADIER)) {
+            this.manager.registerBrigadier();
+        }
+        //
+        // Register asynchronous completions
+        //
+        if (this.manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            ((PaperCommandManager<CommandSender>) this.manager).registerAsynchronousCompletions();
+        }
+        //
+        // Create the confirmation this.manager. This allows us to require certain commands to be
+        // confirmed before they can be executed
+        //
+        this.confirmationManager = new CommandConfirmationManager<>(
+            /* Timeout */ 30L,
+            /* Timeout unit */ TimeUnit.SECONDS,
+            /* Action when confirmation is required */ context -> context.getCommandContext().getSender().sendMessage(
+            mm("<red>Confirmation required. Confirm using /example confirm.")),
+            /* Action when no confirmation is pending */ sender -> sender.sendMessage(
+            mm("<red>You don't have any pending commands."))
+        );
+        //
+        // Register the confirmation processor. This will enable confirmations for commands that require it
+        //
+        this.confirmationManager.registerConfirmationProcessor(this.manager);
+        //
+        // Override the default exception handlers
+        //
+//        new MinecraftExceptionHandler<CommandSender>()
+//            .withInvalidSyntaxHandler()
+//            .withInvalidSenderHandler()
+//            .withNoPermissionHandler()
+//            .withArgumentParsingHandler()
+//            .withCommandExecutionHandler()
+//            .withDecorator(
+//                component -> text()
+//                    .append(text("[", NamedTextColor.DARK_GRAY))
+//                    .append(text(this.getName(), NamedTextColor.GOLD))
+//                    .append(text("] ", NamedTextColor.DARK_GRAY))
+//                    .append(component).build()
+//            ).apply(this.manager, s -> s);
+
         // Find annotated services
         this.services.addAll(ReflectionHelper.findAllServices(this.getClassLoader(), this));
 
@@ -56,7 +149,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
         // Register command extras
         CommandRegistry commandRegistry = new CommandRegistry(this);
-        this.addToCommandRegistry(commandRegistry);
+        this.registerCommandFrameworkExtras(commandRegistry);
 
         // Register commands
         this.getLogger().info("Initializing commands... ");
@@ -96,9 +189,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
             throw e;
         }
-        if (setup != null) {
-            MySQLService.getInstance().addInitCommands(setup);
-        }
+        MySQLService.getInstance().addInitCommands(setup);
     }
 
     public InputStream getResourceAsStream(String name) {
@@ -109,7 +200,15 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
     }
 
-    protected void addToCommandRegistry(CommandRegistry registry) {
+    protected void registerCommandFrameworkExtras(CommandRegistry registry) {
 
+    }
+
+    public BukkitCommandManager<CommandSender> getCommandManager() {
+        return this.manager;
+    }
+
+    public CommandConfirmationManager<CommandSender> getCommandConfirmationManager() {
+        return this.confirmationManager;
     }
 }

@@ -32,10 +32,6 @@ public class ReflectionHelper {
         Set<Class<?>> potentialServiceClasses = reflections.getTypesAnnotatedWith(Service.class);
         for (Class<?> potentialServiceClass : potentialServiceClasses) {
             Service annotation = potentialServiceClass.getAnnotation(Service.class);
-            if (!annotation.value().equals(plugin.getName())) {
-                plugin.getLogger().warning("Found potential service class " + potentialServiceClass.getCanonicalName() + " but is it not for the right plugin.");
-                continue;
-            }
 
             if (!PluginService.class.isAssignableFrom(potentialServiceClass)) {
                 plugin.getLogger().warning("Found potential service class " + potentialServiceClass.getCanonicalName() + " but it does not extend PluginService<?>.");
