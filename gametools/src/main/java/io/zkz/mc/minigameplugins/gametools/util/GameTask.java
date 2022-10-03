@@ -15,14 +15,14 @@ public abstract class GameTask extends BukkitRunnable {
     private final int period;
     private BukkitTask task = null;
 
-    public GameTask(int delay, int period) {
+    protected GameTask(int delay, int period) {
         this.internalTaskId = nextInternalTaskId++;
         this.isRepeating = true;
         this.delay = delay;
         this.period = period;
     }
 
-    public GameTask(int delay) {
+    protected GameTask(int delay) {
         this.internalTaskId = nextInternalTaskId++;
         this.isRepeating = false;
         this.delay = delay;
@@ -42,11 +42,13 @@ public abstract class GameTask extends BukkitRunnable {
         this.cancel(true);
     }
 
+    @SuppressWarnings("java:S1172")
     public synchronized void cancel(boolean removeReference) throws IllegalStateException {
         super.cancel();
         this.task = null;
     }
 
+    @Override
     public synchronized int getTaskId() {
         if (this.task == null) {
             throw new IllegalStateException("Task is not scheduled");
@@ -62,8 +64,8 @@ public abstract class GameTask extends BukkitRunnable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof GameTask task)) return false;
-        return this.internalTaskId == task.internalTaskId;
+        if (!(o instanceof GameTask gameTask)) return false;
+        return this.internalTaskId == gameTask.internalTaskId;
     }
 
     @Override

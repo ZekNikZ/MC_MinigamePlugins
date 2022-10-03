@@ -46,6 +46,7 @@ public abstract class PluginService<T extends JavaPlugin> implements Listener {
     protected void onDisable() {
     }
 
+    @SuppressWarnings("java:S1452")
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of();
     }

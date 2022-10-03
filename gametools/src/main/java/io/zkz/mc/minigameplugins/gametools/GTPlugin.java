@@ -9,13 +9,11 @@ import cloud.commandframework.extra.confirmation.CommandConfirmationManager;
 import cloud.commandframework.minecraft.extras.MinecraftExceptionHandler;
 import cloud.commandframework.minecraft.extras.MinecraftHelp;
 import cloud.commandframework.paper.PaperCommandManager;
-import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
@@ -23,7 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,15 +28,13 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
-import static net.kyori.adventure.text.Component.text;
 
 public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
-    private final List<CommandGroup> commands = new ArrayList<>();
     protected final List<PluginService<T>> services = new ArrayList<>();
 
     private BukkitCommandManager<CommandSender> manager;
-    private MinecraftHelp<CommandSender> minecraftHelp;
     private CommandConfirmationManager<CommandSender> confirmationManager;
+    private MinecraftHelp<CommandSender> minecraftHelp;
 
     protected void register(PluginService<T> service) {
         this.services.add(service);
@@ -59,7 +54,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         // However, in this example we use the Bukkit command sender, and so we just need to map it
         // to itself
         //
-        final Function<CommandSender, CommandSender> mapperFunction = Function.identity();
+        final Function<CommandSender, CommandSender> mapperFunction = Function.identity(); // NOSONAR java:S4276
         try {
             this.manager = new PaperCommandManager<>(
                 /* Owning plugin */ this,
@@ -76,6 +71,9 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         //
         // Create the Minecraft help menu system
         //
+        /* Help Prefix */
+        /* Audience mapper */
+        /* Manager */
         this.minecraftHelp = new MinecraftHelp<>(
             /* Help Prefix */ "/example help",
             /* Audience mapper */ s -> s,
@@ -133,7 +131,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             this.getLogger().info("Initializing database...");
             this.initDB();
             this.getLogger().info("Database initialization complete");
-        } catch (SQLException | IOException e) {
+        } catch (IOException e) {
             this.getLogger().log(Level.SEVERE, "Error setting up databases", e);
         }
 
@@ -147,7 +145,6 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
         // Register commands
         this.getLogger().info("Initializing commands... ");
-        commands.forEach(commandGroup -> commandGroup.registerCommands(this));
         ReflectionHelper.findAndRegisterCommands(this.getClassLoader(), this, commandRegistry);
 
         // Register permissions
@@ -169,7 +166,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         this.getLogger().info("Disabled " + this.getName());
     }
 
-    private void initDB() throws SQLException, IOException {
+    private void initDB() throws IOException {
         // First lets read our setup file.
         // This file contains statements to create our inital tables.
         // it is located in the resources.
@@ -179,7 +176,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
                 return;
             }
             setup = new String(in.readAllBytes());
-        } catch (IOException e) {
+        } catch (IOException e) { // NOSONAR
             getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
             throw e;
         }

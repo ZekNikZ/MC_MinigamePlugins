@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 public class DefaultTeams {
+    private DefaultTeams() {}
+
     public static final GameTeam SPECTATOR = GameTeam.builder("spectators", mm("Specators"))
         .prefix(mm("<dark_gray>[SPEC]"))
         .formatTag("<light_gray>")

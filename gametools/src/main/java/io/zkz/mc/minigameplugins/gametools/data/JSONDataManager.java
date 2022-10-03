@@ -40,6 +40,7 @@ public class JSONDataManager<T extends PluginService<?>> extends FileBasedDataMa
         this.deserializer = deserializer;
     }
 
+    @SuppressWarnings("java:S112")
     @Override
     public void loadData() throws IOException {
         // Ensure the file exists before attempting to read it

@@ -6,12 +6,13 @@ import java.util.Objects;
 
 public abstract class ScoreboardEntry {
     private static int nextId;
-    private final int thisId = nextId++;
+    private final int thisId = nextId++; // NOSONAR java:S1170
 
     private GameScoreboard scoreboard;
 
     public abstract void render(int pos);
 
+    @SuppressWarnings("java:S3400")
     public int getRowCount() {
         return 1;
     }

@@ -46,9 +46,7 @@ public class ReadyUpSession {
     public void cancel() {
         ReadyUpService.getInstance().cleanupSession(this.sessionId);
         this.bossBar.removeAll();
-        this.readyPlayers.keySet().forEach(uuid -> {
-            ActionBarService.getInstance().removeMessage(uuid, "ready");
-        });
+        this.readyPlayers.keySet().forEach(uuid -> ActionBarService.getInstance().removeMessage(uuid, "ready"));
     }
 
     public void complete() {
@@ -63,7 +61,7 @@ public class ReadyUpSession {
      * @return whether the player was marked as ready (= whether the player was tracked and not already ready)
      */
     public boolean markPlayerAsReady(Player player) {
-        if (!this.isPlayerTracked(player) || this.readyPlayers.get(player.getUniqueId())) {
+        if (!this.isPlayerTracked(player) || Boolean.TRUE.equals(this.readyPlayers.get(player.getUniqueId()))) {
             return false;
         }
 

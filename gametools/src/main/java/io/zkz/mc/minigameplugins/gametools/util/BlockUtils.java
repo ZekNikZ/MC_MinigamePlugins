@@ -8,6 +8,8 @@ import java.util.Set;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public class BlockUtils {
+    private BlockUtils() {}
+
     private static final Set<Material> WOOLS = Set.of(
         Material.WHITE_WOOL,
         Material.BLACK_WOOL,

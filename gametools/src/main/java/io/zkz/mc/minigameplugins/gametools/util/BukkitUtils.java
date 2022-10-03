@@ -8,11 +8,12 @@ import org.bukkit.event.Event;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BukkitUtils {
+    private BukkitUtils() {}
+
     public static void runNextTick(Runnable runnable) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, 1);
     }

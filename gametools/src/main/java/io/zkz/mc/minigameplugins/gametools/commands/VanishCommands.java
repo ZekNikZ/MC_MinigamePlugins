@@ -19,9 +19,13 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @RegisterPermissions
 public class VanishCommands {
+    private VanishCommands() {
+    }
+
     private static final Permission PERM_VANISH_SELF = new Permission("gametools.vanish.self", "Vanish self");
     private static final Permission PERM_VANISH_OTHERS = new Permission("gametools.vanish.others", "Vanish other players");
 
+    @SuppressWarnings("java:S3776")
     @RegisterCommands
     private static void registerCommands(CommandRegistry registry) {
         Command.Builder<CommandSender> builder = registry.newBaseCommand("vanish", "v");

@@ -22,6 +22,8 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 @RegisterPermissions
 public class ReadyUpCommands {
+    private ReadyUpCommands() {}
+
     private static final Permission PERM_READY_BASE = new Permission("gametools.ready", "Ready up", PermissionDefault.TRUE);
     private static final Permission PERM_READY_STATUS = new Permission("gametools.ready.status", "See the ready status of the game");
     private static final Permission PERM_READY_UNDO = new Permission("gametools.ready.undo", "Undo the ready up of a player");
@@ -94,11 +96,12 @@ public class ReadyUpCommands {
         // TODO: remove
         registry.registerCommand(
             builder.literal("test")
-                .handler(cmd -> {
-                    ReadyUpService.getInstance().waitForReady(Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId).toList(), () -> {
-                        Bukkit.getServer().sendMessage(mm("<aqua>Done waiting for ready!"));
-                    });
-                })
+                .handler(cmd ->
+                    ReadyUpService.getInstance().waitForReady(
+                        Bukkit.getOnlinePlayers().stream()
+                        .map(Entity::getUniqueId).toList(),
+                        () -> Bukkit.getServer().sendMessage(mm("<aqua>Done waiting for ready!"))
+                    ))
         );
     }
 }

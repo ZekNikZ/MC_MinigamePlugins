@@ -21,12 +21,12 @@ public final class CommandRegistry {
     }
 
     public Command.Builder<CommandSender> newBaseCommand(String command, String... aliases) {
-        this.plugin.getLogger().info("Registered command /" + command);
+        this.plugin.getLogger().info(() -> "Registered command /" + command);
         return this.plugin.getCommandManager().commandBuilder(command, aliases);
     }
 
     public Command.Builder<CommandSender> newConfirmableCommand(String command) {
-        this.plugin.getLogger().info("Registered confirmable command /" + command);
+        this.plugin.getLogger().info(() -> "Registered confirmable command /" + command);
         Command.Builder<CommandSender> builder = this.plugin.getCommandManager().commandBuilder(command);
 
         this.plugin.getCommandManager().command(builder.literal("confirm")

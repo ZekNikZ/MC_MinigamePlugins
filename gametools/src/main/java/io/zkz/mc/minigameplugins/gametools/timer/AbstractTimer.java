@@ -142,14 +142,14 @@ public abstract class AbstractTimer {
      */
     public String format(String format) {
         return format
-            .replaceAll("%H", String.format("%02d", this.getModuloCurrentTime(TimeUnit.HOURS)))
-            .replaceAll("%h", "" + this.getModuloCurrentTime(TimeUnit.HOURS))
-            .replaceAll("%M", String.format("%02d", this.getModuloCurrentTime(TimeUnit.MINUTES)))
-            .replaceAll("%m", "" + this.getModuloCurrentTime(TimeUnit.MINUTES))
-            .replaceAll("%S", String.format("%02d", this.getModuloCurrentTime(TimeUnit.SECONDS)))
-            .replaceAll("%s", "" + this.getModuloCurrentTime(TimeUnit.SECONDS))
-            .replaceAll("%L", String.format("%03d", this.getModuloCurrentTime(TimeUnit.MILLISECONDS)))
-            .replaceAll("%l", "" + this.getModuloCurrentTime(TimeUnit.MILLISECONDS));
+            .replace("%H", String.format("%02d", this.getModuloCurrentTime(TimeUnit.HOURS)))
+            .replace("%h", "" + this.getModuloCurrentTime(TimeUnit.HOURS))
+            .replace("%M", String.format("%02d", this.getModuloCurrentTime(TimeUnit.MINUTES)))
+            .replace("%m", "" + this.getModuloCurrentTime(TimeUnit.MINUTES))
+            .replace("%S", String.format("%02d", this.getModuloCurrentTime(TimeUnit.SECONDS)))
+            .replace("%s", "" + this.getModuloCurrentTime(TimeUnit.SECONDS))
+            .replace("%L", String.format("%03d", this.getModuloCurrentTime(TimeUnit.MILLISECONDS)))
+            .replace("%l", "" + this.getModuloCurrentTime(TimeUnit.MILLISECONDS));
     }
 
     public String toString() {

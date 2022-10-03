@@ -196,7 +196,6 @@ public class ScoreboardService extends PluginService<GameToolsPlugin> {
     private void onPlayerJoin(PlayerJoinEvent event) {
         this.updatePlayerScoreboard(event.getPlayer());
         this.setupGlobalTeams();
-//        this.updateGlobalPlayerTeams();
     }
 
     @EventHandler
@@ -226,6 +225,5 @@ public class ScoreboardService extends PluginService<GameToolsPlugin> {
 
         // Update player colors on scoreboards
         this.setupGlobalTeams();
-//        this.updateGlobalPlayerTeams();
     }
 }

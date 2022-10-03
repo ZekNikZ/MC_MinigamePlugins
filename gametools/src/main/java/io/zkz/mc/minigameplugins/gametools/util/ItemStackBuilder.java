@@ -1,8 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.ChatColor;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
@@ -145,8 +146,8 @@ public class ItemStackBuilder {
     }
 
     public ItemStack build() {
-        ItemStack stack = this.stack.clone();
-        ItemMeta meta = stack.getItemMeta();
+        ItemStack result = this.stack.clone();
+        ItemMeta meta = result.getItemMeta();
 
         if (this.name != null) {
             meta.displayName(this.name);
@@ -164,32 +165,28 @@ public class ItemStackBuilder {
             ((Damageable) meta).setDamage(this.damage);
         }
 
-        stack.setItemMeta(meta);
+        result.setItemMeta(meta);
 
         if (!this.canPlaceOn.isEmpty() || !this.canBreak.isEmpty()) {
-            net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(stack);
+            net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(result);
             CompoundTag tag = nmsStack.getOrCreateTag();
 
             if (!this.canPlaceOn.isEmpty()) {
                 ListTag canPlaceOnTag = new ListTag();
-                this.canPlaceOn.forEach(mat -> {
-                    canPlaceOnTag.add(StringTag.valueOf(mat.getKey().toString()));
-                });
+                this.canPlaceOn.forEach(mat -> canPlaceOnTag.add(StringTag.valueOf(mat.getKey().toString())));
                 tag.put("CanPlaceOn", canPlaceOnTag);
             }
 
             if (!this.canBreak.isEmpty()) {
                 ListTag canBreakTag = new ListTag();
-                this.canBreak.forEach(mat -> {
-                    canBreakTag.add(StringTag.valueOf(mat.getKey().toString()));
-                });
+                this.canBreak.forEach(mat -> canBreakTag.add(StringTag.valueOf(mat.getKey().toString())));
                 tag.put("CanDestroy", canBreakTag);
             }
 
             nmsStack.setTag(tag);
-            stack = CraftItemStack.asBukkitCopy(nmsStack);
+            result = CraftItemStack.asBukkitCopy(nmsStack);
         }
 
-        return stack;
+        return result;
     }
 }

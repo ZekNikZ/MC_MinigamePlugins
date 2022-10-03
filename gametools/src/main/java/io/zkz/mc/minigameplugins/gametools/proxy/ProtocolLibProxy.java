@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class ProtocolLibProxy {
+    private ProtocolLibProxy() {
+    }
+
     public static void setupGlowing(Plugin plugin) {
         ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.ENTITY_METADATA) {
@@ -36,11 +39,10 @@ public class ProtocolLibProxy {
                 int packetAboutId = packet.getIntegers().read(0);
                 Player aboutPlayer = getPlayer(packetAboutId);
 
-                if (receiverId == packetAboutId) {
-                    return;
-                } else if (aboutPlayer == null) {
-                    return;
-                } else if (aboutPlayer.getGameMode() == GameMode.SPECTATOR) {
+                if (receiverId == packetAboutId
+                    || aboutPlayer == null
+                    || aboutPlayer.getGameMode() == GameMode.SPECTATOR
+                ) {
                     return;
                 }
 

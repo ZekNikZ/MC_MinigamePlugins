@@ -31,7 +31,7 @@ public class TypedJSONObject<T> extends HashMap<String, T> implements Map<String
         if (jsonObject.values().stream().anyMatch(el -> el != null && el.getClass().isAssignableFrom(type))) {
             throw new ClassCastException("At least one element is not the expected type.");
         }
-        this.putAll((Map<? extends String, ? extends T>) jsonObject);
+        this.putAll((Map<String, ? extends T>) jsonObject);
     }
 
     @Override
@@ -133,11 +133,7 @@ public class TypedJSONObject<T> extends HashMap<String, T> implements Map<String
         return new TypedJSONArray<>((JSONArray) this.get(key), clazz);
     }
 
-    public List<Object> getList(String key) {
-        return (List<Object>) this.get(key);
-    }
-
-    public <R> List<R> getList(String key, Class<R> clazz) {
+    public <R> List<R> getList(String key) {
         return (List<R>) this.get(key);
     }
 

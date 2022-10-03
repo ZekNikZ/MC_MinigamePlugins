@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import java.util.Collection;
 
 public class SoundUtils {
+    private SoundUtils() {}
+
     public static void playSound(Sound sound, float volume, float pitch) {
         playSound(Bukkit.getOnlinePlayers(), sound, volume, pitch);
     }

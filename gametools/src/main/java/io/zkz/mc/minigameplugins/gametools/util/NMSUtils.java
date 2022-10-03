@@ -13,6 +13,8 @@ import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 
 public class NMSUtils {
+    private NMSUtils() {}
+
     public static Entity toNMS(org.bukkit.entity.Entity entity) {
         return ((CraftEntity) entity).getHandle();
     }

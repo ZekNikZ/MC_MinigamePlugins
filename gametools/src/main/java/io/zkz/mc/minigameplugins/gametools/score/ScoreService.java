@@ -164,8 +164,9 @@ public class ScoreService extends PluginService<GameToolsPlugin> implements IObs
 
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
+        this.db = new MySQLDataManager<>(this, this::loadDB);
         return List.of(
-            this.db = new MySQLDataManager<>(this, this::loadDB)
+            this.db
         );
     }
 

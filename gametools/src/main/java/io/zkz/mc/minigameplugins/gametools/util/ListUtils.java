@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ListUtils {
+    private ListUtils() {}
+
     @SafeVarargs
     public static <T> List<T> of(T... items) {
         return Arrays.asList(items);

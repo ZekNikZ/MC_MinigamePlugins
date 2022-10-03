@@ -53,13 +53,13 @@ public class SGRound extends Round {
         super(json.getString("name"));
         this.templateWorldName = json.getString("folder");
         this.spawnLocations = new ArrayList<BlockVector3>(json.getArray("spawnLocations").stream().map(obj -> JSONUtils.readBlockVector((List<Long>) obj)).toList());
-        this.cornLocation = JSONUtils.readBlockVector(json.getList("cornLocation", Long.class));
+        this.cornLocation = JSONUtils.readBlockVector(json.getList("cornLocation"));
         this.cornWorldborderSize = json.getLong("cornWorldborderSize");
         this.mapWorldborderSize = json.getLong("mapWorldborderSize");
         this.chests = json.getArray("chests").stream().map(obj -> {
             TypedJSONObject<Object> chest = new TypedJSONObject<>(((JSONObject) obj));
             return new SGChest(
-                JSONUtils.readBlockVector(chest.getList("pos", Long.class)),
+                JSONUtils.readBlockVector(chest.getList("pos")),
                 chest.getString("lootTable")
             );
         }).toList();

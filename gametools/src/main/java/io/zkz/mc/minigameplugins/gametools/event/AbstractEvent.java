@@ -9,7 +9,7 @@ public abstract class AbstractEvent extends Event {
 
     @Override
     public @NotNull HandlerList getHandlers() {
-        return handlers;
+        return getHandlerList();
     }
 
     public static HandlerList getHandlerList() {

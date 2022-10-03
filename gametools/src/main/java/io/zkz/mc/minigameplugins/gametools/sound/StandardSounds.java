@@ -3,6 +3,8 @@ package io.zkz.mc.minigameplugins.gametools.sound;
 import org.bukkit.Sound;
 
 public class StandardSounds {
+    private StandardSounds() {}
+
     public static final Sound ALERT_INFO = Sound.BLOCK_NOTE_BLOCK_PLING;
     public static final Sound ALERT_WARNING = Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE;
     public static final Sound ALERT_ERROR = Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO;

@@ -1,18 +1,11 @@
 package io.zkz.mc.minigameplugins.gametools;
 
-import cloud.commandframework.Command;
-import cloud.commandframework.bukkit.parsers.PlayerArgument;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
-import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
-import io.zkz.mc.minigameplugins.gametools.command.arguments.TextComponentArgument;
 import io.zkz.mc.minigameplugins.gametools.proxy.ProtocolLibProxy;
-import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import net.kyori.adventure.text.Component;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
@@ -32,7 +25,7 @@ import java.util.logging.Logger;
 public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     public static final String PLUGIN_NAME = "GameTools";
 
-    private static Logger logger;
+    private static Logger logger;  // NOSONAR java:S2387
 
     public static Logger logger() {
         return logger;
@@ -69,15 +62,11 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
 
     @Override
     public void onEnable() {
-        logger = this.getLogger();
+        logger = this.getLogger(); // NOSONAR java:S2696
         super.onEnable();
     }
 
-    @Override
-    public void onDisable() {
-        super.onDisable();
-    }
-
+    @SuppressWarnings("java:S125")
     @Override
     protected void registerCommandFrameworkExtras(CommandRegistry registry) {
 //        registry.registerArgument(Component.class, options -> new TextComponentArgument.TextComponentParser<>());

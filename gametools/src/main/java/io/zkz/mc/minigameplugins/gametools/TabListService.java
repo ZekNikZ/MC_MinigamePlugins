@@ -3,9 +3,7 @@ package io.zkz.mc.minigameplugins.gametools;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
-import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.kyori.adventure.text.Component;
-import net.minecraft.server.players.PlayerList;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -28,7 +26,8 @@ public class TabListService extends PluginService<GameToolsPlugin> {
     private final Map<UUID, Integer> headerFooterCache = new HashMap<>();
     private final Map<UUID, List<Integer>> playerListCache = new HashMap<>();
 
-    public record TabListEntry(Component component) {}
+    public record TabListEntry(Component component) {
+    }
 
     @NotNull
     private Function<@NotNull Player, @NotNull Component> header = p -> Component.empty();
@@ -81,11 +80,11 @@ public class TabListService extends PluginService<GameToolsPlugin> {
 
     public void updatePlayer(Player player) {
         // Header and footer
-        Component header = this.header.apply(player);
-        Component footer = this.header.apply(player);
-        Integer headerFooterHash = Objects.hash(header, footer);
+        Component actualHeader = this.header.apply(player);
+        Component actualFooter = this.header.apply(player);
+        Integer headerFooterHash = Objects.hash(actualHeader, actualFooter);
         if (!Objects.equals(this.headerFooterCache.get(player.getUniqueId()), headerFooterHash)) {
-            player.sendPlayerListHeaderAndFooter(header, footer);
+            player.sendPlayerListHeaderAndFooter(actualHeader, actualFooter);
             this.headerFooterCache.put(player.getUniqueId(), headerFooterHash);
         }
 

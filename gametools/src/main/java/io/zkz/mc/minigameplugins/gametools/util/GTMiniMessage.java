@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.stream.IntStream;
 
 public class GTMiniMessage {
+    private GTMiniMessage() {}
+
     public static final MiniMessage MM = MiniMessage.builder()
         .tags(
             TagResolver.builder()
@@ -35,6 +37,7 @@ public class GTMiniMessage {
         return MM.deserialize(s, tagResolvers);
     }
 
+    @SuppressWarnings("java:S1845")
     public static Component mm(String s, Component... args) {
         return mmResolve(
             s,

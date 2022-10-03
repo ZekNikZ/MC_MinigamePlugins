@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collector;
 
 public class ComponentUtils {
+    private ComponentUtils() {}
+
     public static Component join(Component joiner, Iterable<? extends Component> args) {
         TextComponent.Builder res = Component.text();
 

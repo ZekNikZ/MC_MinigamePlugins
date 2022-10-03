@@ -19,7 +19,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.json.simple.JSONObject;
 
 import java.nio.file.Path;
@@ -54,28 +53,28 @@ public class SGService extends PluginService<DevPlugin> {
                 arena.getString("name"),
                 arena.getString("folder"),
                 arena.getArray("spawnLocations").stream().map(locObj -> JSONUtils.readBlockVector((List<Long>) locObj)).toList(),
-                JSONUtils.readBlockVector(arena.getList("cornLocation", Long.class)),
+                JSONUtils.readBlockVector(arena.getList("cornLocation")),
                 (int) arena.getLong("cornWorldborderSize"),
                 (int) arena.getLong("mapWorldborderSize"),
                 arena.getArray("chests").stream().map(chestObj -> {
                     TypedJSONObject<Object> chest = new TypedJSONObject<Object>((JSONObject) chestObj);
                     return new SGChest(
-                        JSONUtils.readBlockVector(chest.getList("pos", Long.class)),
+                        JSONUtils.readBlockVector(chest.getList("pos")),
                         chest.getString("lootTable")
                     );
                 }).toList()
             );
         }).toList());
-        this.lobbySpawnLocation = JSONUtils.readBlockVector(json.getList("lobbySpawnLocation", Long.class));
-        this.gulagSpawnLocation = JSONUtils.readBlockVector(json.getList("gulagSpawnLocation", Long.class));
+        this.lobbySpawnLocation = JSONUtils.readBlockVector(json.getList("lobbySpawnLocation"));
+        this.gulagSpawnLocation = JSONUtils.readBlockVector(json.getList("gulagSpawnLocation"));
         this.finalArenas.addAll(json.getArray("finalArenas").stream().map(arenaObj -> {
             TypedJSONObject<Object> arena = new TypedJSONObject<Object>((JSONObject) arenaObj);
             return new SGFinalArena(
                 arena.getString("name"),
-                JSONUtils.readBlockVector(arena.getList("spectatorSpawnLocation", Long.class)),
-                JSONUtils.readBlockVector(arena.getList("gameMasterSpawnLocation", Long.class)),
-                JSONUtils.readBlockVector(arena.getList("team1SpawnLocation", Long.class)),
-                JSONUtils.readBlockVector(arena.getList("team2SpawnLocation", Long.class))
+                JSONUtils.readBlockVector(arena.getList("spectatorSpawnLocation")),
+                JSONUtils.readBlockVector(arena.getList("gameMasterSpawnLocation")),
+                JSONUtils.readBlockVector(arena.getList("team1SpawnLocation")),
+                JSONUtils.readBlockVector(arena.getList("team2SpawnLocation"))
             );
         }).toList());
     }

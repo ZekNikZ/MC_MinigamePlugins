@@ -53,11 +53,6 @@ public class TeamService extends PluginService<GameToolsPlugin> {
 
     private MySQLDataManager<TeamService> db;
 
-    @Override
-    protected void setup() {
-
-    }
-
     /**
      * Checks if all of the specified players are on the same team. If an empty collection is passed, true is returned.
      *
@@ -278,7 +273,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
 
     public Collection<UUID> getTeamMembers(String teamId) {
         return this.players.entrySet().stream()
-            .filter((entry) -> teamId.equals(entry.getValue()))
+            .filter(entry -> teamId.equals(entry.getValue()))
             .map(Map.Entry::getKey)
             .toList();
     }
@@ -289,7 +284,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
 
     public Collection<Player> getOnlineTeamMembers(String teamId) {
         return this.players.entrySet().stream()
-            .filter((entry) -> teamId.equals(entry.getValue()))
+            .filter(entry -> teamId.equals(entry.getValue()))
             .map(Map.Entry::getKey)
             .map(Bukkit::getPlayer)
             .filter(Objects::nonNull)
@@ -358,7 +353,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
     @EventHandler
     private void onTeamCreate(TeamCreateEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) created: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
+        GameToolsPlugin.logger().info(() -> "Team(s) created: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.createTeamsInDB(c, event.getTeams()));
@@ -367,7 +362,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
     @EventHandler
     private void onTeamDelete(TeamRemoveEvent event) {
         // Log message
-        GameToolsPlugin.logger().info("Team(s) deleted: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
+        GameToolsPlugin.logger().info(() -> "Team(s) deleted: " + PlainTextComponentSerializer.plainText().serialize(event.getTeams().stream().map(GameTeam::name).collect(ComponentUtils.joining(mm(", ")))));
 
         // Update database
         this.db.addAction(c -> this.removeTeamsFromDB(c, event.getTeams()));
@@ -377,7 +372,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
     private void onPlayerTeamChange(TeamChangeEvent event) {
         Component oldTeam = event.getOldTeam() != null ? event.getOldTeam().name() : mm("\\<none>");
         Component newTeam = event.getNewTeam() != null ? event.getNewTeam().name() : mm("\\<none>");
-        GameToolsPlugin.logger().info("Team changed: " + PlainTextComponentSerializer.plainText().serialize(oldTeam) + " -> " + PlainTextComponentSerializer.plainText().serialize(newTeam) + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
+        GameToolsPlugin.logger().info(() -> "Team changed: " + PlainTextComponentSerializer.plainText().serialize(oldTeam) + " -> " + PlainTextComponentSerializer.plainText().serialize(newTeam) + " for player(s) " + event.getPlayers().stream().map(uuid -> Bukkit.getOfflinePlayer(uuid).getName()).collect(Collectors.joining(", ")));
 
         // Update database
         this.db.addAction(c -> this.changePlayerTeamInDB(c, event.getPlayers(), event.getNewTeam()));
@@ -397,8 +392,9 @@ public class TeamService extends PluginService<GameToolsPlugin> {
 
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
+        this.db = new MySQLDataManager<>(this, this::loadDB);
         return List.of(
-            this.db = new MySQLDataManager<>(this, this::loadDB)
+            this.db
         );
     }
 

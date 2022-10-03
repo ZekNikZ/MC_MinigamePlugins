@@ -44,7 +44,7 @@ public class GameCountdownTimer extends AbstractTimer {
 
     @Override
     protected void onStop() {
-
+        // not needed
     }
 
     @Override

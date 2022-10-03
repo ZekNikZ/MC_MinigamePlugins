@@ -35,6 +35,7 @@ public class MySQLDataManager<T extends PluginService<?>> extends AbstractDataMa
 
     @Override
     public void saveData() {
+        // Since this data manager saves immediately, this method is unused
     }
 
     private void trySaveData() {

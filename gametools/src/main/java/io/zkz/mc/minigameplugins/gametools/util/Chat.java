@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import static net.kyori.adventure.audience.Audience.audience;
 
 public class Chat {
+    private Chat() {}
 
     public static void sendMessage(Audience audience, double points, Component message) {
         audience.sendMessage(ChatType.NORMAL.format(message, points));

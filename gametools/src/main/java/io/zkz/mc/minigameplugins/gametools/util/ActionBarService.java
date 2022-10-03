@@ -34,6 +34,7 @@ public class ActionBarService extends PluginService<GameToolsPlugin> {
         this.task = null;
     }
 
+    @SuppressWarnings("java:S3824")
     public void addMessage(UUID playerId, String key, Component message) {
         if (!this.messages.containsKey(playerId)) {
             this.messages.put(playerId, new HashMap<>());

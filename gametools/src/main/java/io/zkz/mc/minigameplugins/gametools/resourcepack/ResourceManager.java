@@ -3,7 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.resourcepack;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
 import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Pair;
-import io.zkz.mc.minigameplugins.gametools.util.ZipFileUtil;
+import io.zkz.mc.minigameplugins.gametools.util.ZipFileUtils;
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@SuppressWarnings({"java:S106", "java:S112"})
 public class ResourceManager {
     private static final Path resourcesPath;
     private static final Path resourcePackPath;
@@ -45,7 +46,7 @@ public class ResourceManager {
 
     private static void discoverCustomCharacters() {
         Path customCharacterPath = resourcesPath.resolve("assets/minecraft/textures/custom");
-        try (Stream<Path> s = Files.list(customCharacterPath)){
+        try (Stream<Path> s = Files.list(customCharacterPath)) {
             s.forEach(file -> {
                 String fileName = file.getFileName().toString();
                 if (fileName.contains("custom_character")) {
@@ -129,7 +130,12 @@ public class ResourceManager {
     }
 
     public static char addCustomCharacterImage(char c, InputStream inputStream, int ascent, int height) {
-        String charId = escapeJava("" + c).substring(2).toLowerCase();
+        String escaped = escapeJava("" + c);
+        if (escaped == null) {
+            return '\0';
+        }
+
+        String charId = escaped.substring(2).toLowerCase();
 
         String location = "assets/minecraft/textures/custom/custom_character_" + charId + "_" + ascent + "_" + height + ".png";
 
@@ -146,7 +152,7 @@ public class ResourceManager {
 
     private static void compressResourcePack() {
         try {
-            ZipFileUtil.zipDirectory(resourcesPath.toFile(), resourcePackPath.toFile());
+            ZipFileUtils.zipDirectory(resourcesPath.toFile(), resourcePackPath.toFile());
         } catch (IOException e) {
             System.err.println("Could not compress resource pack");
             e.printStackTrace(System.err);
@@ -169,6 +175,10 @@ public class ResourceManager {
         }
     }
 
+
+    /**
+     * The following are from Apache Commons. I couldn't figure out how to make them work with my Gradle configs.
+     */
     private static void escapeJavaStyleString(Writer out, String str, boolean escapeSingleQuote,
                                               boolean escapeForwardSlash) throws IOException {
         if (out == null) {

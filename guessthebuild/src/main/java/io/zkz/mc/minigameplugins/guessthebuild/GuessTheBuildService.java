@@ -102,7 +102,7 @@ public class GuessTheBuildService extends PluginService<GuessTheBuildPlugin> {
     @SuppressWarnings("unchecked")
     private void loadData(TypedJSONObject<Object> object) {
         this.words.clear();
-        this.words.addAll(object.getList("words", String.class));
+        this.words.addAll(object.getList("words"));
         Collections.shuffle(this.words);
     }
 

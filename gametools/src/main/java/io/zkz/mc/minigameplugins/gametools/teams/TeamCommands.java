@@ -18,13 +18,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
-import org.bukkit.scoreboard.Team;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 @RegisterPermissions
 public class TeamCommands {
+    private TeamCommands() {
+    }
+
     private static final Permission PERM_CREATE_DEFAULTS = new Permission("gametools.team.create.default", "Set up default teams");
     private static final Permission PERM_CREATE = new Permission("gametools.team.create", "Create teams");
     private static final Permission PERM_REMOVE = new Permission("gametools.team.remove", "Remove teams");
@@ -100,14 +102,12 @@ public class TeamCommands {
         registry.registerCommand(
             builder.literal("list")
                 .permission(PERM_LIST.getName())
-                .handler(cmd -> {
-                    Chat.sendMessage(
-                        cmd.getSender(),
-                        TeamService.getInstance().getAllTeams().stream()
-                            .map(team -> mm("<0> (<1>)", team.getDisplayName(), mm(team.id())))
-                            .collect(ComponentUtils.joining(mm(", ")))
-                    );
-                })
+                .handler(cmd -> Chat.sendMessage(
+                    cmd.getSender(),
+                    TeamService.getInstance().getAllTeams().stream()
+                        .map(team -> mm("<0> (<1>)", team.getDisplayName(), mm(team.id())))
+                        .collect(ComponentUtils.joining(mm(", ")))
+                ))
         );
 
         // Create team
@@ -150,7 +150,7 @@ public class TeamCommands {
 
         registry.registerCommand(
             builder.literal("remove", "delete")
-                .permission(PERM_CREATE.getName())
+                .permission(PERM_REMOVE.getName())
                 .argument(TeamArgument.of("team"))
                 .handler(cmd -> {
                     GameTeam team = cmd.get("team");

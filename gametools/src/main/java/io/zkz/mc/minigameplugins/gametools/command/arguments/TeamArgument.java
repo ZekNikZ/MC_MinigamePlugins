@@ -105,6 +105,7 @@ public final class TeamArgument<C> extends CommandArgument<C, GameTeam> {
     }
 
     public static final class TeamParser<C> implements ArgumentParser<C, GameTeam> {
+        @SuppressWarnings("java:S2583")
         @Override
         public @NonNull ArgumentParseResult<GameTeam> parse(
             final @NonNull CommandContext<C> commandContext,

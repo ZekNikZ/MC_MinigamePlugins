@@ -42,7 +42,7 @@ public class BingoRound extends Round {
     }
 
     public BingoRound(TypedJSONObject<Object> json) {
-        this.card = new BingoCard(json.getList("card", String.class));
+        this.card = new BingoCard(json.getList("card"));
         this.spawnLocation = JSONUtils.readLocation(json.getObject("spawn"));
         this.possiblePoints = new HashMap<>();
         this.teamCollectionOrder = new HashMap<>();

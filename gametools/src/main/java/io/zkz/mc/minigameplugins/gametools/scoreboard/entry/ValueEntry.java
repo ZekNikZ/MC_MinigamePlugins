@@ -3,7 +3,6 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard.entry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
-import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
 
 public class ValueEntry<T> extends ScoreboardEntry {

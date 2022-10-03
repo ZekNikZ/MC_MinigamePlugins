@@ -7,7 +7,7 @@ import java.io.IOException;
 public abstract class AbstractDataManager<T extends PluginService<?>> {
     protected final T service;
 
-    public AbstractDataManager(T service) {
+    protected AbstractDataManager(T service) {
         this.service = service;
     }
 

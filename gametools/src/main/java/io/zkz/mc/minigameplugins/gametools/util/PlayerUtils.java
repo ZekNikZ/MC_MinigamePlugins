@@ -4,6 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class PlayerUtils {
+    private PlayerUtils() {}
+
     public static void hidePlayer(Plugin plugin, Player player) {
         BukkitUtils.forEachPlayer(otherPlayer -> {
             if (otherPlayer.equals(player)) {

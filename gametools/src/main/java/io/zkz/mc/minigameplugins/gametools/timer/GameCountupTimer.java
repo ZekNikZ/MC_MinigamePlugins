@@ -17,12 +17,12 @@ public class GameCountupTimer extends AbstractTimer {
 
     @Override
     protected void onUpdate() {
-
+        // not needed
     }
 
     @Override
     protected void onStop() {
-
+        // not needed
     }
 
     @Override

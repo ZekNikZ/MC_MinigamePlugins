@@ -109,6 +109,7 @@ public final class GTColorArgument<C> extends CommandArgument<C, GTColor> {
     }
 
     public static final class GTColorParser<C> implements ArgumentParser<C, GTColor> {
+        @SuppressWarnings("java:S2583")
         @Override
         public @NonNull ArgumentParseResult<GTColor> parse(
             final @NonNull CommandContext<C> commandContext,

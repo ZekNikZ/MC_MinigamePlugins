@@ -3,7 +3,6 @@ package io.zkz.mc.minigameplugins.gametools.teams;
 import io.zkz.mc.minigameplugins.gametools.util.BlockUtils;
 import io.zkz.mc.minigameplugins.gametools.util.GTColor;
 import io.zkz.mc.minigameplugins.gametools.util.GTColors;
-import lombok.EqualsAndHashCode;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.text.Component;
@@ -13,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 

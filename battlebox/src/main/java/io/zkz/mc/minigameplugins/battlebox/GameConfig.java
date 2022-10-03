@@ -79,8 +79,8 @@ class MapConfig {
         this.specSpawn = JSONUtils.readBlockVector(json, "specSpawn");
         this.teams[0] = new TeamConfig(new TypedJSONObject<>(json.getObject("team1"), Object.class));
         this.teams[1] = new TeamConfig(new TypedJSONObject<>(json.getObject("team2"), Object.class));
-        this.validPlacementBlocks = json.getList("validPlacementBlocks", String.class).stream().map(Material::matchMaterial).filter(Objects::nonNull).toArray(Material[]::new);
-        this.validWoolPlacementBlocks = json.getList("validWoolPlacementBlocks", String.class).stream().map(Material::matchMaterial).filter(Objects::nonNull).toArray(Material[]::new);
+        this.validPlacementBlocks = json.getList("validPlacementBlocks").stream().map(Material::matchMaterial).filter(Objects::nonNull).toArray(Material[]::new);
+        this.validWoolPlacementBlocks = json.getList("validWoolPlacementBlocks").stream().map(Material::matchMaterial).filter(Objects::nonNull).toArray(Material[]::new);
         this.leafBlock = Material.matchMaterial(json.getString("leafBlock"));
         this.kits = TypedJSONObject.asObjects(json.getObject("kits")).entrySet().stream()
             .collect(Collectors.toMap(

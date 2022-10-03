@@ -7,6 +7,8 @@ import org.bukkit.inventory.ItemStack;
  * Alias for {@link ItemStackBuilder}.
  */
 public class ISB {
+    private ISB() {}
+
     public static ItemStackBuilder builder() {
         return ItemStackBuilder.builder();
     }

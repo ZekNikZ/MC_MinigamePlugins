@@ -21,7 +21,12 @@ import static org.reflections.ReflectionUtils.Methods;
 import static org.reflections.scanners.Scanners.MethodsAnnotated;
 import static org.reflections.scanners.Scanners.TypesAnnotated;
 
+@SuppressWarnings({"java:S3011"})
 public class ReflectionHelper {
+    private ReflectionHelper() {
+    }
+
+    @SuppressWarnings("unchecked")
     public static <T extends GTPlugin<T>> List<PluginService<T>> findAllServices(ClassLoader loader, GTPlugin<T> plugin) {
         Reflections reflections = new Reflections(
             new ConfigurationBuilder()
@@ -57,7 +62,7 @@ public class ReflectionHelper {
             }
             Object service = null;
             try {
-                service = potentialMethods.stream().findAny().get().invoke(null);
+                service = potentialMethods.stream().findAny().orElseThrow(IllegalAccessException::new).invoke(null);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 plugin.getLogger().log(Level.WARNING, "Potential service class " + potentialServiceClass.getCanonicalName() + " has multiple getInstance methods.", e);
             }
@@ -67,7 +72,7 @@ public class ReflectionHelper {
         }
 
         return res.stream()
-            .sorted(Comparator.comparing((Pair<PluginService<T>, Integer> p) -> p.second()).reversed())
+            .sorted(Comparator.comparing((Pair<PluginService<T>, Integer> p) -> p.second()).reversed()) //NOSONAR
             .map(Pair::first)
             .toList();
     }
@@ -106,7 +111,7 @@ public class ReflectionHelper {
         List<Permission> res = new ArrayList<>();
         reflections.get(TypesAnnotated.with(RegisterPermissions.class)
             .asClass()
-        ).forEach(clazz -> {
+        ).forEach(clazz ->
             reflections.get(Fields.of(clazz)
                 .as(Field.class)
                 .filter(
@@ -124,8 +129,7 @@ public class ReflectionHelper {
                 } catch (IllegalAccessException e) {
                     plugin.getLogger().log(Level.WARNING, "Could not register permission in field " + field.getName() + " in " + field.getDeclaringClass().getCanonicalName(), e);
                 }
-            });
-        });
+            }));
 
         return res;
     }

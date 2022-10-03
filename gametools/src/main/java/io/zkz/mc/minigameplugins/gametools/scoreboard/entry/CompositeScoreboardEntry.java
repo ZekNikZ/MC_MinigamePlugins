@@ -30,6 +30,7 @@ public class CompositeScoreboardEntry extends ScoreboardEntry {
         return this.children.remove(position);
     }
 
+    @Override
     public int getRowCount() {
         return this.children.stream().mapToInt(ScoreboardEntry::getRowCount).sum();
     }

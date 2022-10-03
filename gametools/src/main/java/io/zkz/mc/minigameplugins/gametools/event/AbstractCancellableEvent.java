@@ -11,7 +11,7 @@ public abstract class AbstractCancellableEvent extends Event implements Cancella
 
     @Override
     public @NotNull HandlerList getHandlers() {
-        return handlers;
+        return getHandlerList();
     }
 
     public static HandlerList getHandlerList() {

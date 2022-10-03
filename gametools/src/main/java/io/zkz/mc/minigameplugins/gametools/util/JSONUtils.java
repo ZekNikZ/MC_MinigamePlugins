@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 public class JSONUtils {
+    private JSONUtils() {}
+
     private static final JSONParser parser = new JSONParser();
 
     public static List<Long> toJSON(BlockVector3 vec) {
@@ -42,7 +44,7 @@ public class JSONUtils {
 
     public static Location readLocation(JSONObject json) {
         TypedJSONObject<Object> rawLoc = new TypedJSONObject<>(json, Object.class);
-        List<Long> pos = rawLoc.getList("pos", Long.class);
+        List<Long> pos = rawLoc.getList("pos");
         return new Location(
             Bukkit.getWorld(rawLoc.getString("world")),
             pos.get(0), pos.get(1), pos.get(2)
@@ -54,7 +56,7 @@ public class JSONUtils {
     }
 
     public static BlockVector3 readBlockVector(TypedJSONObject<Object> json, String key) {
-        return readBlockVector(json.getList(key, Long.class));
+        return readBlockVector(json.getList(key));
     }
 
     public static JSONObject readJSONObject(InputStream inputStream) {

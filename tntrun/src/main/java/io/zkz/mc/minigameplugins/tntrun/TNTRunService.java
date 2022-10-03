@@ -11,7 +11,6 @@ import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
 import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
-import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ObservableValueEntry;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
@@ -141,9 +140,9 @@ public class TNTRunService extends PluginService<TNTRunPlugin> {
         this.rounds.addAll(object.getArray("arenas").stream().map(obj -> {
             TypedJSONObject<Object> round = new TypedJSONObject<Object>((JSONObject) obj);
             return new TNTRunRound(
-                JSONUtils.readBlockVector(round.getList("pos1", Long.class)),
-                JSONUtils.readBlockVector(round.getList("pos2", Long.class)),
-                JSONUtils.readBlockVector(round.getList("spawn", Long.class)),
+                JSONUtils.readBlockVector(round.getList("pos1")),
+                JSONUtils.readBlockVector(round.getList("pos2")),
+                JSONUtils.readBlockVector(round.getList("spawn")),
                 round.getInteger("deathLevel"),
                 round.getString("mapName")
             );

@@ -10,7 +10,7 @@ import java.nio.file.Path;
 public abstract class FileBasedDataManager<T extends PluginService<?>> extends AbstractDataManager<T> {
     protected final Path filePath;
 
-    public FileBasedDataManager(T service, Path filePath) {
+    protected FileBasedDataManager(T service, Path filePath) {
         super(service);
         if (!filePath.isAbsolute()) {
             this.filePath = service.getPlugin().getDataFolder().toPath().resolve(filePath);
