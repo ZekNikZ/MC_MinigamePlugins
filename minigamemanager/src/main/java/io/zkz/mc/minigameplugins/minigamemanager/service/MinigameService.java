@@ -26,7 +26,6 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
-import io.zkz.mc.minigameplugins.minigamemanager.proxy.ProtocolLibProxy;
 import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameScoreboard;
@@ -284,11 +283,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         // POST_GAME
         this.addSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.postGameDelay * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
         this.addTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
-
-        // ProtocolLib stuff
-        if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
-            ProtocolLibProxy.setupGlowing(this.getPlugin());
-        }
     }
 
     private void drawScoreboard(MinigameState state) {
@@ -637,31 +631,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void setAutomaticNextRound(boolean automaticNextRound) {
         this.automaticNextRound = automaticNextRound;
-    }
-
-    public void setGlowingTeammates(boolean glowingTeammates) {
-        this.glowingTeammates = glowingTeammates;
-        this.refreshGlowing();
-    }
-
-    public void refreshGlowing() {
-        BukkitUtils.forEachPlayer(player -> {
-            BukkitUtils.forEachPlayer(otherPlayer -> {
-                if (player.equals(otherPlayer)) {
-                    return;
-                }
-
-                boolean canSee = player.canSee(otherPlayer);
-                player.hidePlayer(this.getPlugin(), otherPlayer);
-                if (canSee) {
-                    player.showPlayer(this.getPlugin(), otherPlayer);
-                }
-            });
-        });
-    }
-
-    public boolean isGlowingEnabled() {
-        return this.glowingTeammates;
     }
 
     public void setPointMultiplier(double multiplier) {

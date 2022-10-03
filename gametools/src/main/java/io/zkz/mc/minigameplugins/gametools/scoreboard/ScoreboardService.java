@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.gametools.scoreboard;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
@@ -23,8 +23,8 @@ import java.util.*;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 // TODO: reduce how often vanilla scoreboard team and team entries are updated
-@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 7)
-public class ScoreboardService extends GameToolsService {
+@Service(priority = 7)
+public class ScoreboardService extends PluginService<GameToolsPlugin> {
     private static final ScoreboardService INSTANCE = new ScoreboardService();
 
     public static ScoreboardService getInstance() {

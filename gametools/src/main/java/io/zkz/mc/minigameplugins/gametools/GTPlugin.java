@@ -6,6 +6,7 @@ import cloud.commandframework.bukkit.CloudBukkitCapabilities;
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator;
 import cloud.commandframework.execution.CommandExecutionCoordinator;
 import cloud.commandframework.extra.confirmation.CommandConfirmationManager;
+import cloud.commandframework.minecraft.extras.MinecraftExceptionHandler;
 import cloud.commandframework.minecraft.extras.MinecraftHelp;
 import cloud.commandframework.paper.PaperCommandManager;
 import io.zkz.mc.minigameplugins.gametools.command.CommandGroup;
@@ -13,6 +14,8 @@ import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
 import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
+import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
@@ -28,6 +31,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static net.kyori.adventure.text.Component.text;
 
 public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     private final List<CommandGroup> commands = new ArrayList<>();
@@ -36,11 +40,6 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     private BukkitCommandManager<CommandSender> manager;
     private MinecraftHelp<CommandSender> minecraftHelp;
     private CommandConfirmationManager<CommandSender> confirmationManager;
-
-    protected void register(CommandGroup commandGroup) {
-        this.commands.add(commandGroup);
-        this.getLogger().info("Registered command group " + commandGroup.getClass().getSimpleName());
-    }
 
     protected void register(PluginService<T> service) {
         this.services.add(service);
@@ -102,9 +101,9 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             /* Timeout */ 30L,
             /* Timeout unit */ TimeUnit.SECONDS,
             /* Action when confirmation is required */ context -> context.getCommandContext().getSender().sendMessage(
-            mm("<red>Confirmation required. Confirm using /example confirm.")),
+            mm("<alert_warning>Confirmation required. Confirm using <alert_info>/" + context.getCommand().getComponents().get(0).getArgument().getName() + " confirm</alert_info>.")),
             /* Action when no confirmation is pending */ sender -> sender.sendMessage(
-            mm("<red>You don't have any pending commands."))
+            mm("<alert_warning>You don't have any pending commands."))
         );
         //
         // Register the confirmation processor. This will enable confirmations for commands that require it
@@ -113,19 +112,14 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
         //
         // Override the default exception handlers
         //
-//        new MinecraftExceptionHandler<CommandSender>()
-//            .withInvalidSyntaxHandler()
-//            .withInvalidSenderHandler()
-//            .withNoPermissionHandler()
-//            .withArgumentParsingHandler()
-//            .withCommandExecutionHandler()
-//            .withDecorator(
-//                component -> text()
-//                    .append(text("[", NamedTextColor.DARK_GRAY))
-//                    .append(text(this.getName(), NamedTextColor.GOLD))
-//                    .append(text("] ", NamedTextColor.DARK_GRAY))
-//                    .append(component).build()
-//            ).apply(this.manager, s -> s);
+        new MinecraftExceptionHandler<CommandSender>()
+            .withInvalidSyntaxHandler()
+            .withInvalidSenderHandler()
+            .withNoPermissionHandler()
+            .withArgumentParsingHandler()
+            .withCommandExecutionHandler()
+            .withDecorator(ChatType.COMMAND_ERROR::format)
+            .apply(this.manager, s -> s);
 
         // Find annotated services
         this.services.addAll(ReflectionHelper.findAllServices(this.getClassLoader(), this));

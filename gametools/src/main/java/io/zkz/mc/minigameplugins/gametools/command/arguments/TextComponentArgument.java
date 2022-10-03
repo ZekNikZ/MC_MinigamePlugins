@@ -108,8 +108,6 @@ public class TextComponentArgument<C> extends CommandArgument<C, Component> {
             final @NonNull CommandContext<C> commandContext,
             final @NonNull Queue<String> inputQueue
         ) {
-            System.out.println("here");
-
             String peek = inputQueue.peek();
             if (peek == null) {
                 return ArgumentParseResult.failure(new NoInputProvidedException(

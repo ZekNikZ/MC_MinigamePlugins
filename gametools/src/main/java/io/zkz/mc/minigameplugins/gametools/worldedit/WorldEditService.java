@@ -17,13 +17,14 @@ import com.sk89q.worldedit.regions.factory.CuboidRegionFactory;
 import com.sk89q.worldedit.regions.factory.SphereRegionFactory;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.block.BlockType;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import org.bukkit.Material;
 
 import java.util.Arrays;
 import java.util.Map;
 
-public class WorldEditService extends GameToolsService {
+public class WorldEditService extends PluginService<GameToolsPlugin> {
     private static final WorldEditService INSTANCE = new WorldEditService();
     private static boolean loaded = false;
 

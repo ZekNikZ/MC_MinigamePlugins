@@ -3,10 +3,12 @@ package io.zkz.mc.minigameplugins.gametools.util;
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 import static io.zkz.mc.minigameplugins.gametools.util.ChatType.Constants.*;
-import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
-import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.*;
 
 public enum ChatType {
     NORMAL(
@@ -48,6 +50,15 @@ public enum ChatType {
     GAME_SUCCESS(
         GAME_PREFIX + "<green><message>",
         POINT_PREFIX + GAME_PREFIX + "<green><message>"
+    ),
+    COMMAND_SUCCESS(
+        "<light_gray><message>",
+        null
+    ),
+    COMMAND_ERROR(
+        "<alert_warning>Command error: <message>",
+        null,
+        "<alert_warning>Command error: <message>\n<dark_gray><cause>"
     );
 
     public static class Constants {
@@ -60,10 +71,16 @@ public enum ChatType {
 
     private final String withoutPointsFormat;
     private final String withPointsFormat;
+    private final String withErrorFormat;
 
-    ChatType(String withoutPointsFormat, String withPointsFormat) {
+    ChatType(@NotNull String withoutPointsFormat, @Nullable String withPointsFormat) {
+        this(withoutPointsFormat, withPointsFormat, null);
+    }
+
+    ChatType(@NotNull String withoutPointsFormat, @Nullable String withPointsFormat, @Nullable String withErrorFormat) {
         this.withoutPointsFormat = withoutPointsFormat;
         this.withPointsFormat = withPointsFormat;
+        this.withErrorFormat = withErrorFormat;
     }
 
     public Component format(Component message) {
@@ -71,7 +88,17 @@ public enum ChatType {
     }
 
     public Component format(Component message, double points) {
+        if (this.withPointsFormat == null) {
+            throw new UnsupportedOperationException("Formatting with points is not supported for message type " + this.name());
+        }
         return this.format(this.withPointsFormat, message, points);
+    }
+
+    public Component format(Component message, Throwable cause) {
+        if (this.withErrorFormat == null) {
+            throw new UnsupportedOperationException("Formatting with cause is not supported for message type " + this.name());
+        }
+        return this.format(this.withErrorFormat, message, cause);
     }
 
     private Component format(String format, Component message) {
@@ -88,6 +115,15 @@ public enum ChatType {
             Placeholder.component("message", message),
             Placeholder.unparsed("name", MinigameConstantsService.getInstance().getMinigameName()),
             Placeholder.unparsed("points", String.valueOf(points))
+        );
+    }
+
+    private Component format(String format, Component message, Throwable cause) {
+        return mmResolve(
+            format,
+            Placeholder.component("message", message),
+            Placeholder.unparsed("name", MinigameConstantsService.getInstance().getMinigameName()),
+            Placeholder.unparsed("cause", cause.getMessage())
         );
     }
 }

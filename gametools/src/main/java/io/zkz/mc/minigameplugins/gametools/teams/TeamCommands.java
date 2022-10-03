@@ -1,23 +1,27 @@
 package io.zkz.mc.minigameplugins.gametools.teams;
 
+import cloud.commandframework.Command;
+import cloud.commandframework.arguments.flags.CommandFlag;
+import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.bukkit.arguments.selector.MultiplePlayerSelector;
+import cloud.commandframework.bukkit.parsers.selector.MultiplePlayerSelectorArgument;
+import cloud.commandframework.minecraft.extras.TextColorArgument;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
-import io.zkz.mc.minigameplugins.gametools.command.arguments.PlayerArgument;
+import io.zkz.mc.minigameplugins.gametools.command.arguments.GTColorArgument;
 import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
+import io.zkz.mc.minigameplugins.gametools.command.arguments.TextComponentArgument;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
-import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.minecraft.commands.Commands;
-import org.bukkit.OfflinePlayer;
+import io.zkz.mc.minigameplugins.gametools.util.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
+import org.bukkit.scoreboard.Team;
 
-import java.util.Collection;
-
-import static io.zkz.mc.minigameplugins.gametools.command.CommandHelpers.hasPermissionOrOp;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
-import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmResolve;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 @RegisterPermissions
 public class TeamCommands {
@@ -29,90 +33,132 @@ public class TeamCommands {
     private static final Permission PERM_RELOAD = new Permission("gametools.team.reload", "Reload team data");
     private static final Permission PERM_LIST = new Permission("gametools.team.list", "List registered teams");
 
-//    @RegisterCommands
-//    private static void registerCommands(CommandRegistry registry) {
-//        registry.register(Commands.literal("gteam")
-//            .then(Commands.literal("defaults")
-//                .requires(hasPermissionOrOp(PERM_CREATE_DEFAULTS))
-//                .executes(cmd -> {
-//                    CommandSender sender = cmd.getSource().getBukkitSender();
-//
-//                    try {
-//                        TeamService.getInstance().setupDefaultTeams();
-//                    } catch (TeamService.TeamCreationException exception) {
-//                        Chat.sendMessage(sender, ChatType.GAME_INFO, mm("<red>Error: could not set up default teams."));
-//                        Chat.sendMessage(sender, ChatType.GAME_INFO, mmResolve("<red><exmsg>", Placeholder.unparsed("exmsg", exception.getMessage())));
-//                        return 0;
-//                    }
-//
-//                    Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Successfully set up default teams."));
-//
-//                    return 1;
-//                })
-//            )
-//            .then(Commands.literal("join")
-//                .requires(hasPermissionOrOp(PERM_JOIN))
-//                .then(Commands.argument("team", TeamArgument.team())
-//                    .then(Commands.argument("players", PlayerArgument.players())
-//                        .executes(cmd -> {
-//                            CommandSender sender = cmd.getSource().getBukkitSender();
-//                            GameTeam team = TeamArgument.getTeam(cmd, "team");
-//                            Collection<OfflinePlayer> players = PlayerArgument.getPlayers(cmd, "players");
-//
-//                            players.forEach(p -> {
-//                                team.addMember(p.getUniqueId());
-//                                Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Added player '<0>' to team '<1>'.", mm(p.getName()), team.getDisplayName()));
-//                            });
-//
-//                            return 1;
-//                        })
-//                    )
-//                )
-//            )
-//            .then(Commands.literal("leave")
-//                .requires(hasPermissionOrOp(PERM_LEAVE))
-//                .then(Commands.argument("players", PlayerArgument.players())
-//                    .executes(cmd -> {
-//                        CommandSender sender = cmd.getSource().getBukkitSender();
-//                        Collection<OfflinePlayer> players = PlayerArgument.getPlayers(cmd, "players");
-//
-//                        players.forEach(p -> {
-//                            TeamService.getInstance().leaveTeam(p.getUniqueId());
-//                            Chat.sendMessage(sender, ChatType.GAME_INFO, mm("Removed player '<0>' from their team.", mm(p.getName())));
-//                        });
-//
-//                        return 1;
-//                    })
-//                )
-//            )
-//            .then(Commands.literal("reload")
-//                .requires(hasPermissionOrOp(PERM_RELOAD))
-//                .executes(cmd -> {
-//                    // TODO: reload teams command
-//                    return 0;
-//                })
-//            )
-//            .then(Commands.literal("list")
-//                .requires(hasPermissionOrOp(PERM_LIST))
-//                .executes(cmd -> {
-//                    // TODO: list teams command
-//                    return 0;
-//                })
-//            )
-//            .then(Commands.literal("create")
-//                .requires(hasPermissionOrOp(PERM_CREATE))
-//                .executes(cmd -> {
-//                    // TODO: create teams command
-//                    return 0;
-//                })
-//            )
-//            .then(Commands.literal("remove")
-//                .requires(hasPermissionOrOp(PERM_REMOVE))
-//                .executes(cmd -> {
-//                    // TODO: delete teams command
-//                    return 0;
-//                })
-//            )
-//        );
-//    }
+    @RegisterCommands
+    private static void registerCommands(CommandRegistry registry) {
+        Command.Builder<CommandSender> builder = registry.newBaseCommand("gteam");
+
+        // Setup default teams
+        registry.registerCommand(
+            builder.literal("defaults")
+                .permission(PERM_CREATE_DEFAULTS.getName())
+                .handler(cmd -> {
+                    CommandSender sender = cmd.getSender();
+
+                    try {
+                        TeamService.getInstance().setupDefaultTeams();
+                    } catch (TeamService.TeamCreationException exception) {
+                        Chat.sendMessage(sender, ChatType.COMMAND_ERROR, exception, mm("could not set up default teams."));
+                    }
+
+                    Chat.sendMessage(sender, ChatType.COMMAND_SUCCESS, mm("Successfully set up default teams."));
+                })
+        );
+
+        // Join team
+        registry.registerCommand(
+            builder.literal("join")
+                .permission(PERM_JOIN.getName())
+                .argument(TeamArgument.of("team"))
+                .argument(MultiplePlayerSelectorArgument.of("players"))
+                .handler(cmd -> {
+                    CommandSender sender = cmd.getSender();
+                    GameTeam team = cmd.get("team");
+                    MultiplePlayerSelector players = cmd.get("players");
+                    BukkitUtils.runNextTick(() -> players.getPlayers().forEach(p -> {
+                        team.addMember(p.getUniqueId());
+                        Chat.sendMessage(sender, ChatType.COMMAND_SUCCESS, mm("Added player '<0>' to team '<1>'.", mm(p.getName()), team.getDisplayName()));
+                    }));
+                })
+        );
+
+        // Leave team
+        registry.registerCommand(
+            builder.literal("leave")
+                .permission(PERM_LEAVE.getName())
+                .argument(MultiplePlayerSelectorArgument.of("players"))
+                .handler(cmd -> {
+                    CommandSender sender = cmd.getSender();
+                    MultiplePlayerSelector players = cmd.get("players");
+                    BukkitUtils.runNextTick(() -> players.getPlayers().forEach(p -> {
+                        TeamService.getInstance().leaveTeam(p.getUniqueId());
+                        Chat.sendMessage(sender, ChatType.COMMAND_SUCCESS, mm("Removed player '<0>' from their team.", mm(p.getName())));
+                    }));
+                })
+        );
+
+        // Reload teams
+        registry.registerCommand(
+            builder.literal("reload")
+                .permission(PERM_RELOAD.getName())
+                .handler(cmd -> {
+                    BukkitUtils.runNextTick(() -> TeamService.getInstance().loadAllData());
+                    Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_SUCCESS, mm("Successfully reloaded teams."));
+                })
+        );
+
+        // List teams
+        registry.registerCommand(
+            builder.literal("list")
+                .permission(PERM_LIST.getName())
+                .handler(cmd -> {
+                    Chat.sendMessage(
+                        cmd.getSender(),
+                        TeamService.getInstance().getAllTeams().stream()
+                            .map(team -> mm("<0> (<1>)", team.getDisplayName(), mm(team.id())))
+                            .collect(ComponentUtils.joining(mm(", ")))
+                    );
+                })
+        );
+
+        // Create team
+        final CommandFlag<Component> prefixFlag = registry.newFlag("prefix", TextComponentArgument.of("prefix")).build();
+        final CommandFlag<GTColor> colorFlag = registry.newFlag("color", GTColorArgument.of("color")).build();
+        final CommandFlag<String> formatTagFlag = registry.newFlag("formatTag", StringArgument.of("formatTag")).build();
+        final CommandFlag<TextColor> scoreboardColorFlag = registry.newFlag("scoreboardColor", TextColorArgument.of("scoreboardColor")).build();
+        registry.registerCommand(
+            builder.literal("create", "new")
+                .permission(PERM_CREATE.getName())
+                .argument(StringArgument.of("id"))
+                .argument(TextComponentArgument.of("name"))
+                .flag(prefixFlag)
+                .flag(colorFlag)
+                .flag(formatTagFlag)
+                .flag(scoreboardColorFlag)
+                .flag(registry.newFlag("spectator"))
+                .handler(cmd -> {
+                    GameTeam.Builder teamBuilder = GameTeam.builder(cmd.get("id"), cmd.get("name"));
+                    cmd.flags().getValue(prefixFlag).ifPresent(teamBuilder::prefix);
+                    cmd.flags().getValue(colorFlag).ifPresent(teamBuilder::color);
+                    cmd.flags().getValue(formatTagFlag).ifPresent(teamBuilder::formatTag);
+                    cmd.flags().getValue(scoreboardColorFlag).ifPresent(scoreboardColor -> teamBuilder.scoreboardColor(NamedTextColor.nearestTo(scoreboardColor)));
+                    if (cmd.flags().isPresent("spectator")) {
+                        teamBuilder.spectator(true);
+                    }
+
+                    BukkitUtils.runNextTick(() -> {
+                        GameTeam team = teamBuilder.build();
+
+                        try {
+                            TeamService.getInstance().createTeam(team);
+                            Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_SUCCESS, mmArgs("Successfully created team with id '<0>'.", team.id()));
+                        } catch (TeamService.TeamCreationException e) {
+                            Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, e, mmArgs("could not create team with id '<0>'.", team.id()));
+                        }
+                    });
+                })
+        );
+
+        registry.registerCommand(
+            builder.literal("remove", "delete")
+                .permission(PERM_CREATE.getName())
+                .argument(TeamArgument.of("team"))
+                .handler(cmd -> {
+                    GameTeam team = cmd.get("team");
+                    BukkitUtils.runNextTick(() -> {
+                        TeamService.getInstance().removeTeam(team.id());
+                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_SUCCESS, mmArgs("Successfully removed team with id '<0>'.", team.id()));
+                    });
+                })
+        );
+    }
 }

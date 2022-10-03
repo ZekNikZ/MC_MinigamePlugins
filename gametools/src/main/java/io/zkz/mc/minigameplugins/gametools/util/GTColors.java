@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
+import cloud.commandframework.types.tuples.Pair;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -40,6 +42,10 @@ public class GTColors implements TagResolver {
     }
 
     protected static final GTColors INSTANCE = new GTColors();
+
+    public static Map<String, GTColor> allColors() {
+        return COLORS;
+    }
 
     @Override
     public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {

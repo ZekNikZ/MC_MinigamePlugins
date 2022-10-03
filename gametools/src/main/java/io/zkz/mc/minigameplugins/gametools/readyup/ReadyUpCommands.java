@@ -1,13 +1,12 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
+import cloud.commandframework.arguments.standard.StringArgument;
+import cloud.commandframework.extra.confirmation.CommandConfirmationManager;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import net.kyori.adventure.audience.Audience;
-import net.minecraft.commands.Commands;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -16,9 +15,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 
-import static io.zkz.mc.minigameplugins.gametools.command.CommandHelpers.hasPermissionOrOp;
-import static io.zkz.mc.minigameplugins.gametools.command.CommandHelpers.suggestions;
+import java.util.Map;
+
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 @RegisterPermissions
 public class ReadyUpCommands {
@@ -26,60 +26,79 @@ public class ReadyUpCommands {
     private static final Permission PERM_READY_STATUS = new Permission("gametools.ready.status", "See the ready status of the game");
     private static final Permission PERM_READY_UNDO = new Permission("gametools.ready.undo", "Undo the ready up of a player");
 
-//    @RegisterCommands
-//    private static void registerCommands(CommandRegistry registry) {
-//        registry.register(Commands.literal("ready")
-//            .requires(hasPermissionOrOp(PERM_READY_BASE))
-//            .executes(cmd -> {
-//                CommandSender sender = cmd.getSource().getBukkitSender();
-//                if (!(sender instanceof Player player)) {
-//                    sender.sendMessage(mm("<error>You cannot use this command from the console!"));
-//                    return 1;
-//                }
-//
-//                if (!ReadyUpService.getInstance().recordReady(player)) {
-//                    Chat.sendMessage(player, ChatType.WARNING, mm("Nothing is waiting for you to be ready."));
-//                } else {
-//                    Chat.sendMessage(player, ChatType.ACTIVE_INFO, mm("You are now ready!"));
-//                }
-//
-//                return 1;
-//            })
-//            .then(Commands.literal("status")
-//                .requires(hasPermissionOrOp(PERM_READY_STATUS))
-//                .executes(cmd -> {
-//                    ReadyUpService.getInstance().sendStatus(cmd.getSource().getBukkitSender());
-//                    return 1;
-//                })
-//            )
-//            .then(Commands.literal("undo")
-//                .requires(hasPermissionOrOp(PERM_READY_UNDO))
-//                .then(Commands.argument("playerId", StringArgumentType.word())
-//                    .suggests(suggestions(() -> ReadyUpService.getInstance().getAllReadyPlayerNames()))
-//                    .executes(cmd -> {
-//                        CommandSender sender = cmd.getSource().getBukkitSender();
-//
-//                        OfflinePlayer player = Bukkit.getOfflinePlayer(cmd.getArgument("playerId", String.class));
-//
-//                        if (!ReadyUpService.getInstance().undoReady(player.getUniqueId())) {
-//                            Chat.sendMessage(sender, ChatType.WARNING, mm("That player was not marked as ready."));
-//                        } else {
-//                            Chat.sendMessage(sender, ChatType.ACTIVE_INFO, mm("Marked that player as not ready"));
-//                        }
-//
-//                        return 1;
-//                    })
-//                )
-//            )
-//            .then(Commands.literal("test")
-//                .executes(cmd -> {
-//                    ReadyUpService.getInstance().waitForReady(Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId).toList(), () -> {
-//                        Audience.audience(Bukkit.getOnlinePlayers()).sendMessage(mm("<aqua>Done waiting for ready!"));
-//                    });
-//
-//                    return 1;
-//                })
-//            )
-//        );
-//    }
+    @RegisterCommands
+    private static void registerCommands(CommandRegistry registry) {
+        var builder = registry.newConfirmableCommand("ready");
+
+        // Ready up
+        registry.registerCommand(
+            builder
+                .permission(PERM_READY_BASE.getName())
+                .handler(cmd -> {
+                    CommandSender sender = cmd.getSender();
+                    if (!(sender instanceof Player player)) {
+                        Chat.sendMessage(sender, ChatType.COMMAND_ERROR, mm("you cannot use this command from the console."));
+                        return;
+                    }
+
+                    if (!ReadyUpService.getInstance().recordReady(player)) {
+                        Chat.sendMessage(player, ChatType.COMMAND_ERROR, mm("nothing is waiting for you to be ready."));
+                    } else {
+                        Chat.sendMessage(player, ChatType.COMMAND_SUCCESS, mm("You are now ready!"));
+                    }
+                })
+        );
+
+        // Status
+        registry.registerCommand(
+            builder.literal("status")
+                .permission(PERM_READY_STATUS.getName())
+                .handler(cmd -> ReadyUpService.getInstance().sendStatus(cmd.getSender()))
+        );
+
+        // Undo
+        registry.registerCommand(
+            builder.literal("undo")
+                .permission(PERM_READY_UNDO.getName())
+                .argument(StringArgument.<CommandSender>newBuilder("player")
+                    .single()
+                    .withSuggestionsProvider((cmd, str) -> ReadyUpService.getInstance().getAllReadyPlayerNames().stream().toList())
+                    .asRequired()
+                    .build()
+                )
+                .handler(cmd -> {
+                    CommandSender sender = cmd.getSender();
+
+                    String playerName = cmd.get("player");
+                    OfflinePlayer player = Bukkit.getOfflinePlayer(playerName);
+
+                    if (!ReadyUpService.getInstance().undoReady(player.getUniqueId())) {
+                        Chat.sendMessage(sender, ChatType.COMMAND_ERROR, mm("that player was not marked as ready."));
+                    } else {
+                        Chat.sendMessage(sender, ChatType.COMMAND_SUCCESS, mmArgs("Marked player <0> as not ready.", playerName));
+                    }
+                })
+        );
+
+        // Bypass
+        registry.registerCommand(
+            builder.literal("bypass")
+                .meta(CommandConfirmationManager.META_CONFIRMATION_REQUIRED, true)
+                .handler(cmd -> {
+                    Map<Integer, ReadyUpSession> sessions = ReadyUpService.getInstance().getSessions();
+                    sessions.values().forEach(ReadyUpSession::complete);
+                })
+        );
+
+        // Test
+        // TODO: remove
+        registry.registerCommand(
+            builder.literal("test")
+                .handler(cmd -> {
+                    ReadyUpService.getInstance().waitForReady(Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId).toList(), () -> {
+                        Bukkit.getServer().sendMessage(mm("<aqua>Done waiting for ready!"));
+                    });
+                })
+        );
+    }
 }

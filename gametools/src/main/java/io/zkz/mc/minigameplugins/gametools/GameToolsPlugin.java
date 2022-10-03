@@ -1,18 +1,12 @@
 package io.zkz.mc.minigameplugins.gametools;
 
-import cloud.commandframework.ArgumentDescription;
 import cloud.commandframework.Command;
-import cloud.commandframework.arguments.standard.StringArgument;
-import cloud.commandframework.arguments.standard.UUIDArgument;
-import cloud.commandframework.bukkit.parsers.BlockPredicateArgument;
 import cloud.commandframework.bukkit.parsers.PlayerArgument;
-import cloud.commandframework.bukkit.parsers.location.LocationArgument;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.command.arguments.TeamArgument;
 import io.zkz.mc.minigameplugins.gametools.command.arguments.TextComponentArgument;
-import io.zkz.mc.minigameplugins.gametools.commands.MiscCommands;
+import io.zkz.mc.minigameplugins.gametools.proxy.ProtocolLibProxy;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
-import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
@@ -32,6 +26,7 @@ import java.util.logging.Logger;
 @Description("A library for making minigame plugins")
 @Author("ZekNikZ")
 @ApiVersion(ApiVersion.Target.v1_19)
+@SoftDependency("ProtocolLib")
 @SoftDependency("WorldEdit")
 @SoftDependency("WorldGuard")
 public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
@@ -44,9 +39,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     }
 
     public GameToolsPlugin() {
-        // Command Groups
-        this.register(new MiscCommands());
-
         // Misc
         StringUtils.init(this);
     }
@@ -69,6 +61,10 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
             RegionService.markAsLoaded();
             this.register(RegionService.getInstance());
         }
+
+        if (pluginManager.getPlugin("ProtocolLib") != null) {
+            ProtocolLibProxy.setupGlowing(this);
+        }
     }
 
     @Override
@@ -80,22 +76,6 @@ public class GameToolsPlugin extends GTPlugin<GameToolsPlugin> {
     @Override
     public void onDisable() {
         super.onDisable();
-    }
-
-    @RegisterCommands
-    private static void testCommands(CommandRegistry registry) {
-        Command.Builder<CommandSender> builder = registry.newBaseCommand("testcommand");
-
-        registry.registerCommand(
-            builder
-                .argument(PlayerArgument.of("player"))
-                .argument(TeamArgument.of("team"))
-                .argument(TextComponentArgument.of("message"))
-                .handler(cmd -> {
-                    Component component = cmd.get("message");
-                    cmd.getSender().sendMessage(component);
-                })
-        );
     }
 
     @Override

@@ -1,6 +1,8 @@
 package io.zkz.mc.minigameplugins.gametools.command;
 
 import cloud.commandframework.Command;
+import cloud.commandframework.arguments.CommandArgument;
+import cloud.commandframework.arguments.flags.CommandFlag;
 import cloud.commandframework.arguments.parser.ArgumentParser;
 import cloud.commandframework.arguments.parser.ParserParameters;
 import cloud.commandframework.meta.CommandMeta;
@@ -18,9 +20,9 @@ public final class CommandRegistry {
         this.plugin = plugin;
     }
 
-    public Command.Builder<CommandSender> newBaseCommand(String command) {
+    public Command.Builder<CommandSender> newBaseCommand(String command, String... aliases) {
         this.plugin.getLogger().info("Registered command /" + command);
-        return this.plugin.getCommandManager().commandBuilder(command);
+        return this.plugin.getCommandManager().commandBuilder(command, aliases);
     }
 
     public Command.Builder<CommandSender> newConfirmableCommand(String command) {
@@ -43,5 +45,13 @@ public final class CommandRegistry {
             TypeToken.get(clazz),
             supplier
         );
+    }
+
+    public CommandFlag.Builder<Void> newFlag(String name) {
+        return this.plugin.getCommandManager().flagBuilder(name);
+    }
+
+    public <C, T> CommandFlag.Builder<T> newFlag(String name, CommandArgument<C, T> argument) {
+        return this.plugin.getCommandManager().flagBuilder(name).withArgument(argument);
     }
 }

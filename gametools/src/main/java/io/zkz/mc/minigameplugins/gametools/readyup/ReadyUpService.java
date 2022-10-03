@@ -2,8 +2,9 @@ package io.zkz.mc.minigameplugins.gametools.readyup;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
+import io.zkz.mc.minigameplugins.gametools.util.ActionBarService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
@@ -22,8 +23,8 @@ import java.util.stream.Collectors;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
-@Service(GameToolsPlugin.PLUGIN_NAME)
-public class ReadyUpService extends GameToolsService {
+@Service
+public class ReadyUpService extends PluginService<GameToolsPlugin> {
     private static final ReadyUpService INSTANCE = new ReadyUpService();
 
     public static ReadyUpService getInstance() {
@@ -46,6 +47,7 @@ public class ReadyUpService extends GameToolsService {
             if (player != null) {
                 displayInitialReadyMessage(player);
             }
+            ActionBarService.getInstance().addMessage(uuid, "ready", mm("<alert_accent>Are you ready? Type <alert_info>/ready</alert_info> to confirm."));
         });
         return id;
     }
@@ -88,7 +90,7 @@ public class ReadyUpService extends GameToolsService {
     }
 
     private void displayInitialReadyMessage(Player player) {
-        Chat.sendMessage(player, ChatType.GAME_INFO, mm("Are you ready? Type <aqua>/ready</aqua> to confirm."));
+        Chat.sendMessage(player, ChatType.GAME_INFO, mm("Are you ready? Type <alert_info>/ready</alert_info> to confirm."));
         player.playSound(player.getLocation(), StandardSounds.ALERT_INFO, 1, 1);
     }
 
@@ -109,5 +111,9 @@ public class ReadyUpService extends GameToolsService {
 
     public Set<String> getAllReadyPlayerNames() {
         return this.sessions.values().stream().flatMap(s -> s.getReadyPlayerNames().stream().map(PlainTextComponentSerializer.plainText()::serialize)).collect(Collectors.toSet());
+    }
+
+    public Map<Integer, ReadyUpSession> getSessions() {
+        return this.sessions;
     }
 }

@@ -4,11 +4,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.TimeUnit;
 
-// TODO: update timer value upon pause
 public class GameCountdownTimer extends AbstractTimer {
     private final long timerValueMillis;
     private long startTime;
     private final Runnable onDone;
+
+    private long pausedTimeRemaining = -1;
 
     public GameCountdownTimer(JavaPlugin plugin, long refreshRateTicks, long timerValue, TimeUnit timerValueUnits, Runnable onDone) {
         super(plugin, refreshRateTicks);
@@ -48,6 +49,18 @@ public class GameCountdownTimer extends AbstractTimer {
 
     @Override
     protected long getCurrentTimeMillis() {
+        // total time - time elapsed
         return this.timerValueMillis - (System.currentTimeMillis() - this.startTime);
+    }
+
+    @Override
+    protected void onPause() {
+        this.pausedTimeRemaining = this.getCurrentTimeMillis();
+    }
+
+    @Override
+    protected void onUnpause() {
+        this.startTime = this.pausedTimeRemaining - this.timerValueMillis + System.currentTimeMillis();
+        this.pausedTimeRemaining = -1;
     }
 }

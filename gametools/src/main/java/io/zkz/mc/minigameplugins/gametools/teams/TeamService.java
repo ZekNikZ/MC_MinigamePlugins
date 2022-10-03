@@ -5,12 +5,14 @@ import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLDataManager;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamChangeEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamCreateEvent;
 import io.zkz.mc.minigameplugins.gametools.teams.event.TeamRemoveEvent;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
 import io.zkz.mc.minigameplugins.gametools.util.GTColor;
+import io.zkz.mc.minigameplugins.gametools.util.VanishingService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -35,8 +37,8 @@ import java.util.stream.Collectors;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
-@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 8)
-public class TeamService extends GameToolsService {
+@Service(priority = 8)
+public class TeamService extends PluginService<GameToolsPlugin> {
     private static final TeamService INSTANCE = new TeamService();
 
     public static TeamService getInstance() {
@@ -46,6 +48,7 @@ public class TeamService extends GameToolsService {
     private final Map<String, GameTeam> teams = new HashMap<>();
     private final Map<UUID, String> players = new HashMap<>();
     private boolean friendlyFire = false;
+    private boolean glowing = true;
     private Team.OptionStatus collisionRule = Team.OptionStatus.NEVER;
 
     private MySQLDataManager<TeamService> db;
@@ -308,6 +311,19 @@ public class TeamService extends GameToolsService {
 
     public boolean getFriendlyFire() {
         return this.friendlyFire;
+    }
+
+    public void setGlowing(boolean glowing) {
+        this.glowing = glowing;
+
+        BukkitUtils.forEachPlayer(player -> {
+            VanishingService.getInstance().hidePlayer(player, "glow-refresh");
+            VanishingService.getInstance().showPlayer(player, "glow-refresh");
+        });
+    }
+
+    public boolean isGlowingEnabled() {
+        return this.glowing;
     }
 
     public void setCollisionRule(Team.OptionStatus collisionRule) {

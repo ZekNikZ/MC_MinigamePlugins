@@ -11,7 +11,8 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import org.bukkit.Location;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
-public class SchematicService extends GameToolsService {
+public class SchematicService extends PluginService<GameToolsPlugin> {
     private static final SchematicService INSTANCE = new SchematicService();
     private static boolean loaded = false;
 

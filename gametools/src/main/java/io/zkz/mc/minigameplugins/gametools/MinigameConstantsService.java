@@ -1,10 +1,10 @@
 package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 
-@Service(value = GameToolsPlugin.PLUGIN_NAME, priority = 9)
-public class MinigameConstantsService extends GameToolsService {
+@Service(priority = 9)
+public class MinigameConstantsService extends PluginService<GameToolsPlugin> {
     private static final MinigameConstantsService INSTANCE = new MinigameConstantsService();
 
     public static MinigameConstantsService getInstance() {

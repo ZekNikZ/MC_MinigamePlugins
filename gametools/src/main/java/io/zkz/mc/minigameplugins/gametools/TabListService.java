@@ -1,8 +1,11 @@
 package io.zkz.mc.minigameplugins.gametools;
 
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
+import net.ME1312.SubServers.Client.Bukkit.SubAPI;
 import net.kyori.adventure.text.Component;
+import net.minecraft.server.players.PlayerList;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -15,15 +18,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Service
-public class TabListService {
+public class TabListService extends PluginService<GameToolsPlugin> {
     private static final TabListService INSTANCE = new TabListService();
 
     public static TabListService getInstance() {
         return INSTANCE;
     }
 
-    private Map<UUID, Integer> headerFooterCache = new HashMap<>();
-    private Map<UUID, List<Integer>> playerListCache = new HashMap<>();
+    private final Map<UUID, Integer> headerFooterCache = new HashMap<>();
+    private final Map<UUID, List<Integer>> playerListCache = new HashMap<>();
 
     public record TabListEntry(Component component) {}
 
@@ -60,6 +63,18 @@ public class TabListService {
         this.footer = p -> footer;
     }
 
+    public void setPlayerList(@NotNull Function<@NotNull Player, @NotNull List<TabListEntry>> playerList) {
+        this.playerList = playerList;
+    }
+
+    public void setPlayerList(@NotNull Supplier<@NotNull List<TabListEntry>> playerList) {
+        this.playerList = p -> playerList.get();
+    }
+
+    public void setPlayerList(@NotNull List<TabListEntry> playerList) {
+        this.playerList = p -> playerList;
+    }
+
     public void update() {
         BukkitUtils.forEachPlayer(this::updatePlayer);
     }
@@ -68,8 +83,8 @@ public class TabListService {
         // Header and footer
         Component header = this.header.apply(player);
         Component footer = this.header.apply(player);
-        int headerFooterHash = Objects.hash(header, footer);
-        if (this.headerFooterCache.get(player.getUniqueId()) != headerFooterHash) {
+        Integer headerFooterHash = Objects.hash(header, footer);
+        if (!Objects.equals(this.headerFooterCache.get(player.getUniqueId()), headerFooterHash)) {
             player.sendPlayerListHeaderAndFooter(header, footer);
             this.headerFooterCache.put(player.getUniqueId(), headerFooterHash);
         }

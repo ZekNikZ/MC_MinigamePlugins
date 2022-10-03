@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-@Service(GameToolsPlugin.PLUGIN_NAME)
+@Service
 public class ScoreService extends PluginService<GameToolsPlugin> implements IObservable {
     private static final ScoreService INSTANCE = new ScoreService();
 

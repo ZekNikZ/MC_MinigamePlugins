@@ -28,6 +28,10 @@ public class Chat {
         audience.sendMessage(type.format(message, points));
     }
 
+    public static void sendMessage(Audience audience, ChatType type, Throwable cause, Component message) {
+        audience.sendMessage(type.format(message, cause));
+    }
+
     public static void sendMessage(Audience audience, ChatType type, Component message) {
         audience.sendMessage(type.format(message));
     }

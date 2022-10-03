@@ -20,6 +20,7 @@ ext {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'checkstyle'
     apply plugin: "io.papermc.paperweight.userdev"
     apply plugin: "com.github.johnrengelman.shadow"
     apply plugin: "io.freefair.lombok"

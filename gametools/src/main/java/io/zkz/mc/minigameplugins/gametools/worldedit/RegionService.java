@@ -4,18 +4,17 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.managers.RemovalStrategy;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import io.zkz.mc.minigameplugins.gametools.service.GameToolsService;
-import org.bukkit.block.Block;
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 
 import java.util.Map;
 
-public class RegionService extends GameToolsService {
+public class RegionService extends PluginService<GameToolsPlugin> {
     private static final RegionService INSTANCE = new RegionService();
     private static boolean loaded = false;
 

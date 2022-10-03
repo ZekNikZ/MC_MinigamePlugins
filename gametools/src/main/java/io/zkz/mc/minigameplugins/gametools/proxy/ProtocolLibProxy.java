@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.minigamemanager.proxy;
+package io.zkz.mc.minigameplugins.gametools.proxy;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -9,7 +9,6 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -24,7 +23,7 @@ public class ProtocolLibProxy {
         protocolManager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.ENTITY_METADATA) {
             @Override
             public void onPacketSending(PacketEvent event) {
-                if (!MinigameService.getInstance().isGlowingEnabled()) {
+                if (!TeamService.getInstance().isGlowingEnabled()) {
                     return;
                 }
 

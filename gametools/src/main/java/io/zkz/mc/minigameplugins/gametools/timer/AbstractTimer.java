@@ -33,11 +33,9 @@ public abstract class AbstractTimer {
 
     protected abstract void onUpdate();
 
-    protected void onPause() {
-    }
+    protected abstract void onPause();
 
-    protected void onUnpause() {
-    }
+    protected abstract void onUnpause();
 
     protected abstract void onStop();
 

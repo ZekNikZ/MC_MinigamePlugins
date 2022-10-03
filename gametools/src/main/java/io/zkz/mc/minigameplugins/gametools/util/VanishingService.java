@@ -16,6 +16,7 @@ public class VanishingService extends PluginService<GameToolsPlugin> {
     public static VanishingService getInstance() {
         return INSTANCE;
     }
+
     /**
      * Map of player to players they cannot see.
      */
@@ -46,6 +47,13 @@ public class VanishingService extends PluginService<GameToolsPlugin> {
     public void hidePlayer(UUID playerId, String reason) {
         this.hiddenPlayers.computeIfAbsent(playerId, u -> new HashSet<>());
         this.hiddenPlayers.get(playerId).add(reason);
+
+        if (this.hiddenPlayers.containsKey(playerId)) {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                BukkitUtils.forEachPlayer(p -> p.hidePlayer(this.getPlugin(), player));
+            }
+        }
     }
 
     public void showPlayer(Player player, String reason) {
@@ -58,6 +66,14 @@ public class VanishingService extends PluginService<GameToolsPlugin> {
         }
 
         this.hiddenPlayers.get(playerId).remove(reason);
+
+        if (this.hiddenPlayers.get(playerId).isEmpty()) {
+            this.hiddenPlayers.remove(playerId);
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null) {
+                BukkitUtils.forEachPlayer(p -> p.showPlayer(this.getPlugin(), player));
+            }
+        }
     }
 
     public void togglePlayer(Player player, String reason) {

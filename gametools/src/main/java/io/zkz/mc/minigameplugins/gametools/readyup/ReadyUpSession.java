@@ -1,10 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.readyup;
 
+import io.zkz.mc.minigameplugins.gametools.util.ActionBarService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -15,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
@@ -24,7 +22,6 @@ public class ReadyUpSession {
     private final Map<UUID, Boolean> readyPlayers = new ConcurrentHashMap<>();
     private final Runnable onAllReady;
     private final BiConsumer<Player, ReadyUpSession> onPlayerReady;
-    private final int taskId;
     private final BossBar bossBar;
 
     ReadyUpSession(int sessionId, Collection<UUID> players, Runnable onAllReady, @Nullable BiConsumer<Player, ReadyUpSession> onPlayerReady) {
@@ -32,7 +29,6 @@ public class ReadyUpSession {
         this.onAllReady = onAllReady;
         this.onPlayerReady = onPlayerReady;
         players.forEach(playerId -> this.readyPlayers.put(playerId, false));
-        this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(ReadyUpService.getInstance().getPlugin(), this::displayReadyActionbarMessages, 10, 10);
         this.bossBar = Bukkit.createBossBar("Ready Up: 0/" + players.size() + " players ready", BarColor.GREEN, BarStyle.SOLID);
         this.updateBossbar();
         this.bossBar.setVisible(true);
@@ -48,9 +44,11 @@ public class ReadyUpSession {
     }
 
     public void cancel() {
-        Bukkit.getScheduler().cancelTask(this.taskId);
         ReadyUpService.getInstance().cleanupSession(this.sessionId);
         this.bossBar.removeAll();
+        this.readyPlayers.keySet().forEach(uuid -> {
+            ActionBarService.getInstance().removeMessage(uuid, "ready");
+        });
     }
 
     public void complete() {
@@ -85,6 +83,9 @@ public class ReadyUpSession {
             Chat.sendMessage(p, ChatType.PASSIVE_INFO, mm("<0> is ready!", player.displayName()));
         });
 
+        // Remove ready message
+        ActionBarService.getInstance().removeMessage(player.getUniqueId(), "ready");
+
         this.updateBossbar();
 
         // Check if this was the last player
@@ -93,17 +94,6 @@ public class ReadyUpSession {
         }
 
         return true;
-    }
-
-    private void displayReadyActionbarMessages() {
-        Audience.audience(
-            this.readyPlayers.entrySet().stream()
-                .filter(entry -> !entry.getValue())
-                .map(Map.Entry::getKey)
-                .map(Bukkit::getPlayer)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet())
-        ).sendActionBar(mm("<gold>Are you ready? Type <aqua>/ready</aqua> to confirm."));
     }
 
     public boolean isPlayerTracked(Player player) {
