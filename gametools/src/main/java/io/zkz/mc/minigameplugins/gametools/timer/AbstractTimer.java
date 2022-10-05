@@ -3,10 +3,19 @@ package io.zkz.mc.minigameplugins.gametools.timer;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+record ScheduledEvent(long delay, Consumer<Long> hook) {
+}
+
+record ScheduledRepeatingEvent(long delay, long period, BiConsumer<Long, Runnable> hook) {
+}
 
 public abstract class AbstractTimer {
     private final Map<Integer, Runnable> hooks = new ConcurrentHashMap<>();
@@ -17,6 +26,11 @@ public abstract class AbstractTimer {
     private boolean isStarted = false;
     private boolean isDone = false;
     private int nextHookId = 0;
+    private final List<ScheduledEvent> events = new ArrayList<>();
+    private final List<Boolean> eventsCompleted = new ArrayList<>();
+    private final List<ScheduledRepeatingEvent> repeatingEvents = new ArrayList<>();
+    private final List<Long> repeatingEventsLastRunTimes = new ArrayList<>();
+    private final List<Boolean> repeatingEventsCancelled = new ArrayList<>();
 
     protected AbstractTimer(JavaPlugin plugin, long refreshRateTicks) {
         this.plugin = plugin;
@@ -27,6 +41,35 @@ public abstract class AbstractTimer {
         this.onUpdate();
         this.hooks.values().forEach(Runnable::run);
         this.tempHooks.forEach((id, hook) -> hook.accept(() -> this.removeHook(id)));
+
+        // Run events
+        var currentTime = this.getCurrentTimeMillis();
+        for (int i = 0; i < this.events.size(); i++) {
+            ScheduledEvent event = this.events.get(i);
+            boolean completed = this.eventsCompleted.get(i);
+            if (completed) {
+                continue;
+            }
+            if (this.isReadyToRun(event, currentTime)) {
+                event.hook().accept(currentTime);
+                this.eventsCompleted.set(i, true);
+            }
+        }
+
+        // Run repeating events
+        for (int i = 0; i < this.repeatingEvents.size(); i++) {
+            ScheduledRepeatingEvent event = this.repeatingEvents.get(i);
+            long lastRun = this.repeatingEventsLastRunTimes.get(i);
+            boolean cancelled = this.repeatingEventsCancelled.get(i);
+            if (cancelled) {
+                continue;
+            }
+            if (this.isReadyToRun(event, lastRun, currentTime)) {
+                final int j = i;
+                event.hook().accept(currentTime, () -> this.repeatingEventsCancelled.set(j, true));
+                this.repeatingEventsLastRunTimes.set(i, currentTime);
+            }
+        }
     }
 
     protected abstract void onStart();
@@ -39,13 +82,17 @@ public abstract class AbstractTimer {
 
     protected abstract void onStop();
 
+    protected abstract boolean isReadyToRun(ScheduledEvent event, long currentTimeMillis);
+
+    protected abstract boolean isReadyToRun(ScheduledRepeatingEvent event, long lastRun, long currentTimeMillis);
+
     public AbstractTimer start() {
         if (this.taskId == -1) {
             this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                this.plugin,
-                this::update,
-                this.refreshRate,
-                this.refreshRate
+                    this.plugin,
+                    this::update,
+                    this.refreshRate,
+                    this.refreshRate
             );
             this.isStarted = true;
             this.isDone = false;
@@ -66,10 +113,10 @@ public abstract class AbstractTimer {
     public void unpause() {
         if (this.taskId == -1) {
             this.taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-                this.plugin,
-                this::update,
-                this.refreshRate,
-                this.refreshRate
+                    this.plugin,
+                    this::update,
+                    this.refreshRate,
+                    this.refreshRate
             );
             this.onUnpause();
         }
@@ -116,6 +163,28 @@ public abstract class AbstractTimer {
         this.tempHooks.remove(hookId);
     }
 
+    public void scheduleEvent(long delay, Runnable hook) {
+        this.events.add(new ScheduledEvent(delay, currentTime -> hook.run()));
+        this.eventsCompleted.add(false);
+    }
+
+    public void scheduleEvent(long delay, Consumer<Long> hook) {
+        this.events.add(new ScheduledEvent(delay, hook));
+        this.eventsCompleted.add(false);
+    }
+
+    public void scheduleRepeatingEvent(long delay, long period, Runnable hook) {
+        this.repeatingEvents.add(new ScheduledRepeatingEvent(delay, period, (currentTime, cancel) -> hook.run()));
+        this.repeatingEventsLastRunTimes.add(-1L);
+        this.repeatingEventsCancelled.add(false);
+    }
+
+    public void scheduleRepeatingEvent(long delay, long period, BiConsumer<Long, Runnable> hook) {
+        this.repeatingEvents.add(new ScheduledRepeatingEvent(delay, period, hook));
+        this.repeatingEventsLastRunTimes.add(-1L);
+        this.repeatingEventsCancelled.add(false);
+    }
+
     protected abstract long getCurrentTimeMillis();
 
     public long getCurrentTime(TimeUnit unit) {
@@ -142,14 +211,14 @@ public abstract class AbstractTimer {
      */
     public String format(String format) {
         return format
-            .replace("%H", String.format("%02d", this.getModuloCurrentTime(TimeUnit.HOURS)))
-            .replace("%h", "" + this.getModuloCurrentTime(TimeUnit.HOURS))
-            .replace("%M", String.format("%02d", this.getModuloCurrentTime(TimeUnit.MINUTES)))
-            .replace("%m", "" + this.getModuloCurrentTime(TimeUnit.MINUTES))
-            .replace("%S", String.format("%02d", this.getModuloCurrentTime(TimeUnit.SECONDS)))
-            .replace("%s", "" + this.getModuloCurrentTime(TimeUnit.SECONDS))
-            .replace("%L", String.format("%03d", this.getModuloCurrentTime(TimeUnit.MILLISECONDS)))
-            .replace("%l", "" + this.getModuloCurrentTime(TimeUnit.MILLISECONDS));
+                .replace("%H", String.format("%02d", this.getModuloCurrentTime(TimeUnit.HOURS)))
+                .replace("%h", "" + this.getModuloCurrentTime(TimeUnit.HOURS))
+                .replace("%M", String.format("%02d", this.getModuloCurrentTime(TimeUnit.MINUTES)))
+                .replace("%m", "" + this.getModuloCurrentTime(TimeUnit.MINUTES))
+                .replace("%S", String.format("%02d", this.getModuloCurrentTime(TimeUnit.SECONDS)))
+                .replace("%s", "" + this.getModuloCurrentTime(TimeUnit.SECONDS))
+                .replace("%L", String.format("%03d", this.getModuloCurrentTime(TimeUnit.MILLISECONDS)))
+                .replace("%l", "" + this.getModuloCurrentTime(TimeUnit.MILLISECONDS));
     }
 
     public String toString() {

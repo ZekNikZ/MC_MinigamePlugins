@@ -63,4 +63,19 @@ public class GameCountdownTimer extends AbstractTimer {
         this.startTime = this.pausedTimeRemaining - this.timerValueMillis + System.currentTimeMillis();
         this.pausedTimeRemaining = -1;
     }
+
+    @Override
+    protected boolean isReadyToRun(ScheduledEvent event, long currentTimeMillis) {
+        return currentTimeMillis <= event.delay();
+    }
+
+    @Override
+    protected boolean isReadyToRun(ScheduledRepeatingEvent event, long lastRun, long currentTimeMillis) {
+        // Simple way to avoid adding another condition below
+        if (lastRun == -1) {
+            lastRun = Long.MAX_VALUE;
+        }
+
+        return currentTimeMillis <= event.delay() && (lastRun - currentTimeMillis) >= event.period();
+    }
 }

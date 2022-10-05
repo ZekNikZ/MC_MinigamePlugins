@@ -40,4 +40,14 @@ public class GameCountupTimer extends AbstractTimer {
     protected long getCurrentTimeMillis() {
         return System.currentTimeMillis() - this.startTime;
     }
+
+    @Override
+    protected boolean isReadyToRun(ScheduledEvent event, long currentTimeMillis) {
+        return currentTimeMillis >= event.delay();
+    }
+
+    @Override
+    protected boolean isReadyToRun(ScheduledRepeatingEvent event, long lastRun, long currentTimeMillis) {
+        return currentTimeMillis >= event.delay() && (currentTimeMillis - lastRun) >= event.period();
+    }
 }
