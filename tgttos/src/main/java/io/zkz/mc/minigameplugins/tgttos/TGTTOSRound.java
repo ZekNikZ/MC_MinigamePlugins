@@ -6,7 +6,6 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;

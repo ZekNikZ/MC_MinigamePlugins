@@ -2,10 +2,8 @@ package io.zkz.mc.minigameplugins.gametools.data;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
-import io.zkz.mc.minigameplugins.gametools.service.PluginService;
-import org.json.simple.JSONObject;
+import io.zkz.mc.minigameplugins.gametools.service.PluginServiceWithConfig;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -14,11 +12,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 @Service(priority = 10)
-public class MySQLService extends PluginService<GameToolsPlugin> {
+public class MySQLService extends PluginServiceWithConfig<GameToolsPlugin, MySQLService.DBConfig> {
     private static final MySQLService INSTANCE = new MySQLService();
     private final List<String> setupList = new ArrayList<>();
     private boolean isAlreadySetup = false;
@@ -30,35 +27,18 @@ public class MySQLService extends PluginService<GameToolsPlugin> {
     public record DBConfig(String host, int port, String database, String username, String password) {
     }
 
-    private DBConfig config = new DBConfig("localhost", 3306, "gametools", "root", "password");
-
     private MysqlDataSource dataSource;
 
     @Override
     protected Collection<AbstractDataManager<?>> getDataManagers() {
         return List.of(
-            new JSONDataManager<>(this, Path.of("db.json"), this::saveConfig, this::loadConfig)
+            JSONDataManager.from(
+                this,
+                Path.of("db.json"),
+                DBConfig.class,
+                () -> new DBConfig("localhost", 3306, "gametools", "root", "password")
+            )
         );
-    }
-
-    private void loadConfig(TypedJSONObject<Object> json) {
-        this.config = new DBConfig(
-            json.getString("host"),
-            json.getInteger("port"),
-            json.getString("database"),
-            json.getString("username"),
-            json.getString("password")
-        );
-    }
-
-    private JSONObject saveConfig() {
-        return new JSONObject(Map.of(
-            "host", this.config.host(),
-            "port", this.config.port(),
-            "database", this.config.database(),
-            "username", this.config.username(),
-            "password", this.config.password()
-        ));
     }
 
     public Connection getConnection() throws SQLException {
@@ -69,11 +49,11 @@ public class MySQLService extends PluginService<GameToolsPlugin> {
     protected void onEnable() {
         // Load data source
         this.dataSource = new MysqlDataSource();
-        this.dataSource.setServerName(this.config.host());
-        this.dataSource.setPort(this.config.port());
-        this.dataSource.setDatabaseName(this.config.database());
-        this.dataSource.setUser(this.config.username());
-        this.dataSource.setPassword(this.config.password());
+        this.dataSource.setServerName(this.getConfig().host());
+        this.dataSource.setPort(this.getConfig().port());
+        this.dataSource.setDatabaseName(this.getConfig().database());
+        this.dataSource.setUser(this.getConfig().username());
+        this.dataSource.setPassword(this.getConfig().password());
 
         // Init database
         this.setupList.forEach(this::runInitCommands);
@@ -102,6 +82,6 @@ public class MySQLService extends PluginService<GameToolsPlugin> {
                 this.getLogger().log(Level.SEVERE, "Could not initialize database", e);
             }
         }
-        this.getLogger().info( "Database setup complete.");
+        this.getLogger().info("Database setup complete.");
     }
 }

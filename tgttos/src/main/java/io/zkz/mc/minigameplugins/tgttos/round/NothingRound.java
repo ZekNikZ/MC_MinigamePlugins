@@ -1,6 +1,5 @@
 package io.zkz.mc.minigameplugins.tgttos.round;
 
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.tgttos.TGTTOSRound;
 import org.bukkit.entity.Player;
 

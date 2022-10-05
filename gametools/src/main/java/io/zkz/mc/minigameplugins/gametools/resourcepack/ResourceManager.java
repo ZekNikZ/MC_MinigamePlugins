@@ -1,19 +1,14 @@
 package io.zkz.mc.minigameplugins.gametools.resourcepack;
 
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONArray;
-import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
+import com.google.gson.GsonBuilder;
 import io.zkz.mc.minigameplugins.gametools.util.Pair;
 import io.zkz.mc.minigameplugins.gametools.util.ZipFileUtils;
-import org.json.simple.JSONObject;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"java:S106", "java:S112"})
@@ -62,35 +57,35 @@ public class ResourceManager {
         }
     }
 
-    private static void addResourcePackMetadata() {
+    private static void addResourcePackMetadata() throws IOException {
+        var gson = new GsonBuilder().setPrettyPrinting().create();
+
         // pack.mcmeta
-        String mcmeta = new JSONObject(Map.of(
+        String mcmeta = gson.toJson(Map.of(
             "pack", Map.of(
                 "pack_format", 9,
                 "description", "Minigame resources"
             )
-        )).toJSONString();
+        ));
         addMiscResource("pack.mcmeta", new ByteArrayInputStream(mcmeta.getBytes(StandardCharsets.US_ASCII)));
 
-        TypedJSONArray<JSONObject> providers = new TypedJSONArray<>(charData.entrySet().stream().map(entry -> new JSONObject(Map.of(
-            "type", "bitmap",
-            "file", "minecraft:custom/custom_character_" + entry.getKey() + "_" + entry.getValue().key() + "_" + entry.getValue().value() + ".png",
-            "ascent", entry.getValue().key(),
-            "height", entry.getValue().value(),
-            "chars", new TypedJSONArray<>(List.of("\\u" + entry.getKey().toUpperCase()))
-        ))).toList());
-        JSONObject baseFontFile = JSONUtils.readJSONObject(ResourceManager.class.getResourceAsStream("/resources/assets/minecraft/font/default.json"));
-        providers.addAll(((List<JSONObject>) baseFontFile.get("providers")).stream().map(obj -> new JSONObject(Map.of(
-            "type", obj.get("type"),
-            "file", obj.get("file"),
-            "ascent", obj.get("ascent"),
-            "height", obj.get("height"),
-            "chars", ((List<String>) obj.get("chars")).stream().map(ResourceManager::escapeJava).toList()
-        ))).toList());
-        String fontData = new JSONObject(Map.of(
-            "providers", providers
-        )).toJSONString().replace("\\\\", "\\").replace("\\/", "/");
-        addMiscResource("assets/minecraft/font/default.json", new ByteArrayInputStream(fontData.getBytes(StandardCharsets.US_ASCII)));
+        // Construct font data
+        FontData fontData = new FontData(new ArrayList<>());
+        fontData.providers().addAll(charData.entrySet().stream().map(entry -> new FontProvider(
+            "bitmap",
+            "minecraft:custom/custom_character_" + entry.getKey() + "_" + entry.getValue().key() + "_" + entry.getValue().value() + ".png",
+            entry.getValue().key(),
+            entry.getValue().value(),
+            List.of("\\u" + entry.getKey().toUpperCase())
+        )).toList());
+        try (Reader reader = new InputStreamReader(ResourceManager.class.getResourceAsStream("/resources/assets/minecraft/font/default.json"))) {
+            var baseFont = gson.fromJson(reader, FontData.class);
+            fontData.providers().addAll(baseFont.providers());
+        }
+        String fontDataStr = gson.toJson(fontData);
+
+        // Write font data
+        addMiscResource("assets/minecraft/font/default.json", new ByteArrayInputStream(fontDataStr.getBytes(StandardCharsets.US_ASCII)));
         addMiscResource("assets/space/textures/font/space_nosplit.png", ResourceManager.class.getResourceAsStream("/resources/assets/space/textures/font/space_nosplit.png"));
         addMiscResource("assets/space/textures/font/space_split.png", ResourceManager.class.getResourceAsStream("/resources/assets/space/textures/font/space_split.png"));
     }
@@ -105,7 +100,7 @@ public class ResourceManager {
                 e.printStackTrace(System.err);
             }
         }
-        try (OutputStream os = new FileOutputStream(path.toFile())) {
+        try (OutputStream os = new FileOutputStream(path.toFile()); inputStream) {
             inputStream.transferTo(os);
         } catch (IOException e) {
             System.err.println("Could not create resource file '" + location + "'");

@@ -5,7 +5,6 @@ import io.zkz.mc.minigameplugins.bingo.card.BingoCard;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMapRenderer;
 import io.zkz.mc.minigameplugins.bingo.util.PlayerUtils;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;

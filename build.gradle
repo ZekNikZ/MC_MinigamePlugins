@@ -11,8 +11,8 @@ ext {
     paperVersion = '1.19.2-R0.1-SNAPSHOT'
     paperweightVersion = '1.3.8'
     protocolLibVersion = '5.0.0-SNAPSHOT'
-    worldeditVersion = '7.2.12-SNAPSHOT'
-    worldguardVersion = '7.0.8-SNAPSHOT'
+    worldeditVersion = '7.2.13-SNAPSHOT'
+    worldguardVersion = '7.1.0-SNAPSHOT'
     smartInvsVersion = '1.2.7'
     subserversClientVersion = '22w24a'
     multiverseVersion = '4.3.1'
@@ -91,7 +91,7 @@ subprojects {
         }
     }
 
-    task buildAll(type: Copy) {
+    task buildAndCollect(type: Copy) {
         dependsOn build
         from('build/libs') {
             include "**/*.jar"

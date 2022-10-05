@@ -3,8 +3,6 @@ package io.zkz.mc.minigameplugins.battlebox;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
-import io.zkz.mc.minigameplugins.gametools.util.JSONUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

@@ -2,13 +2,13 @@ package io.zkz.mc.minigameplugins.gametools.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.zkz.mc.minigameplugins.gametools.data.json.TypedJSONObject;
+import com.sk89q.worldedit.math.BlockVector3;
+import io.zkz.mc.minigameplugins.gametools.data.adapter.BlockVectorAdapter;
+import io.zkz.mc.minigameplugins.gametools.data.adapter.LocationAdapter;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
-import org.jetbrains.annotations.NotNull;
+import io.zkz.mc.minigameplugins.gametools.service.PluginServiceWithConfig;
+import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,66 +17,95 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public class JSONDataManager<T extends PluginService<?>> extends FileBasedDataManager<T> {
-    private final Serializer serializer;
-    private final Deserializer deserializer;
-    private final JSONParser parser = new JSONParser();
+public class JSONDataManager<T extends PluginService<?>, C> extends FileBasedDataManager<T> {
+    private static final Gson gson = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeAdapter(BlockVector3.class, new BlockVectorAdapter())
+        .registerTypeAdapter(Location.class, new LocationAdapter())
+        .create();
 
-    @FunctionalInterface
-    public interface Serializer {
-        JSONObject serialize();
+    private final Class<C> configType;
+    private final Consumer<C> onLoad;
+    private final @Nullable Supplier<C> currentValueSupplier;
+    private final @Nullable Supplier<C> defaultValueSupplier;
+
+    public JSONDataManager(T service, Path filePath, Class<C> configType, Consumer<C> onLoad) {
+        this(service, filePath, configType, onLoad, null, null);
     }
 
-    @FunctionalInterface
-    public interface Deserializer {
-        void deserialize(TypedJSONObject<Object> json);
+    public JSONDataManager(T service, Path filePath, Class<C> configType, Consumer<C> onLoad, @Nullable Supplier<C> currentValueSupplier) {
+        this(service, filePath, configType, onLoad, currentValueSupplier, null);
     }
 
-    public JSONDataManager(T service, Path filePath, @Nullable Serializer serializer, @NotNull Deserializer deserializer) {
+    public JSONDataManager(T service, Path filePath, Class<C> configType, ConfigHolder<C> holder) {
+        this(service, filePath, configType, holder, null);
+    }
+
+    public JSONDataManager(T service, Path filePath, Class<C> configType, ConfigHolder<C> holder, @Nullable Supplier<C> defaultValueSupplier) {
+        this(service, filePath, configType, holder::setConfig, holder::getConfig, defaultValueSupplier);
+    }
+
+    public JSONDataManager(T service, Path filePath, Class<C> configType, Consumer<C> onLoad, @Nullable Supplier<C> currentValueSupplier, @Nullable Supplier<C> defaultValueSupplier) {
         super(service, filePath);
-        this.serializer = serializer;
-        this.deserializer = deserializer;
+        this.configType = configType;
+        this.onLoad = onLoad;
+        this.currentValueSupplier = currentValueSupplier;
+        this.defaultValueSupplier = defaultValueSupplier;
     }
 
-    @SuppressWarnings("java:S112")
+    public static <V extends PluginServiceWithConfig<?, C>, C> JSONDataManager<V, C> from(V service, Path filePath, Class<C> configType) {
+        return from(service, filePath, configType, null);
+    }
+
+    public static <V extends PluginServiceWithConfig<?, C>, C> JSONDataManager<V, C> from(V service, Path filePath, Class<C> configType, @Nullable Supplier<C> defaultValueSupplier) {
+        return new JSONDataManager<>(service, filePath, configType, service, defaultValueSupplier);
+    }
+
     @Override
     public void loadData() throws IOException {
         // Ensure the file exists before attempting to read it
         if (!this.doesFileExist()) {
-            if (this.serializer == null) {
+            if (this.defaultValueSupplier == null) {
                 return;
             }
 
-            this.saveData();
+            this.saveDefaults();
         }
 
         // Read and deserialize the data
         try (Reader reader = new InputStreamReader(Files.newInputStream(this.filePath))) {
-            JSONObject json = (JSONObject) this.parser.parse(reader);
-            this.deserializer.deserialize(new TypedJSONObject<>(json, Object.class));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+            C result = gson.fromJson(reader, configType);
+            this.onLoad.accept(result);
         }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void saveData() throws IOException {
-        if (this.serializer == null) {
+        if (this.currentValueSupplier == null) {
             return;
         }
 
         super.saveData();
 
         // Serialize and write the data
-        JSONObject json = this.serializer.serialize();
-        TreeMap<String, Object> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-        treeMap.putAll(json);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try (Writer writer = Files.newBufferedWriter(this.filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            gson.toJson(treeMap, writer);
+            gson.toJson(this.currentValueSupplier.get(), writer);
+        }
+    }
+
+    public void saveDefaults() throws IOException {
+        if (this.defaultValueSupplier == null) {
+            return;
+        }
+
+        super.saveData();
+
+        // Serialize and write the data
+        try (Writer writer = Files.newBufferedWriter(this.filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            gson.toJson(this.defaultValueSupplier.get(), writer);
         }
     }
 }
