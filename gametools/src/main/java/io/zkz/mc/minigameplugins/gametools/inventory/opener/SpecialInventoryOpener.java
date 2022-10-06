@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.inventory.opener;
 
-import fr.minuskube.inv.InventoryManager;
-import io.zkz.mc.minigameplugins.gametools.inventory.CustomInventory;
+import io.zkz.mc.minigameplugins.gametools.inventory.CustomUI;
 import io.zkz.mc.minigameplugins.gametools.inventory.InventoryService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,7 +24,7 @@ public class SpecialInventoryOpener implements InventoryOpener {
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
-    public Inventory open(CustomInventory inv, Player player) {
+    public Inventory open(CustomUI inv, Player player) {
         Inventory handle = Bukkit.createInventory(player, inv.type(), inv.title());
 
         fill(handle, InventoryService.getInstance().getContents(player).get());

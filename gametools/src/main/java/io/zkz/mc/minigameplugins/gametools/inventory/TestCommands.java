@@ -9,10 +9,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class TestCommands {
-    private static class TestProvider extends InventoryContentProvider {
+    private static class TestProvider extends UIContents {
         private int i = 0;
 
-        public TestProvider(CustomInventory inv, Player player) {
+        public TestProvider(CustomUI inv, Player player) {
             super(inv, player);
         }
 
@@ -37,7 +37,7 @@ public class TestCommands {
         }
     }
 
-    private static final CustomInventory customInventory = CustomInventory
+    private static final CustomUI CUSTOM_UI = CustomUI
         .builder(TestProvider::new)
         .closeable(false)
         .build();
@@ -49,7 +49,7 @@ public class TestCommands {
         registry.registerCommand(builder.handler(cmd -> {
             BukkitUtils.runNextTick(() -> {
                 if (cmd.getSender() instanceof Player player) {
-                    customInventory.open(player);
+                    CUSTOM_UI.open(player);
 //                    FakeInventory fakeInventory = new FakeInventory();
 //                    player.openInventory(fakeInventory.getInventory());
                 }

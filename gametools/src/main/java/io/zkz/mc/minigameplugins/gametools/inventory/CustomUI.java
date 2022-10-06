@@ -1,12 +1,11 @@
 package io.zkz.mc.minigameplugins.gametools.inventory;
 
-import fr.minuskube.inv.InventoryListener;
 import io.zkz.mc.minigameplugins.gametools.inventory.opener.InventoryOpener;
+import io.zkz.mc.minigameplugins.gametools.inventory.pagination.Pageable;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
@@ -17,17 +16,17 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @Getter
 @Accessors(fluent = true)
-public class CustomInventory {
-    private final BiFunction<CustomInventory, Player, InventoryContentProvider> provider;
+public class CustomUI {
+    private final BiFunction<CustomUI, Player, UIContents> provider;
     private final String id;
     private final Component title;
     private final int rows;
     private final int cols;
     private final InventoryType type;
     private final boolean closeable;
-    private final CustomInventory parent;
+    private final CustomUI parent;
 
-    private CustomInventory(BiFunction<CustomInventory, Player, InventoryContentProvider> provider, String id, Component title, int rows, int cols, InventoryType type, boolean closeable, CustomInventory parent) {
+    private CustomUI(BiFunction<CustomUI, Player, UIContents> provider, String id, Component title, int rows, int cols, InventoryType type, boolean closeable, CustomUI parent) {
         this.provider = provider;
         this.id = id;
         this.title = title;
@@ -43,7 +42,7 @@ public class CustomInventory {
     }
 
     public Inventory open(Player player, int page) {
-        Optional<CustomInventory> oldInv = InventoryService.getInstance().getInventory(player);
+        Optional<CustomUI> oldInv = InventoryService.getInstance().getInventory(player);
 
         oldInv.ifPresent(inv -> {
 //            inv.getListeners().stream()
@@ -54,8 +53,10 @@ public class CustomInventory {
             InventoryService.getInstance().setInventory(player, null);
         });
 
-        InventoryContentProvider contents = this.provider.apply(this, player);
-        // TODO: pagination
+        UIContents contents = this.provider.apply(this, player);
+        if (contents instanceof Pageable pageable) {
+            pageable.setPage(page);
+        }
 
         InventoryService.getInstance().setContents(player, contents);
         contents.init();
@@ -81,21 +82,21 @@ public class CustomInventory {
         InventoryService.getInstance().setContents(player, null);
     }
 
-    public static Builder builder(BiFunction<CustomInventory, Player, InventoryContentProvider> provider) {
+    public static Builder builder(BiFunction<CustomUI, Player, UIContents> provider) {
         return new Builder(provider);
     }
 
     public static final class Builder {
-        private final BiFunction<CustomInventory, Player, InventoryContentProvider> provider;
+        private final BiFunction<CustomUI, Player, UIContents> provider;
         private String id = null;
         private Component title = mm("");
         private int rows = 6;
         private int cols = 9;
         private InventoryType type = InventoryType.CHEST;
         private boolean closeable = true;
-        private CustomInventory parent;
+        private CustomUI parent;
 
-        public Builder(BiFunction<CustomInventory, Player, InventoryContentProvider> provider) {
+        public Builder(BiFunction<CustomUI, Player, UIContents> provider) {
             this.provider = provider;
         }
 
@@ -125,13 +126,13 @@ public class CustomInventory {
             return this;
         }
 
-        public Builder parent(CustomInventory parent) {
+        public Builder parent(CustomUI parent) {
             this.parent = parent;
             return this;
         }
 
-        public CustomInventory build() {
-            return new CustomInventory(
+        public CustomUI build() {
+            return new CustomUI(
                 provider,
                 id,
                 title,

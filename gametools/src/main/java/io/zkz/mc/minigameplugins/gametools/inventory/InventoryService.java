@@ -31,9 +31,9 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         return INSTANCE;
     }
 
-    private final Map<Player, CustomInventory> inventories = new HashMap<>();
+    private final Map<Player, CustomUI> inventories = new HashMap<>();
 
-    private final Map<Player, InventoryContentProvider> contents = new HashMap<>();
+    private final Map<Player, UIContents> contents = new HashMap<>();
 
     private final List<InventoryOpener> openers = new ArrayList<>();
 
@@ -42,11 +42,11 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         new SpecialInventoryOpener()
     );
 
-    public Optional<CustomInventory> getInventory(Player player) {
+    public Optional<CustomUI> getInventory(Player player) {
         return Optional.ofNullable(this.inventories.get(player));
     }
 
-    public void setInventory(Player player, @Nullable CustomInventory inv) {
+    public void setInventory(Player player, @Nullable CustomUI inv) {
         if (inv == null) {
             this.inventories.remove(player);
         } else {
@@ -54,11 +54,11 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         }
     }
 
-    public Optional<InventoryContentProvider> getContents(Player player) {
+    public Optional<UIContents> getContents(Player player) {
         return Optional.ofNullable(this.contents.get(player));
     }
 
-    public void setContents(Player player, @Nullable InventoryContentProvider contents) {
+    public void setContents(Player player, @Nullable UIContents contents) {
         if (contents == null) {
             this.contents.remove(player);
         } else {
@@ -84,7 +84,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         this.openers.addAll(Arrays.asList(openers));
     }
 
-    public List<Player> getOpenedPlayers(CustomInventory inv) {
+    public List<Player> getOpenedPlayers(CustomUI inv) {
         return this.inventories.entrySet().stream()
             .filter(e -> inv.equals(e.getValue()))
             .map(Map.Entry::getKey)
@@ -117,7 +117,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
                 return;
             }
 
-            CustomInventory inv = this.inventories.get(p);
+            CustomUI inv = this.inventories.get(p);
 
             int row = e.getSlot() / inv.cols();
             int column = e.getSlot() % inv.cols();
@@ -142,7 +142,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         if (!this.inventories.containsKey(p))
             return;
 
-        CustomInventory inv = this.inventories.get(p);
+        CustomUI inv = this.inventories.get(p);
 
         for (int slot : e.getRawSlots()) {
             if (slot >= p.getOpenInventory().getTopInventory().getSize())
@@ -164,7 +164,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         if (!inventories.containsKey(p))
             return;
 
-        CustomInventory inv = inventories.get(p);
+        CustomUI inv = inventories.get(p);
 
 //        inv.getListeners().stream()
 //            .filter(listener -> listener.getType() == InventoryOpenEvent.class)
@@ -178,7 +178,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         if (!inventories.containsKey(p))
             return;
 
-        CustomInventory inv = inventories.get(p);
+        CustomUI inv = inventories.get(p);
 
 //        inv.getListeners().stream()
 //            .filter(listener -> listener.getType() == InventoryCloseEvent.class)
@@ -203,7 +203,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
         if (!this.inventories.containsKey(p))
             return;
 
-        CustomInventory inv = this.inventories.get(p);
+        CustomUI inv = this.inventories.get(p);
 
 //        inv.getListeners().stream()
 //            .filter(listener -> listener.getType() == PlayerQuitEvent.class)
@@ -230,7 +230,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
     class InvTask extends BukkitRunnable {
         @Override
         public void run() {
-            contents.values().forEach(InventoryContentProvider::update);
+            contents.values().forEach(UIContents::update);
         }
     }
 
