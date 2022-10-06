@@ -21,11 +21,17 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class JSONDataManager<T extends PluginService<?>, C> extends FileBasedDataManager<T> {
-    private static final Gson gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .registerTypeAdapter(BlockVector3.class, new BlockVectorAdapter())
-        .registerTypeAdapter(Location.class, new LocationAdapter())
-        .create();
+    private static final Gson gson;
+
+    static {
+        var builder = new GsonBuilder()
+                .setPrettyPrinting();
+        
+        builder.registerTypeAdapter(BlockVector3.class, new BlockVectorAdapter())
+                .registerTypeAdapter(Location.class, new LocationAdapter());
+
+        gson = builder.create();
+    }
 
     private final Class<C> configType;
     private final Consumer<C> onLoad;

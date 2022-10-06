@@ -12,7 +12,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BukkitUtils {
-    private BukkitUtils() {}
+    private BukkitUtils() {
+    }
+
+    public static void runNow(Runnable runnable) {
+        Bukkit.getScheduler().runTask(CustomEventService.getInstance().getPlugin(), runnable);
+    }
 
     public static void runNextTick(Runnable runnable) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, 1);

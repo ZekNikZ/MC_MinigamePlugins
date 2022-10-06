@@ -4,6 +4,10 @@ import com.mysql.cj.jdbc.MysqlDataSource;
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginServiceWithConfig;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -24,7 +28,15 @@ public class MySQLService extends PluginServiceWithConfig<GameToolsPlugin, MySQL
         return INSTANCE;
     }
 
-    public record DBConfig(String host, int port, String database, String username, String password) {
+    @Data
+    @AllArgsConstructor
+    @Accessors(fluent = true)
+    public static final class DBConfig {
+        private String host;
+        private int port;
+        private String database;
+        private String username;
+        private String password;
     }
 
     private MysqlDataSource dataSource;
