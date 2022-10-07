@@ -32,6 +32,18 @@ public class ItemStackBuilder {
 
     private ItemStackBuilder(ItemStack stack) {
         this.stack = stack.clone();
+
+        var prevMeta = stack.getItemMeta();
+        if (prevMeta == null) {
+            return;
+        }
+
+        // Copy previous lore
+        if (prevMeta.hasLore()) {
+            this.lore.addAll(prevMeta.lore());
+        }
+
+        // TODO: copy CanPlaceOn and CanBreak
     }
 
     public static ItemStackBuilder builder() {

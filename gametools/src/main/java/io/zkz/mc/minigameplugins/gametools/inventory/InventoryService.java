@@ -107,7 +107,7 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
             e.getAction() == InventoryAction.NOTHING) {
 
             e.setCancelled(true);
-            return;
+//            return;
         }
 
         if (e.getClickedInventory() == p.getOpenInventory().getTopInventory()) {
@@ -237,26 +237,22 @@ public class InventoryService extends PluginService<GameToolsPlugin> {
 //    @EventHandler
 //    private void onClick(InventoryClickEvent event) {
 //        Player player = ((Player) event.getWhoClicked());
-//        player.sendMessage("-----");
-//        player.sendMessage("inv: " + (event.getClickedInventory() == null ? "null" : event.getClickedInventory().getClass().getName()));
+////        player.sendMessage("-----");
+////        player.sendMessage("inv: " + (event.getClickedInventory() == null ? "null" : event.getClickedInventory().getClass().getName()));
+////        player.sendMessage("click: " + event.getClick().name());
+////        player.sendMessage("slotType: " + event.getSlotType().name());
+////        player.sendMessage("slot: " + event.getSlot());
+////        player.sendMessage("rawSlot: " + event.getRawSlot());
+////        player.sendMessage("currentItem: " + (event.getCurrentItem() == null ? "null" : event.getCurrentItem().getType().name()));
+////        player.sendMessage("cursorItem: " + (event.getCursor() == null ? "null" : event.getCursor().getType().name()));
+////        player.sendMessage("action: " + event.getAction().name());
+////        player.sendMessage("hotbarButton: " + event.getHotbarButton());
+////        player.sendMessage("-----");
 //        player.sendMessage("click: " + event.getClick().name());
-//        player.sendMessage("slotType: " + event.getSlotType().name());
-//        player.sendMessage("slot: " + event.getSlot());
-//        player.sendMessage("rawSlot: " + event.getRawSlot());
-//        player.sendMessage("currentItem: " + (event.getCurrentItem() == null ? "null" : event.getCurrentItem().getType().name()));
-//        player.sendMessage("cursorItem: " + (event.getCursor() == null ? "null" : event.getCursor().getType().name()));
-//        player.sendMessage("action: " + event.getAction().name());
-//        player.sendMessage("hotbarButton: " + event.getHotbarButton());
-//        player.sendMessage("-----");
 //
 //        // Ignore this if no inventory attached
 //        if (event.getClickedInventory() == null) {
 //            return;
-//        }
-//
-//        // If this is a FakeInventory, cancel
-//        if (event.getClickedInventory().getHolder() instanceof FakeInventory) {
-//            event.setCancelled(true);
 //        }
 //    }
 }
