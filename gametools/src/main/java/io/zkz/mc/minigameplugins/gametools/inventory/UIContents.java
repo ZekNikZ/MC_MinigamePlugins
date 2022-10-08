@@ -5,11 +5,11 @@ import io.zkz.mc.minigameplugins.gametools.inventory.item.InventoryItem;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * A separate instance of this is created each time this inventory is opened.
@@ -18,6 +18,7 @@ public abstract class UIContents {
     protected final CustomUI inv;
     protected final Player player;
     private final List<InventoryItem> items;
+    private final List<Pagination> paginations = new ArrayList<>();
 
     public UIContents(CustomUI inv, Player player) {
         this.inv = inv;
@@ -26,6 +27,11 @@ public abstract class UIContents {
     }
 
     protected abstract void init();
+
+    protected final void initialize() {
+        this.init();
+        this.paginations.forEach(Pagination::init);
+    }
 
     protected void update() {
     }
@@ -150,5 +156,19 @@ public abstract class UIContents {
 
     public SlotIterator createIterator(SlotIterator.Type type, SlotPos startingPos, boolean reversed) {
         return this.createIterator(type, startingPos.row(), startingPos.col(), reversed);
+    }
+
+    public List<Pagination> paginations() {
+        return this.paginations;
+    }
+
+    protected Pagination createPagination(int numPages) {
+        return this.createPagination(null, numPages);
+    }
+
+    protected Pagination createPagination(@Nullable BiConsumer<Integer, Integer> onPageChange, int numPages) {
+        Pagination pagination = new Pagination(onPageChange, numPages);
+        this.paginations.add(pagination);
+        return pagination;
     }
 }

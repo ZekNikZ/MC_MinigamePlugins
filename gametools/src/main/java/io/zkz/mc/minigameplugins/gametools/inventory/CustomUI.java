@@ -1,7 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.inventory;
 
 import io.zkz.mc.minigameplugins.gametools.inventory.opener.InventoryOpener;
-import io.zkz.mc.minigameplugins.gametools.inventory.pagination.Pageable;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
@@ -54,12 +53,10 @@ public class CustomUI {
         });
 
         UIContents contents = this.provider.apply(this, player);
-        if (contents instanceof Pageable pageable) {
-            pageable.setPage(page);
-        }
+        contents.paginations().forEach(pagination -> pagination.page(page));
 
         InventoryService.getInstance().setContents(player, contents);
-        contents.init();
+        contents.initialize();
 
         InventoryOpener opener = InventoryService.getInstance().getOpener(this.type)
             .orElseThrow(() -> new IllegalStateException("No opener found for the inventory type " + this.type.name()));

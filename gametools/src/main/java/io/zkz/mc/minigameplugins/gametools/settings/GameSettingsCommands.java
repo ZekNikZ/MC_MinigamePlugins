@@ -4,6 +4,7 @@ import cloud.commandframework.Command;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.command.CommandSender;
@@ -33,7 +34,7 @@ public class GameSettingsCommands {
                         return;
                     }
 
-                    GameSettingsService.getInstance().openMenu(player);
+                    BukkitUtils.runNow(() -> GameSettingsService.getInstance().openMenu(player));
                 })
         );
     }
