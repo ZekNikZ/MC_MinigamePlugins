@@ -3,6 +3,7 @@ package io.zkz.mc.uhc.game;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.util.EntityUtils;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import io.zkz.mc.uhc.UHCPlugin;
 import io.zkz.mc.uhc.settings.SettingsManager;

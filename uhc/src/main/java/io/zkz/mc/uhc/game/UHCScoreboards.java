@@ -1,14 +1,5 @@
 package io.zkz.mc.uhc.game;
 
-import dev.mattrm.mc.gametools.data.SharedReference;
-import dev.mattrm.mc.gametools.scoreboards.GameScoreboard;
-import dev.mattrm.mc.gametools.scoreboards.ScoreboardService;
-import dev.mattrm.mc.gametools.scoreboards.ValueEntry;
-import dev.mattrm.mc.gametools.scoreboards.impl.*;
-import dev.mattrm.mc.gametools.teams.GameTeam;
-import dev.mattrm.mc.gametools.teams.TeamService;
-import dev.mattrm.mc.uhcplugin.settings.SettingsManager;
-import dev.mattrm.mc.uhcplugin.settings.enums.TeamStatus;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,16 +22,6 @@ public class UHCScoreboards {
 
     public static void setup(JavaPlugin javaPlugin) {
         plugin = javaPlugin;
-//        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> ScoreboardService.getInstance().getAllScoreboards().forEach(scoreboard -> {
-//            if (GameManager.getInstance().getState() != GameState.POST_GAME) {
-//                if (scoreboardTitleColor) {
-//                    scoreboard.setTitle("" + ChatColor.WHITE + ChatColor.BOLD + "RFP UHC");
-//                } else {
-//                    scoreboard.setTitle("" + ChatColor.YELLOW + ChatColor.BOLD + "RFP UHC");
-//                }
-//                scoreboardTitleColor = !scoreboardTitleColor;
-//            }
-//        }), 10, 30);
     }
 
     public static void setupLobbyScoreboard() {

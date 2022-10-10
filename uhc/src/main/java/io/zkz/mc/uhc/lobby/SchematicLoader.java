@@ -15,7 +15,6 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import jdk.nashorn.internal.ir.Block;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
@@ -23,20 +22,6 @@ import java.io.IOException;
 
 public class SchematicLoader {
     public static boolean loadLobby() {
-//        BlockVector3 v = new BlockVector3(-10, 200, -10);
-//        World world = Bukkit.getWorlds().get(0);
-//        BukkitWorld bukkitWorld = new BukkitWorld(world);
-//        EditSession es = WorldEdit.getInstance().newEditSession(bukkitWorld);
-//
-//        try {
-//
-//            CuboidClipboard cb = ((MCEditSchematicFormat) SchematicFormat.MCEDIT).load(FileUtils.class.getResourceAsStream("/uhclobby.schematic"));
-//            cb.paste(es, v, false);
-//        } catch (IOException | DataException | MaxChangedBlocksException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-
         try (ClipboardReader reader = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getReader(SchematicLoader.class.getResourceAsStream("/uhclobbynew.schem"))) {
             Clipboard clipboard = reader.read();
 
@@ -58,19 +43,6 @@ public class SchematicLoader {
     }
 
     public static boolean clearLobby() {
-//        Vector v1 = new Vector(-10, 200, -10);
-//        Vector v2 = new Vector(11, 221, 11);
-//        World world = Bukkit.getWorlds().get(0);
-//        BukkitWorld bukkitWorld = new BukkitWorld(world);
-//        EditSession es = new EditSession(bukkitWorld, 20000000);
-//
-//        try {
-//            es.setBlocks(new CuboidRegion(v1, v2), new BaseBlock(Material.AIR.getId()));
-//        } catch (MaxChangedBlocksException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-
         Region region = new CuboidRegion(
             new BukkitWorld(Bukkit.getWorlds().get(0)),
             BlockVector3.at(-10, 200, -10),
@@ -91,19 +63,6 @@ public class SchematicLoader {
     }
 
     public static boolean loadSuddenDeath() {
-//        Vector v = new Vector(-19, 254, -19);
-//        World world = Bukkit.getWorlds().get(0);
-//        BukkitWorld bukkitWorld = new BukkitWorld(world);
-//        EditSession es = new EditSession(bukkitWorld, 20000000);
-//
-//        try {
-//            CuboidClipboard cb = ((MCEditSchematicFormat) SchematicFormat.MCEDIT).load(FileUtils.class.getResourceAsStream("/suddendeath.schematic"));
-//            cb.paste(es, v, false);
-//        } catch (IOException | DataException | MaxChangedBlocksException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-
         try (ClipboardReader reader = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getReader(SchematicLoader.class.getResourceAsStream("/suddendeathnew.schem"))) {
             Clipboard clipboard = reader.read();
 
@@ -124,19 +83,6 @@ public class SchematicLoader {
     }
 
     public static boolean clearSuddenDeath() {
-//        Vector v1 = new Vector(-20, 245, -20);
-//        Vector v2 = new Vector(20, 255, 20);
-//        World world = Bukkit.getWorlds().get(0);
-//        BukkitWorld bukkitWorld = new BukkitWorld(world);
-//        EditSession es = new EditSession(bukkitWorld, 20000000);
-//
-//        try {
-//            es.setBlocks(new CuboidRegion(v1, v2), new BaseBlock(Material.AIR.getId()));
-//        } catch (MaxChangedBlocksException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-
         Region region = new CuboidRegion(
             new BukkitWorld(Bukkit.getWorlds().get(0)),
             BlockVector3.at(-20, 245, -20),
