@@ -23,3 +23,5 @@ include 'tgttos'
 include 'guessthebuild'
 include 'battlebox'
 include 'potionpanic'
+
+include 'uhc'

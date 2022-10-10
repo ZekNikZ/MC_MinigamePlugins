@@ -1,10 +1,11 @@
 package io.zkz.mc.minigameplugins.gametools.settings;
 
+import io.zkz.mc.minigameplugins.gametools.util.IObservable;
 import net.kyori.adventure.text.Component;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
-public interface IGameSetting<T> {
+public interface IGameSetting<T> extends IObservable {
     Component name();
 
     Component description();

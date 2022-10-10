@@ -22,6 +22,10 @@ public class BooleanSetting extends GameSetting<Boolean> {
         .name(mm("<red>Disabled"))
         .build();
 
+    public BooleanSetting(@NotNull Component title, @Nullable Component description, @NotNull ItemStack display, boolean defaultValue) {
+        super(title, description, display, () -> defaultValue);
+    }
+
     public BooleanSetting(@NotNull Component title, @Nullable Component description, @NotNull ItemStack display, @NotNull Supplier<Boolean> defaultValue) {
         super(title, description, display, defaultValue);
     }

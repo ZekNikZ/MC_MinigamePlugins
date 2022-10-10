@@ -12,7 +12,9 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,6 +86,10 @@ public class ItemStackBuilder {
         metaModifier.accept(meta);
         this.stack.setItemMeta(meta);
         return this;
+    }
+
+    public ItemStackBuilder potion(PotionData potionData) {
+        return this.meta(itemMeta -> ((PotionMeta) itemMeta).setBasePotionData(potionData));
     }
 
     public ItemStackBuilder name(Component name) {
