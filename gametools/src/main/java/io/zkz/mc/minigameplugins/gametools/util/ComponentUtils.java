@@ -4,11 +4,14 @@ import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.ComponentArgument;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collector;
 
 public class ComponentUtils {
@@ -63,5 +66,13 @@ public class ComponentUtils {
 
     public static Component extractArgument(CommandContext<CommandSourceStack> cmd, String name) {
         return GsonComponentSerializer.gson().deserialize(net.minecraft.network.chat.Component.Serializer.toJson(ComponentArgument.getComponent(cmd, name)));
+    }
+
+    public static Comparator<Component> comparator() {
+        return Comparator.comparing(c -> PlainTextComponentSerializer.plainText().serialize(c));
+    }
+
+    public static <T> Comparator<T> comparing(Function<T, Component> keyExtractor) {
+        return Comparator.comparing(c -> PlainTextComponentSerializer.plainText().serialize(keyExtractor.apply(c)));
     }
 }

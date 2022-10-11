@@ -101,7 +101,7 @@ public abstract class Round {
     }
 
     protected Collection<UUID> getInitialAlivePlayers() {
-        return MinigameService.getInstance().getPlayers();
+        return MinigameService.getInstance().getMinigame().getParticipants();
     }
 
     protected void onPlayerDeath(UUID playerId) {
@@ -188,6 +188,20 @@ public abstract class Round {
      */
     public void triggerPhase2Start() {
         MinigameService.getInstance().startPhase2();
+    }
+
+    /**
+     * Convenience method to end the second phase.
+     */
+    public void triggerPhase2End() {
+        MinigameService.getInstance().endPhase2();
+    }
+
+    /**
+     * Convenience method to start the third phase.
+     */
+    public void triggerPhase3Start() {
+        MinigameService.getInstance().startPhase3();
     }
 
     public @Nullable String getMapName() {

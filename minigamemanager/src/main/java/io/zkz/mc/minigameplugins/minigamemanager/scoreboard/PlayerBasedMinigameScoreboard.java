@@ -10,6 +10,6 @@ public interface PlayerBasedMinigameScoreboard extends MinigameScoreboard {
 
     @Override
     default void setup() {
-        MinigameService.getInstance().getPlayers().forEach(this::apply);
+        MinigameService.getInstance().getMinigame().getParticipants().forEach(this::apply);
     }
 }

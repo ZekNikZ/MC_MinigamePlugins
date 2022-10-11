@@ -53,6 +53,10 @@ public class GTColors implements TagResolver {
             return Tag.styling(COLORS.get(name).textColor());
         }
 
+        if (name.startsWith("legacy_")) {
+            return StandardTags.color().resolve(name.substring("legacy_".length()), arguments, ctx);
+        }
+
         return StandardTags.color().resolve(name, arguments, ctx);
     }
 

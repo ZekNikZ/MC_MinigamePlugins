@@ -1,6 +1,8 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,6 +33,11 @@ public class StringUtils {
     public static int getStringWidth(String s) {
         return s.chars().map(i -> characterWidths[i] - 1).sum() // character widths
             + (s.length() - 1); // space in between characters
+    }
+
+    public static int getComponentWidth(Component s, boolean isSurroundingBolded) {
+        // TODO: account for bolding somehow
+        return getStringWidth(PlainTextComponentSerializer.plainText().serialize(s));
     }
 
     private static final String POSITIVE_CHARS = "\uF831\uF832\uF833\uF834\uF835\uF836\uF837\uF838\uF839\uF83A\uF83B\uF83C\uF83D\uF83E\uF83F";
@@ -81,5 +88,31 @@ public class StringUtils {
         }
         String padding = getStringPadding(pixelWidth - width);
         return s + padding;
+    }
+
+    public static Component padOnLeftWithPixels(Component s, int pixelWidth, boolean isSurroundingBolded) {
+        int width = getComponentWidth(s, isSurroundingBolded);
+        if (width >= pixelWidth) {
+            return s;
+        }
+        Component padding = Component.text(getStringPadding(pixelWidth - width));
+        return padding.append(s);
+    }
+
+    public static Component padOnLeftWithPixels(Component s, int pixelWidth) {
+        return padOnLeftWithPixels(s, pixelWidth, false);
+    }
+
+    public static Component padOnRightWithPixels(Component s, int pixelWidth, boolean isSurroundingBolded) {
+        int width = getComponentWidth(s, isSurroundingBolded);
+        if (width >= pixelWidth) {
+            return s;
+        }
+        Component padding = Component.text(getStringPadding(pixelWidth - width));
+        return s.append(padding);
+    }
+
+    public static Component padOnRightWithPixels(Component s, int pixelWidth) {
+        return padOnRightWithPixels(s, pixelWidth, false);
     }
 }

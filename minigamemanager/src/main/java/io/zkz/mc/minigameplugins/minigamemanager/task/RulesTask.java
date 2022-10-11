@@ -4,6 +4,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 public class RulesTask extends MinigameTask {
     private static final int TICK_DELAY = 160;
     private int currentIndex = 0;
-    private final List<Character> slides;
+    private final List<List<Component>> slides;
 
     public RulesTask() {
         super(TICK_DELAY, TICK_DELAY);
@@ -28,8 +29,8 @@ public class RulesTask extends MinigameTask {
         }
 
         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
-        // TODO: send rules
-        Bukkit.getServer().sendMessage(mm("" + this.slides.get(this.currentIndex)));
+        var lines = this.slides.get(this.currentIndex);
+        lines.forEach(Bukkit.getServer()::sendMessage);
 
         this.currentIndex++;
     }

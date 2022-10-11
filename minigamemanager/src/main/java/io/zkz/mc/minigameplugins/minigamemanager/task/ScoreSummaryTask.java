@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager.task;
 
 import com.google.common.base.MoreObjects;
+import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
 import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
@@ -8,10 +9,10 @@ import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
-import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -53,7 +54,7 @@ public class ScoreSummaryTask extends MinigameTask {
                                 return null;
                             }
                             return new ScoreboardEntry(
-                                player.getDisplayName(),
+                                player.displayName(),
                                 playerId.getValue(),
                                 MinigameService.getInstance().getPointMultiplier()
                             );
@@ -75,7 +76,7 @@ public class ScoreSummaryTask extends MinigameTask {
                                     return null;
                                 }
                                 return new ScoreboardEntry(
-                                    player.getDisplayName(),
+                                    player.displayName(),
                                     playerId.getValue(),
                                     MinigameService.getInstance().getPointMultiplier()
                                 );
@@ -123,25 +124,25 @@ public class ScoreSummaryTask extends MinigameTask {
         ++slideNum;
     }
 
-    private record ScoreboardEntry(String name, double points, double multiplier) {
+    private record ScoreboardEntry(Component name, double points, double multiplier) {
     }
 
     private void displayScoreboard(Collection<? extends Player> players, Collection<ScoreboardEntry> entries, int numToDisplay) {
         AtomicInteger placement = new AtomicInteger(1);
         entries.stream()
-            .sorted(Comparator.comparing(ScoreboardEntry::points).reversed().thenComparing(ScoreboardEntry::name))
+            .sorted(Comparator.comparing(ScoreboardEntry::points).reversed().thenComparing(ComponentUtils.comparing(ScoreboardEntry::name)))
             .limit(numToDisplay)
             .forEach(entry -> {
-                String placementStr = StringUtils.padOnLeftWithPixels("" + placement.getAndIncrement(), 20) + ". ";
-                String entryNameStr = StringUtils.padOnRightWithPixels(entry.name() + ChatColor.RESET, 160);
-                String pointsStr;
+                Component placementStr = StringUtils.padOnLeftWithPixels(mm(placement.getAndIncrement() + ". "), 22);
+                Component entryNameStr = StringUtils.padOnRightWithPixels(entry.name(), 160);
+                Component pointsStr;
                 if (entry.multiplier() == 1) {
-                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points()), 45);
+                    pointsStr = StringUtils.padOnLeftWithPixels(mm(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points())), 45);
                 } else {
-                    pointsStr = StringUtils.padOnLeftWithPixels(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points() * entry.multiplier()), 45)
-                        + (" (%.1f" + ChatType.Constants.POINT_CHAR + " \u00d7 %.1f)").formatted(entry.points(), entry.multiplier());
+                    pointsStr = StringUtils.padOnLeftWithPixels(mm(("%.1f" + ChatType.Constants.POINT_CHAR).formatted(entry.points() * entry.multiplier())), 45)
+                        .append(mm((" (%.1f" + ChatType.Constants.POINT_CHAR + " \u00d7 %.1f)").formatted(entry.points(), entry.multiplier())));
                 }
-                Chat.sendMessage(audience(players), mm(placementStr + entryNameStr + pointsStr));
+                Chat.sendMessage(audience(players), placementStr.append(entryNameStr).append(pointsStr));
             });
         SoundUtils.playSound(StandardSounds.ALERT_INFO, 1, 1);
     }

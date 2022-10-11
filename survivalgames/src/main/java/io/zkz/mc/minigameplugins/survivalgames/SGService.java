@@ -396,7 +396,7 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onSpectateTeleport(PlayerTeleportEvent event) {
-        if (!MinigameService.getInstance().isSpectatorsCanOnlySeeAliveTeammates()) {
+        if (!MinigameService.getInstance().canSpectatorsOnlySeeAliveTeammates()) {
             return;
         }
 
@@ -410,7 +410,7 @@ public class SGService extends PluginService<SGPlugin> {
 
     @EventHandler
     private void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
-        if (!MinigameService.getInstance().isSpectatorsCanOnlySeeAliveTeammates()) {
+        if (!MinigameService.getInstance().canSpectatorsOnlySeeAliveTeammates()) {
             return;
         }
 
