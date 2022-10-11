@@ -35,7 +35,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.RulesTask;
 import io.zkz.mc.minigameplugins.minigamemanager.task.ScoreSummaryTask;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -66,75 +65,75 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private static final TeamBasedMinigameScoreboard DEFAULT_SCOREBOARD = (team) -> {
         MinigameState currentState = getInstance().getCurrentState();
-        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard("" + ChatColor.GOLD + ChatColor.BOLD + getInstance().getTournamentName());
-        scoreboard.addEntry("gameName", new ComponentEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ": " + ChatColor.RESET + MinigameConstantsService.getInstance().getMinigameName()));
+        GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(mm("<gold><bold>" + getInstance().getTournamentName()));
+        scoreboard.addEntry("gameName", new ComponentEntry(mm("<alert_info><bold>Game " + getInstance().getGameNumber() + "/" + getInstance().getMaxGameNumber() + ":</bold></alert_info> " + MinigameConstantsService.getInstance().getMinigameName())));
         switch (currentState) {
             case SERVER_STARTING, LOADING -> {
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Server loading...");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Server loading..."));
             }
             case SETUP -> {
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Setting up minigame...");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Setting up minigame..."));
             }
             case WAITING_FOR_PLAYERS -> {
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Waiting for players...");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Waiting for players..."));
                 scoreboard.addSpace();
-                scoreboard.addEntry("playerCount", new ValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Players: " + ChatColor.RESET + "%s/" + getInstance().getPlayers().size(), 0));
+                scoreboard.addEntry("playerCount", new ValueEntry<>("<lime><bold>Players:</bold></lime> <value>/" + getInstance().getPlayers().size(), 0));
             }
             case RULES -> {
                 addRoundInformation(scoreboard);
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Showing rules...");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Showing rules..."));
             }
             case WAITING_TO_BEGIN -> {
                 addRoundInformation(scoreboard);
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Waiting for ready...");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Waiting for ready..."));
                 scoreboard.addSpace();
-                scoreboard.addEntry("playerCount", new ValueEntry<>("" + ChatColor.GREEN + ChatColor.BOLD + "Ready players: " + ChatColor.RESET + "%s/" + getInstance().getPlayers().size(), 0));
+                scoreboard.addEntry("playerCount", new ValueEntry<>("<lime><bold>Ready players:</bold></lime> <value>/" + getInstance().getPlayers().size(), 0));
             }
             case PRE_ROUND -> {
                 addRoundInformation(scoreboard);
                 if (getInstance().timer != null) {
-                    scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "%s", getInstance().timer));
+                    scoreboard.addEntry(new TimerEntry("<red><bold>Round begins in:</bold></red> <value>", getInstance().timer));
                 } else {
-                    scoreboard.addEntry(new ComponentEntry("" + ChatColor.RED + ChatColor.BOLD + "Round begins in: " + ChatColor.RESET + "waiting..."));
+                    scoreboard.addEntry(new ComponentEntry(mm("<red><bold>Round begins in:</bold></red> waiting...")));
                 }
                 addTeamInformation(scoreboard, team);
             }
             case IN_GAME -> {
                 addRoundInformation(scoreboard);
                 if (getInstance().timer != null) {
-                    scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Time left: " + ChatColor.RESET + "%s", getInstance().timer));
+                    scoreboard.addEntry(new TimerEntry("<red><bold>Time left:</bold></red> <value>", getInstance().timer));
                 }
                 addTeamInformation(scoreboard, team);
             }
             case PAUSED -> {
                 addRoundInformation(scoreboard);
                 scoreboard.addSpace();
-                scoreboard.addEntry("" + ChatColor.RED + ChatColor.BOLD + "Game status:");
-                scoreboard.addEntry("Paused");
+                scoreboard.addEntry(mm("<red><bold>Game status:"));
+                scoreboard.addEntry(mm("Paused"));
                 addTeamInformation(scoreboard, team);
             }
             case POST_ROUND -> {
                 addRoundInformation(scoreboard);
                 if (getInstance().timer != null) {
-                    scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "%s", getInstance().timer));
+                    scoreboard.addEntry(new TimerEntry("<red><bold>Next round in:</bold></red> <value>", getInstance().timer));
                 } else {
-                    scoreboard.addEntry(new ComponentEntry("" + ChatColor.RED + ChatColor.BOLD + "Next round in: " + ChatColor.RESET + "waiting..."));
+                    scoreboard.addEntry(new ComponentEntry(mm("<red><bold>Next round in:</bold></red> waiting...")));
                 }
                 addTeamInformation(scoreboard, team);
             }
             case POST_GAME -> {
                 addRoundInformation(scoreboard);
-                scoreboard.addEntry(new TimerEntry("" + ChatColor.RED + ChatColor.BOLD + "Back to hub in: " + ChatColor.RESET + "%s", getInstance().timer));
+                scoreboard.addEntry(new TimerEntry("<red><bold>Back to hub in:</bold></red> <value>", getInstance().timer));
                 addTeamInformation(scoreboard, team);
             }
         }
@@ -146,13 +145,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     private static void addRoundInformation(GameScoreboard scoreboard) {
         if (getInstance().getCurrentRound().getMapName() != null) {
-            scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Map: " + ChatColor.RESET + getInstance().getCurrentRound().getMapName());
+            scoreboard.addEntry(mm("<alert_info><bold>Map:</bold></alert_info> " + getInstance().getCurrentRound().getMapName()));
         }
         if (getInstance().getCurrentRound().getMapBy() != null) {
-            scoreboard.addEntry("" + ChatColor.AQUA + ChatColor.BOLD + "Map by: " + ChatColor.RESET + getInstance().getCurrentRound().getMapBy());
+            scoreboard.addEntry(mm("<alert_info><bold>Map by:</bold></alert_info> " + getInstance().getCurrentRound().getMapBy()));
         }
         if (getInstance().getRoundCount() > 1) {
-            scoreboard.addEntry("" + ChatColor.GREEN + ChatColor.BOLD + "Round: " + ChatColor.RESET + (getInstance().getCurrentRoundIndex() + 1) + "/" + getInstance().getRoundCount());
+            scoreboard.addEntry(mm("<lime><bold>Round:</bold></lime> " + (getInstance().getCurrentRoundIndex() + 1) + "/" + getInstance().getRoundCount()));
         }
     }
 
@@ -233,7 +232,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         // PRE_ROUND
         this.addSetupHandler(MinigameState.PRE_ROUND, () -> {
-            this.getCurrentRound().onEnterPreRound();
+            this.getCurrentRound().enterPreRound();
 
             // Reset glowing
             BukkitUtils.forEachPlayer(player -> {
@@ -505,16 +504,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public Collection<GameTeam> getGameTeams() {
         return TeamService.getInstance().getAllTeams().stream().filter(team -> !team.spectator()).toList();
-    }
-
-    public Collection<UUID> getPlayers() {
-        Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
-        return players.stream()
-            .filter(uuid -> {
-                GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && !team.spectator();
-            })
-            .toList();
     }
 
     public Collection<UUID> getPlayersAndGameMasters() {

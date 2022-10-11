@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.command;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
+@Deprecated
 public abstract class ArgumentCommandExecutor extends AbstractCommandExecutor {
     private final int expectedArgumentCount;
 

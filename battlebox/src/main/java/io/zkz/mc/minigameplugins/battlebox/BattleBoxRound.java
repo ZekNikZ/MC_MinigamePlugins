@@ -9,8 +9,9 @@ import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerState;
+import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
@@ -31,7 +32,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-public class BattleBoxRound extends PlayerAliveDeadRound {
+public class BattleBoxRound extends Round {
     private final List<Pair<GameTeam, GameTeam>> matches;
     private final List<Boolean> activeMatches;
     private final List<GameTeam> matchWinners;

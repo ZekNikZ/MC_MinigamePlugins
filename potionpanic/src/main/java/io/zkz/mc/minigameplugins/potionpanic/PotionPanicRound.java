@@ -9,7 +9,8 @@ import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
 import io.zkz.mc.minigameplugins.gametools.worldedit.SchematicService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
+import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerState;
+import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import org.bukkit.*;
@@ -27,7 +28,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class PotionPanicRound extends PlayerAliveDeadRound {
+public class PotionPanicRound extends Round {
     private int numThrows = 0;
     private GameTeam winner;
     private World world;

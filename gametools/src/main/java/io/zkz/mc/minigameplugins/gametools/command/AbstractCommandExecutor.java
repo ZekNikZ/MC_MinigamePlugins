@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
+@Deprecated
 public abstract class AbstractCommandExecutor implements CommandExecutor {
     private final String commandName;
 

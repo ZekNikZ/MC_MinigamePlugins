@@ -46,6 +46,14 @@ public enum MinigameState {
      */
     IN_GAME_2("In game", true),
     /**
+     * Mid-game 2 - setup of third phase (in_game_3)
+     */
+    MID_GAME_2("In game", false),
+    /**
+     * In-game 3 - players are currently playing
+     */
+    IN_GAME_3("In game", true),
+    /**
      * Post-round cleanup - round is over
      */
     POST_ROUND("Round over"),

@@ -14,8 +14,9 @@ import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
 import io.zkz.mc.minigameplugins.gametools.util.*;
 import io.zkz.mc.minigameplugins.gametools.worldedit.RegionService;
 import io.zkz.mc.minigameplugins.gametools.worldedit.WorldEditService;
-import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerAliveDeadRound;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreEntry;
+import io.zkz.mc.minigameplugins.minigamemanager.round.PlayerState;
+import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.tgttos.round.RoundType;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract class TGTTOSRound extends PlayerAliveDeadRound {
+public abstract class TGTTOSRound extends Round {
     private final String worldName;
     private final BlockVector3 glassWallMin;
     private final BlockVector3 glassWallMax;
