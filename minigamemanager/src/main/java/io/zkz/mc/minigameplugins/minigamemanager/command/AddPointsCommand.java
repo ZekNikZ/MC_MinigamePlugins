@@ -4,7 +4,7 @@ import io.zkz.mc.minigameplugins.gametools.command.AbstractCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

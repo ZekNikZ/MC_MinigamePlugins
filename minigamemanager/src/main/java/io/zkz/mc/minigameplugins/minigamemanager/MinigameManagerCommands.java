@@ -7,7 +7,7 @@ import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;

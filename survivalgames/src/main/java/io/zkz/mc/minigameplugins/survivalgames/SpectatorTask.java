@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.survivalgames;
 
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import net.md_5.bungee.api.ChatColor;

@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.minigamemanager.service;
+package io.zkz.mc.minigameplugins.minigamemanager.minigame;
 
 import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
@@ -26,7 +26,6 @@ import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
-import io.zkz.mc.minigameplugins.minigamemanager.round.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamScoresScoreboardEntry;
@@ -83,7 +82,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 scoreboard.addEntry(mm("<red><bold>Game status:"));
                 scoreboard.addEntry(mm("Waiting for players..."));
                 scoreboard.addSpace();
-                scoreboard.addEntry("playerCount", new ValueEntry<>("<lime><bold>Players:</bold></lime> <value>/" + getInstance().getPlayers().size(), 0));
+                scoreboard.addEntry("playerCount", new ValueEntry<>("<lime><bold>Players:</bold></lime> <value>/" + getInstance().getPlayersAndGameMasters().size(), 0));
             }
             case RULES -> {
                 addRoundInformation(scoreboard);
@@ -504,16 +503,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public Collection<GameTeam> getGameTeams() {
         return TeamService.getInstance().getAllTeams().stream().filter(team -> !team.spectator()).toList();
-    }
-
-    public Collection<UUID> getPlayersAndGameMasters() {
-        Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
-        return players.stream()
-            .filter(uuid -> {
-                GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && (team.equals(DefaultTeams.GAME_MASTER) || !team.spectator());
-            })
-            .toList();
     }
 
     private void handlePlayersReady() {

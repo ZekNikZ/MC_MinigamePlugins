@@ -2,11 +2,10 @@ package io.zkz.mc.minigameplugins.minigamemanager.scoreboard;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import net.md_5.bungee.api.ChatColor;
 

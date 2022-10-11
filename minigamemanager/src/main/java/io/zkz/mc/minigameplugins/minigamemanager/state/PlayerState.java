@@ -1,4 +1,4 @@
-package io.zkz.mc.minigameplugins.minigamemanager.round;
+package io.zkz.mc.minigameplugins.minigamemanager.state;
 
 public enum PlayerState {
     DEAD,

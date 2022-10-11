@@ -3,7 +3,7 @@ package io.zkz.mc.minigameplugins.bingo.map;
 import io.zkz.mc.minigameplugins.bingo.BingoRound;
 import io.zkz.mc.minigameplugins.bingo.card.BingoCard;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;

@@ -1,8 +1,8 @@
-package io.zkz.mc.minigameplugins.minigamemanager.round;
+package io.zkz.mc.minigameplugins.minigamemanager.minigame;
 
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.PlayerState;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;

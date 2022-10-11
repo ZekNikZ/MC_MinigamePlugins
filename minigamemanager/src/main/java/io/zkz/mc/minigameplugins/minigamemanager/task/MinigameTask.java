@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager.task;
 
 import io.zkz.mc.minigameplugins.gametools.util.GameTask;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 
 public abstract class MinigameTask extends GameTask {
     public MinigameTask(int delay, int period) {

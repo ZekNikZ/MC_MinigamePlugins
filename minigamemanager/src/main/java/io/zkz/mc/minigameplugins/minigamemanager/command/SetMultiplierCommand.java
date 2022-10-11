@@ -2,7 +2,7 @@ package io.zkz.mc.minigameplugins.minigamemanager.command;
 
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.minigamemanager.Permissions;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

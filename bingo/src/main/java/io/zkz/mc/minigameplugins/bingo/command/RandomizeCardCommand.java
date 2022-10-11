@@ -5,7 +5,7 @@ import io.zkz.mc.minigameplugins.bingo.Permissions;
 import io.zkz.mc.minigameplugins.bingo.map.BingoCardMap;
 import io.zkz.mc.minigameplugins.gametools.command.ArgumentCommandExecutor;
 import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.annotation.command.Commands;

@@ -9,7 +9,7 @@ import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.*;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.state.JustGamemodePlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import net.kyori.adventure.text.Component;

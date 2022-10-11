@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.minigamemanager.scoreboard;
 
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 
 import java.util.UUID;
 

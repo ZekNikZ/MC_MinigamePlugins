@@ -1,7 +1,7 @@
 package io.zkz.mc.minigameplugins.minigamemanager;
 
 import io.zkz.mc.minigameplugins.gametools.GTPlugin;
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.dependency.SoftDependency;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;

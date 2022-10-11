@@ -1,6 +1,6 @@
 package io.zkz.mc.minigameplugins.minigamemanager.state;
 
-import io.zkz.mc.minigameplugins.minigamemanager.service.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import org.bukkit.entity.Player;
 
 public record PlayerAliveDeadPlayerState() implements IPlayerState {
