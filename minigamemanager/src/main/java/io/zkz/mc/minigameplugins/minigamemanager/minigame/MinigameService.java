@@ -76,11 +76,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     // endregion
 
     // region Minigame Settings Variables
-    private boolean automaticShowRules = false;
-    private boolean automaticPreRound = true;
-    private boolean automaticNextRound = true;
-    private boolean spectatorsCanOnlySeeAliveTeammates = false;
     private boolean showScoreSummary = true;
+    private boolean spectatorsCanOnlySeeAliveTeammates = false;
     // endregion
 
     // region Registering & Setup Functions
@@ -110,10 +107,10 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
         // WAITING_TO_BEGIN
         this.registerSetupHandler(MinigameState.WAITING_TO_BEGIN, () -> {
-            if (this.automaticPreRound) {
-                ReadyUpService.getInstance().waitForReady(this.minigame.getParticipantsAndGameMasters(), this::handlePlayersReady, this::handlePlayerReady);
-            } else {
+            if (this.minigame.getReadyUpEachRound()) {
                 this.setState(MinigameState.PRE_ROUND);
+            } else {
+                ReadyUpService.getInstance().waitForReady(this.minigame.getParticipantsAndGameMasters(), this::handlePlayersReady, this::handlePlayerReady);
             }
         });
 
@@ -133,13 +130,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 });
             });
 
-            if (this.automaticPreRound) {
-                this.startPreRoundTimer();
-            } else {
+            if (this.minigame.getReadyUpEachRound()) {
                 ReadyUpService.getInstance().waitForReady(this.minigame.getParticipantsAndGameMasters(), () -> {
                     Chat.sendMessage(ChatType.GAME_INFO, mm("All players are now ready. Round starting in " + this.minigame.getPreRoundDelay() / 20 + " seconds."));
                     this.startPreRoundTimer();
                 });
+            } else {
+                this.startPreRoundTimer();
             }
         });
         this.registerCleanupHandler(MinigameState.PRE_ROUND, () -> {
@@ -157,7 +154,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.registerSetupHandler(MinigameState.POST_ROUND, () -> {
             this.getCurrentRound().onEnterPostRound();
             this.changeTimer(null);
-            if (this.automaticNextRound) {
+            if (this.minigame.getAutomaticNextRound()) {
                 this.goToNextRound();
             }
         });
@@ -380,7 +377,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 entry.setValue((int) players.stream().filter(uuid -> Bukkit.getPlayer(uuid) != null).count());
             }
         });
-        if (this.automaticShowRules && players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
+        if (this.minigame.getAutomaticShowRules() && players.stream().allMatch(uuid -> Bukkit.getPlayer(uuid) != null)) {
             this.markDoneWaitingForPlayers();
         }
     }
@@ -496,18 +493,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public @Nullable AbstractTimer getTimer() {
         return this.timer;
-    }
-
-    public void setAutomaticShowRules(boolean automaticShowRules) {
-        this.automaticShowRules = automaticShowRules;
-    }
-
-    public void setAutomaticPreRound(boolean automaticPreRound) {
-        this.automaticPreRound = automaticPreRound;
-    }
-
-    public void setAutomaticNextRound(boolean automaticNextRound) {
-        this.automaticNextRound = automaticNextRound;
     }
 
     public void setPointMultiplier(double multiplier) {

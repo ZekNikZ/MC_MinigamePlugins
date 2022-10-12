@@ -82,6 +82,37 @@ public abstract class Minigame<R extends Round> {
     }
 
     /**
+     * Whether the rules will automatically be shown when all participants are online.
+     *
+     * @return if true, the rules will automatically be shown
+     */
+    public boolean getAutomaticShowRules() {
+        return false;
+    }
+
+    /**
+     * Whether players will be asked to ready on a per-round basis or a per-game basis.
+     *
+     * @return if true, players will ready up each round; if false, only at the beginning of the game
+     */
+    public boolean getReadyUpEachRound() {
+        return false;
+    }
+
+    /**
+     * Whether the game will automatically go to the next round after a round finishes.
+     *
+     * @return if true, the game will automatically go to the next round
+     */
+    public boolean getAutomaticNextRound() {
+        return true;
+    }
+
+    public boolean getShowScoreSummary() {
+        return true;
+    }
+
+    /**
      * Get the list of participating players.
      *
      * @return the list of player UUIDs that are participating in the minigame
