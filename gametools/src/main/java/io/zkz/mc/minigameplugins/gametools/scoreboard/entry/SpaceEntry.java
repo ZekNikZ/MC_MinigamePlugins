@@ -5,6 +5,6 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 public class SpaceEntry extends ScoreboardEntry {
     @Override
     public void render(int pos) {
-        this.getScoreboard().setString(pos, mm(""));
+        this.getScoreboard().setLine(pos, mm(""));
     }
 }

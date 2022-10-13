@@ -4,6 +4,8 @@ import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.data.ConfigHolder;
 import io.zkz.mc.minigameplugins.gametools.data.JSONDataManager;
 import io.zkz.mc.minigameplugins.gametools.reflection.Service;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
+import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.settings.GameSettingCategory;
 import io.zkz.mc.minigameplugins.gametools.settings.GameSettingsService;
@@ -14,10 +16,9 @@ import io.zkz.mc.minigameplugins.gametools.settings.impl.IntegerSetting;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
-import io.zkz.mc.uhc.GameState;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.uhc.UHCPlugin;
-import io.zkz.mc.uhc.game.GameManager;
-import io.zkz.mc.uhc.game.UHCScoreboards;
 import io.zkz.mc.uhc.settings.enums.*;
 import org.bukkit.GameRule;
 import org.bukkit.Material;
@@ -51,7 +52,7 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
             TimeCycle.NORMAL
         ),
         setting -> {
-            if (GameManager.getInstance().getState().isInGame()) {
+            if (MinigameService.getInstance().getCurrentState().isInGame()) {
                 WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, setting.value() == TimeCycle.NORMAL);
 
                 if (setting.value() == TimeCycle.DAY_ONLY) {
@@ -72,7 +73,7 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
             WeatherCycle.CLEAR_ONLY
         ),
         setting -> {
-            if (GameManager.getInstance().getState().isInGame()) {
+            if (MinigameService.getInstance().getCurrentState().isInGame()) {
                 if (setting.value() == WeatherCycle.CLEAR_ONLY) {
                     WorldSyncUtils.setWeatherClear();
                 } else if (setting.value() == WeatherCycle.RAIN_ONLY) {
@@ -168,8 +169,8 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
             TeamStatus.INDIVIDUAL_GAME
         ),
         setting -> {
-            if (GameManager.getInstance().getState() == GameState.SETUP) {
-                UHCScoreboards.updateCompetitors();
+            if (MinigameService.getInstance().getCurrentState() == MinigameState.WAITING_FOR_PLAYERS) {
+                ScoreboardService.getInstance().getAllScoreboards().forEach(GameScoreboard::redraw);
             }
         }
     );

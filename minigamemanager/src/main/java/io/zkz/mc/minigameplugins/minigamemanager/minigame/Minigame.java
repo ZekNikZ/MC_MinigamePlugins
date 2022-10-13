@@ -10,6 +10,8 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -29,21 +31,14 @@ public abstract class Minigame<R extends Round> {
      *
      * @return a list of "slides" (= lists of components) each component representing a single line in the chat
      */
-    public abstract List<List<Component>> buildRulesSlides();
+    public abstract @NotNull List<List<Component>> buildRulesSlides();
 
     /**
      * Build the list of rounds in the minigame.
      *
      * @return the list of rounds in the game
      */
-    public abstract List<? extends R> buildRounds();
-
-    /**
-     * Build the player states that will be used to set common player properties.
-     *
-     * @return a map of minigame state to player state
-     */
-    public abstract Map<MinigameState, IPlayerState> buildPlayerStates();
+    public abstract @NotNull List<? extends R> buildRounds();
 
     /**
      * Callback to formally end the minigame. Called when the minigame reaches it's post-game state.
@@ -170,8 +165,17 @@ public abstract class Minigame<R extends Round> {
      * @param state the new state
      * @apiNote override this if you need to run task(s) during a state
      */
-    public List<Supplier<? extends MinigameTask>> buildTasks(MinigameState state) {
+    public @NotNull List<Supplier<? extends MinigameTask>> buildTasks(MinigameState state) {
         return List.of();
+    }
+
+    /**
+     * Build the player state that will be used to set common player properties.
+     *
+     * @return a map of minigame state to player state
+     */
+    public @Nullable IPlayerState buildPlayerState(MinigameState state) {
+        return null;
     }
 
     /**
@@ -181,7 +185,7 @@ public abstract class Minigame<R extends Round> {
      * @return a {@link MinigameScoreboard} to be displayed to the players on the server
      * @apiNote override this if you wish to not use the default scoreboard (use super() to use the default scoreboard)
      */
-    public MinigameScoreboard buildScoreboard(MinigameState state) {
+    public @Nullable MinigameScoreboard buildScoreboard(MinigameState state) {
         return DefaultScoreboard.DEFAULT_SCOREBOARD;
     }
 

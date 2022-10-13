@@ -27,8 +27,12 @@ public class ValueEntry<T> extends ScoreboardEntry {
         return Component.text(this.getValue().toString());
     }
 
+    protected final String getFormat() {
+        return this.format;
+    }
+
     @Override
     public void render(int pos) {
-        this.getScoreboard().setString(pos, mmResolve(this.format, Placeholder.component("value", this.getValueComponent())));
+        this.getScoreboard().setLine(pos, mmResolve(this.format, Placeholder.component("value", this.getValueComponent())));
     }
 }

@@ -62,6 +62,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private final Map<MinigameState, MinigameScoreboard> scoreboards = new HashMap<>();
     private final Map<MinigameState, List<BiConsumer<MinigameState, GameScoreboard>>> scoreboardModifiers = Arrays.stream(MinigameState.values()).collect(Collectors.toMap(s -> s, s -> new ArrayList<>()));
     private final Set<MinigameTask> runningTasks = new HashSet<>();
+    private Component timerLabel;
     private AbstractTimer timer;
     // endregion
 
@@ -140,7 +141,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             }
         });
         this.registerCleanupHandler(MinigameState.PRE_ROUND, () -> {
-            this.changeTimer(null);
+            this.changeTimer(null, null);
         });
 
         // IN_GAME (note: these are registered for different states to prevent paused from triggering them)
@@ -150,10 +151,14 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.registerSetupHandler(MinigameState.MID_GAME, () -> this.getCurrentRound().onPhase1End());
         this.registerCleanupHandler(MinigameState.MID_GAME, () -> this.getCurrentRound().onPhase2Start());
 
+        // MID_GAME_2
+        this.registerSetupHandler(MinigameState.MID_GAME_2, () -> this.getCurrentRound().onPhase2End());
+        this.registerCleanupHandler(MinigameState.MID_GAME_2, () -> this.getCurrentRound().onPhase3Start());
+
         // POST_ROUND
         this.registerSetupHandler(MinigameState.POST_ROUND, () -> {
             this.getCurrentRound().onEnterPostRound();
-            this.changeTimer(null);
+            this.changeTimer(null, null);
             if (this.minigame.getAutomaticNextRound()) {
                 this.goToNextRound();
             }
@@ -164,7 +169,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.registerCleanupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onUnpause());
 
         // POST_GAME
-        this.registerSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostGameDelay() * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame)));
+        this.registerSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostGameDelay() * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame), mm("Back to hub in: ")));
         this.registerTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
     }
 
@@ -175,6 +180,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         MinigameScoreboard scoreboard = this.scoreboards.get(state);
         if (scoreboard == null) {
             scoreboard = this.minigame.buildScoreboard(state);
+        }
+        if (scoreboard == null) {
+            return;
         }
         scoreboard.setup();
     }
@@ -191,23 +199,24 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
                 super.onUpdate();
             }
-        });
-        this.drawScoreboard(MinigameState.PRE_ROUND);
+        }, mm("Round starts in: "));
     }
 
     public void removeRunningTask(MinigameTask task) {
         this.runningTasks.remove(task);
     }
 
-    public void changeTimer(AbstractTimer timer) {
+    public void changeTimer(@Nullable AbstractTimer timer, @Nullable Component timerLabel) {
         if (this.timer != null) {
             this.timer.stop();
         }
 
         this.timer = timer;
+        this.timerLabel = timerLabel;
         if (this.timer != null) {
             this.timer.start();
         }
+        this.drawScoreboard(this.state);
     }
     // endregion
 
@@ -234,7 +243,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
                 this.getLogger().info("Started task with ID " + task.getTaskId() + " of type " + t.getClass().getName());
                 this.runningTasks.add(task);
             });
-            IPlayerState playerState = this.statePlayerStates.get(this.state);
+            IPlayerState playerState = this.minigame.buildPlayerState(this.state);
+            if (playerState != null) {
+                BukkitUtils.forEachPlayer(playerState::apply);
+            }
+            playerState = this.statePlayerStates.get(this.state);
             if (playerState != null) {
                 BukkitUtils.forEachPlayer(playerState::apply);
             }
@@ -294,17 +307,13 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.statePlayerStates.clear();
         this.scoreboards.clear();
         this.scoreboardModifiers.clear();
+        this.rulesSlides.clear();
+        this.rounds.clear();
 
         // Setup rounds
-        this.rounds.clear();
         this.rounds.addAll(minigame.buildRounds());
 
-        // Setup player states
-        this.statePlayerStates.clear();
-        this.statePlayerStates.putAll(minigame.buildPlayerStates());
-
         // Setup rules slides
-        this.rulesSlides.clear();
         this.rulesSlides.addAll(minigame.buildRulesSlides());
     }
 
@@ -390,7 +399,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (this.isLastRound()) {
             BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
         } else {
-            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::nextRound));
+            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::nextRound), mm("Next round in: "));
         }
     }
 
@@ -481,7 +490,11 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         }
 
         // Apply player state
-        IPlayerState playerState = this.statePlayerStates.get(this.state);
+        IPlayerState playerState = this.minigame.buildPlayerState(this.state);
+        if (playerState != null) {
+            playerState.apply(event.getPlayer());
+        }
+        playerState = this.statePlayerStates.get(this.state);
         if (playerState != null) {
             playerState.apply(event.getPlayer());
         }
@@ -627,5 +640,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public Map<MinigameState, List<BiConsumer<MinigameState, GameScoreboard>>> getScoreboardModifiers() {
         return this.scoreboardModifiers;
+    }
+
+    public Component getTimerLabel() {
+        return this.timerLabel;
     }
 }

@@ -28,7 +28,7 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
     @Override
     public void render(int pos) {
         // Header
-        this.getScoreboard().setString(pos, mm("<legacy_aqua><bold>Game Points:</bold></legacy_aqua> (<legacy_yellow>" + MinigameService.getInstance().getPointMultiplier() + "x</legacy_yellow>)"));
+        this.getScoreboard().setLine(pos, mm("<legacy_aqua><bold>Game Points:</bold></legacy_aqua> (<legacy_yellow>" + MinigameService.getInstance().getPointMultiplier() + "x</legacy_yellow>)"));
 
         // Get team placements
         List<Map.Entry<GameTeam, Double>> entries = ScoreService.getInstance().getGameTeamScoreSummary().entrySet().stream()
@@ -63,7 +63,7 @@ public class TeamScoresScoreboardEntry extends ScoreboardEntry implements IObser
         Component placementStr = StringUtils.padOnLeftWithPixels(mm("" + (placement + 1) + ". "), 20);
         Component nameStr = StringUtils.padOnRightWithPixels(entry.getKey().getDisplayName(), 100, false);
         Component pointsStr = StringUtils.padOnLeftWithPixels(mm("" + (int) (double) entry.getValue() + ChatType.Constants.POINT_CHAR), 45);
-        this.getScoreboard().setString(scoreboardPos, placementStr.append(nameStr).append(pointsStr));
+        this.getScoreboard().setLine(scoreboardPos, placementStr.append(nameStr).append(pointsStr));
     }
 
     @Override

@@ -109,7 +109,7 @@ public class GameScoreboard {
         this.addEntry(new SpaceEntry());
     }
 
-    public void setString(int pos, Component component) {
+    public void setLine(int pos, Component component) {
         if (pos < 0 || pos >= 15) {
             throw new IndexOutOfBoundsException("Scoreboard position must be between 0 and 15");
         }
@@ -166,7 +166,7 @@ public class GameScoreboard {
 
     private void clear() {
         for (int i = 0; i < 15; i++) {
-            this.setString(i, null);
+            this.setLine(i, null);
         }
     }
 

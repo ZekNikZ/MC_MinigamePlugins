@@ -13,7 +13,6 @@ ext {
     protocolLibVersion = '5.0.0-SNAPSHOT'
     worldeditVersion = '7.2.13-SNAPSHOT'
     worldguardVersion = '7.1.0-SNAPSHOT'
-    smartInvsVersion = '1.2.7'
     subserversClientVersion = '22w24a'
     multiverseVersion = '4.3.1'
 }
@@ -65,10 +64,6 @@ subprojects {
             exclude group: "org.bukkit", module: "bukkit"
         }
         compileOnly("com.sk89q.worldguard:worldguard-bukkit:${worldguardVersion}") {
-            exclude group: "org.spigotmc", module: "spigot-api"
-            exclude group: "org.bukkit", module: "bukkit"
-        }
-        compileOnly("fr.minuskube.inv:smart-invs:${smartInvsVersion}") {
             exclude group: "org.spigotmc", module: "spigot-api"
             exclude group: "org.bukkit", module: "bukkit"
         }

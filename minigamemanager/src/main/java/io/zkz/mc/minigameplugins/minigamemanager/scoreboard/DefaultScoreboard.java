@@ -49,20 +49,9 @@ public class DefaultScoreboard {
                 scoreboard.addSpace();
                 scoreboard.addEntry("playerCount", new ValueEntry<>("<legacy_green><bold>Ready players:</bold></legacy_green> <value>/" + MinigameService.getInstance().getMinigame().getParticipants().size(), 0));
             }
-            case PRE_ROUND -> {
+            case PRE_ROUND, IN_GAME, IN_GAME_2, IN_GAME_3, POST_ROUND, POST_GAME, MID_GAME, MID_GAME_2 -> {
                 addRoundInformation(scoreboard);
-                if (MinigameService.getInstance().getTimer() != null) {
-                    scoreboard.addEntry(new TimerEntry("<legacy_red><bold>Round begins in:</bold></legacy_red> <value>", MinigameService.getInstance().getTimer()));
-                } else {
-                    scoreboard.addEntry(new ComponentEntry(mm("<legacy_red><bold>Round begins in:</bold></legacy_red> waiting...")));
-                }
-                addTeamInformation(scoreboard, team);
-            }
-            case IN_GAME -> {
-                addRoundInformation(scoreboard);
-                if (MinigameService.getInstance().getTimer() != null) {
-                    scoreboard.addEntry(new TimerEntry("<legacy_red><bold>Time left:</bold></legacy_red> <value>", MinigameService.getInstance().getTimer()));
-                }
+                addMinigameTimer(scoreboard);
                 addTeamInformation(scoreboard, team);
             }
             case PAUSED -> {
@@ -70,20 +59,6 @@ public class DefaultScoreboard {
                 scoreboard.addSpace();
                 scoreboard.addEntry(mm("<legacy_red><bold>Game status:"));
                 scoreboard.addEntry(mm("Paused"));
-                addTeamInformation(scoreboard, team);
-            }
-            case POST_ROUND -> {
-                addRoundInformation(scoreboard);
-                if (MinigameService.getInstance().getTimer() != null) {
-                    scoreboard.addEntry(new TimerEntry("<legacy_red><bold>Next round in:</bold></legacy_red> <value>", MinigameService.getInstance().getTimer()));
-                } else {
-                    scoreboard.addEntry(new ComponentEntry(mm("<legacy_red><bold>Next round in:</bold></legacy_red> waiting...")));
-                }
-                addTeamInformation(scoreboard, team);
-            }
-            case POST_GAME -> {
-                addRoundInformation(scoreboard);
-                scoreboard.addEntry(new TimerEntry("<legacy_red><bold>Back to hub in:</bold></legacy_red> <value>", MinigameService.getInstance().getTimer()));
                 addTeamInformation(scoreboard, team);
             }
         }
@@ -94,7 +69,7 @@ public class DefaultScoreboard {
         ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
     };
 
-    private static void addRoundInformation(GameScoreboard scoreboard) {
+    public static void addRoundInformation(GameScoreboard scoreboard) {
         if (MinigameService.getInstance().getCurrentRound().getMapName() != null) {
             scoreboard.addEntry(mm("<legacy_aqua><bold>Map:</bold></legacy_aqua> " + MinigameService.getInstance().getCurrentRound().getMapName()));
         }
@@ -106,7 +81,15 @@ public class DefaultScoreboard {
         }
     }
 
-    private static void addTeamInformation(GameScoreboard scoreboard, GameTeam team) {
+    public static void addMinigameTimer(GameScoreboard scoreboard) {
+        if (MinigameService.getInstance().getTimer() != null) {
+            scoreboard.addEntry(new TimerEntry("<legacy_red><bold><label></bold></legacy_red> <value>", MinigameService.getInstance().getTimerLabel(), MinigameService.getInstance().getTimer()));
+        } else if (MinigameService.getInstance().getTimerLabel() != null) {
+            scoreboard.addEntry(new ComponentEntry(mm("<legacy_red><bold><0></bold></legacy_red> waiting...", MinigameService.getInstance().getTimerLabel())));
+        }
+    }
+
+    public static void addTeamInformation(GameScoreboard scoreboard, GameTeam team) {
         scoreboard.addSpace();
         scoreboard.addEntry("teamScores", new TeamScoresScoreboardEntry(team));
     }

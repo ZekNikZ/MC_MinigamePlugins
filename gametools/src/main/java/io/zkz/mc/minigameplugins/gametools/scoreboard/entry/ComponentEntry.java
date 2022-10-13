@@ -11,6 +11,6 @@ public class ComponentEntry extends ScoreboardEntry {
 
     @Override
     public void render(int pos) {
-        this.getScoreboard().setString(pos, this.component);
+        this.getScoreboard().setLine(pos, this.component);
     }
 }

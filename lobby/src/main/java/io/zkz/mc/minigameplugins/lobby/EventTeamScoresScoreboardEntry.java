@@ -4,7 +4,6 @@ import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.entry.ScoreboardEntry;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
-import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.IObserver;
 import io.zkz.mc.minigameplugins.gametools.util.StringUtils;
@@ -25,7 +24,7 @@ public class EventTeamScoresScoreboardEntry extends ScoreboardEntry implements I
     @Override
     public void render(int pos) {
         // Header
-        this.getScoreboard().setString(pos, "" + ChatColor.AQUA + ChatColor.BOLD + "Event Points: " + ChatColor.RESET + "(" + ChatColor.YELLOW + ScoreService.getInstance().getMultiplier() + "x" + ChatColor.RESET + ")");
+        this.getScoreboard().setLine(pos, "" + ChatColor.AQUA + ChatColor.BOLD + "Event Points: " + ChatColor.RESET + "(" + ChatColor.YELLOW + ScoreService.getInstance().getMultiplier() + "x" + ChatColor.RESET + ")");
 
         // Get team placements
         Map<GameTeam, Double> scores = this.getTeams().stream().collect(Collectors.toMap(team -> team, team -> 0.0));
@@ -52,7 +51,7 @@ public class EventTeamScoresScoreboardEntry extends ScoreboardEntry implements I
         String placementStr = StringUtils.padOnLeftWithPixels("" + (placement + 1) + ". ", 20);
         String nameStr = StringUtils.padOnRightWithPixels(entry.getKey().getDisplayName(), 100);
         String pointsStr = StringUtils.padOnLeftWithPixels("" + (int) (double) entry.getValue() + ChatType.Constants.POINT_CHAR, 45);
-        this.getScoreboard().setString(scoreboardPos, placementStr + nameStr + pointsStr);
+        this.getScoreboard().setLine(scoreboardPos, placementStr + nameStr + pointsStr);
     }
 
     @Override

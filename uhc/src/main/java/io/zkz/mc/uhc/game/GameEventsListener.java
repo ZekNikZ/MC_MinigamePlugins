@@ -5,6 +5,8 @@ import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.util.EntityUtils;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
+import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
+import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.uhc.UHCPlugin;
 import io.zkz.mc.uhc.settings.SettingsManager;
 import io.zkz.mc.uhc.settings.enums.CompassBehavior;
@@ -18,17 +20,13 @@ import org.bukkit.entity.Ghast;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -92,7 +90,7 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
                 fireball.setVelocity(fireball.getVelocity().multiply(2));
                 fireball.setYield(fireball.getYield() * 2.5f);
                 if (player.getGameMode() != GameMode.CREATIVE) {
-                    player.getInventory().getItemInHand().setAmount(player.getInventory().getItemInHand().getAmount() - 1);
+                    player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
                 }
                 fireballCooldown.put(player.getUniqueId(), System.currentTimeMillis());
             } else {
@@ -105,7 +103,7 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
             if (SettingsManager.SETTING_COMPASS_BEHAVIOR.value() != CompassBehavior.NORMAL) {
                 Location location = null;
                 double minDistance = Double.MAX_VALUE;
-                for (UUID onlinePlayerUUID : GameManager.getInstance().getAliveCompetitors()) {
+                for (UUID onlinePlayerUUID : MinigameService.getInstance().getCurrentRound().getAlivePlayers()) {
                     Player onlinePlayer = Bukkit.getPlayer(onlinePlayerUUID);
                     if (onlinePlayer == null || onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
                         continue;
@@ -152,10 +150,9 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
         Location to = event.getFrom();
-        switch (GameManager.getInstance().getState()) {
-            case PRE_GAME:
+        switch (MinigameService.getInstance().getCurrentState()) {
+            case PRE_ROUND:
                 to.setY(event.getTo().getY());
             case PAUSED:
                 to.setPitch(event.getTo().getPitch());
@@ -170,12 +167,9 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        switch (GameManager.getInstance().getState()) {
-            case WB_CLOSING, WB_STOPPED, SUDDEN_DEATH -> GameManager.getInstance().handlePlayerDeath(player);
-            default -> {
-            }
+        if (MinigameService.getInstance().getCurrentState().isInGame()) {
+            MinigameService.getInstance().getCurrentRound().setDead(player);
         }
-        player.setGameMode(GameMode.SPECTATOR);
     }
 
     @EventHandler
@@ -201,11 +195,11 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
             player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 10 * 20, 1));
             player.setFoodLevel(Math.min(player.getFoodLevel() + 4, 20));
 
-            ItemStack itemInHand = player.getItemInHand();
+            ItemStack itemInHand = player.getInventory().getItemInMainHand();
             if (itemInHand.getAmount() > 1) {
                 itemInHand.setAmount(itemInHand.getAmount() - 1);
             } else {
-                player.setItemInHand(null);
+                player.getInventory().setItemInMainHand(null);
             }
         }
     }
@@ -221,12 +215,10 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
             Player killer = player.getKiller();
             if (killer != null) {
                 Location location = player.getLocation();
-                SkullMeta meta = (SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD);
-                meta.setOwner(player.getName());
                 location.getWorld().dropItemNaturally(
                     location,
                     ISB.material(Material.PLAYER_HEAD)
-                        .meta(meta)
+                        .skullOwner(player)
                         .name(mm("<0>'s Head", player.displayName()))
                         .build()
                 );
@@ -242,6 +234,28 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
 
         if (!SettingsManager.SETTING_REGENERATION_POTIONS.value()) {
             event.getDrops().clear();
+        }
+    }
+
+    @EventHandler
+    private void onEntityDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        if (!MinigameService.getInstance().getCurrentState().isInGame() || MinigameService.getInstance().getCurrentState() == MinigameState.PAUSED) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        if (!MinigameService.getInstance().getCurrentState().isInGame() || MinigameService.getInstance().getCurrentState() == MinigameState.PAUSED) {
+            event.setCancelled(true);
         }
     }
 }

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class Round {
     private String mapName;
@@ -55,6 +56,14 @@ public abstract class Round {
     }
 
     public void onPhase2Start() {
+
+    }
+
+    public void onPhase2End() {
+
+    }
+
+    public void onPhase3Start() {
 
     }
 
@@ -137,6 +146,11 @@ public abstract class Round {
 
     public Collection<? extends Player> getOnlineAlivePlayers() {
         return this.alivePlayers.stream().map(Bukkit::getPlayer).filter(Objects::nonNull).toList();
+    }
+
+    public Map<GameTeam, Long> getAliveTeams() {
+        return this.getAlivePlayers().stream()
+            .collect(Collectors.groupingBy(playerId -> TeamService.getInstance().getTeamOfPlayer(playerId), Collectors.counting()));
     }
 
     public boolean isAlive(Player player) {

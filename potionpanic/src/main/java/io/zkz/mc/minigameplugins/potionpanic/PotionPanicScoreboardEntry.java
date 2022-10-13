@@ -28,7 +28,7 @@ public class PotionPanicScoreboardEntry extends ScoreboardEntry implements IObse
         String s = org.apache.commons.lang.StringUtils.repeat(" " + POINT_CHAR, wins) + org.apache.commons.lang.StringUtils.repeat(" " + NO_POINT_CHAR, 3 - wins);
         String pointsStr = StringUtils.padOnRightWithPixels(s, 45);
 
-        this.getScoreboard().setString(scoreboardPos, nameStr + pointsStr);
+        this.getScoreboard().setLine(scoreboardPos, nameStr + pointsStr);
     }
 
     @Override

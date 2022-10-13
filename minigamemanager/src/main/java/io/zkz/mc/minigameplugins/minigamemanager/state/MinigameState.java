@@ -40,7 +40,7 @@ public enum MinigameState {
     /**
      * Mid-game - setup of second phase (in_game_2)
      */
-    MID_GAME("In game", false),
+    MID_GAME("In game", true),
     /**
      * In-game 2 - players are currently playing
      */
@@ -48,7 +48,7 @@ public enum MinigameState {
     /**
      * Mid-game 2 - setup of third phase (in_game_3)
      */
-    MID_GAME_2("In game", false),
+    MID_GAME_2("In game", true),
     /**
      * In-game 3 - players are currently playing
      */
