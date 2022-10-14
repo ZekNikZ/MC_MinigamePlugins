@@ -5,6 +5,7 @@ import cloud.commandframework.extra.confirmation.CommandConfirmationManager;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import org.bukkit.Bukkit;
@@ -37,7 +38,7 @@ public class ReadyUpCommands {
         registry.registerCommand(
             builder
                 .permission(PERM_READY_BASE.getName())
-                .handler(cmd -> {
+                .handler(cmd -> BukkitUtils.runNow(() -> {
                     CommandSender sender = cmd.getSender();
                     if (!(sender instanceof Player player)) {
                         Chat.sendMessage(sender, ChatType.COMMAND_ERROR, mm("you cannot use this command from the console."));
@@ -49,14 +50,14 @@ public class ReadyUpCommands {
                     } else {
                         Chat.sendMessage(player, ChatType.COMMAND_SUCCESS, mm("You are now ready!"));
                     }
-                })
+                }))
         );
 
         // Status
         registry.registerCommand(
             builder.literal("status")
                 .permission(PERM_READY_STATUS.getName())
-                .handler(cmd -> ReadyUpService.getInstance().sendStatus(cmd.getSender()))
+                .handler(cmd -> BukkitUtils.runNow(() -> ReadyUpService.getInstance().sendStatus(cmd.getSender())))
         );
 
         // Undo
@@ -69,7 +70,7 @@ public class ReadyUpCommands {
                     .asRequired()
                     .build()
                 )
-                .handler(cmd -> {
+                .handler(cmd -> BukkitUtils.runNow(() -> {
                     CommandSender sender = cmd.getSender();
 
                     String playerName = cmd.get("player");
@@ -80,29 +81,29 @@ public class ReadyUpCommands {
                     } else {
                         Chat.sendMessage(sender, ChatType.COMMAND_SUCCESS, mmArgs("Marked player <0> as not ready.", playerName));
                     }
-                })
+                }))
         );
 
         // Bypass
         registry.registerCommand(
             builder.literal("bypass")
                 .meta(CommandConfirmationManager.META_CONFIRMATION_REQUIRED, true)
-                .handler(cmd -> {
+                .handler(cmd -> BukkitUtils.runNow(() -> {
                     Map<Integer, ReadyUpSession> sessions = ReadyUpService.getInstance().getSessions();
                     sessions.values().forEach(ReadyUpSession::complete);
-                })
+                }))
         );
 
         // Test
         // TODO: remove
         registry.registerCommand(
             builder.literal("test")
-                .handler(cmd ->
+                .handler(cmd -> BukkitUtils.runNow(() ->
                     ReadyUpService.getInstance().waitForReady(
                         Bukkit.getOnlinePlayers().stream()
                             .map(Entity::getUniqueId).toList(),
                         () -> Bukkit.getServer().sendMessage(mm("<aqua>Done waiting for ready!"))
-                    ))
+                    )))
         );
     }
 }

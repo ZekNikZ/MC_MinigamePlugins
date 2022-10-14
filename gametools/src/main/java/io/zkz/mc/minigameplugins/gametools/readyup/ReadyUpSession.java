@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.gametools.readyup;
 import io.zkz.mc.minigameplugins.gametools.util.ActionBarService;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import io.zkz.mc.minigameplugins.gametools.util.ComponentUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -28,6 +29,7 @@ public class ReadyUpSession {
         this.sessionId = sessionId;
         this.onAllReady = onAllReady;
         this.onPlayerReady = onPlayerReady;
+        Bukkit.broadcast(ComponentUtils.join(mm(", "), players.stream().map(UUID::toString).map(Component::text).toList()));
         players.forEach(playerId -> this.readyPlayers.put(playerId, false));
         this.bossBar = Bukkit.createBossBar("Ready Up: 0/" + players.size() + " players ready", BarColor.GREEN, BarStyle.SOLID);
         this.updateBossbar();

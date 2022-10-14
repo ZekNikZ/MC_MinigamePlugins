@@ -3,6 +3,7 @@ package io.zkz.mc.minigameplugins.minigamemanager.minigame;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.score.ScoreService;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
@@ -22,6 +23,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.MinigameManagerPlugin;
 import io.zkz.mc.minigameplugins.minigamemanager.event.RoundChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.event.StateChangeEvent;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
+import io.zkz.mc.minigameplugins.minigamemanager.state.BasicPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
@@ -45,6 +47,7 @@ import java.util.stream.Stream;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
+@Service
 public class MinigameService extends PluginService<MinigameManagerPlugin> {
     private static final MinigameService INSTANCE = new MinigameService();
 
@@ -90,7 +93,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             // TODO: migrate to Tournament Connector
             // this.db.addAction(this::loadInitialState);
 
-            transitionToSetup();
+            this.transitionToSetup();
         });
 
         // Add default state handlers
@@ -301,9 +304,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.minigame = minigame;
 
         // Cleanup old minigames
-        this.stateSetupHandlers.values().forEach(List::clear);
-        this.stateCleanupHandlers.values().forEach(List::clear);
-        this.stateTasks.values().forEach(List::clear);
+//        this.stateSetupHandlers.values().forEach(List::clear);
+//        this.stateCleanupHandlers.values().forEach(List::clear);
+//        this.stateTasks.values().forEach(List::clear);
         this.statePlayerStates.clear();
         this.scoreboards.clear();
         this.scoreboardModifiers.clear();
@@ -477,16 +480,18 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
-        // Ensure new players are spectators
-        if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == null) {
-            TeamService.getInstance().joinTeam(event.getPlayer(), DefaultTeams.SPECTATOR);
-        }
+        if (this.state != MinigameState.WAITING_FOR_PLAYERS) {
+            // Ensure new players are spectators
+            if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == null) {
+                TeamService.getInstance().joinTeam(event.getPlayer(), DefaultTeams.SPECTATOR);
+            }
 
-        // Apply spectator player state
-        GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
-        if (team == null || team.spectator()) {
-            event.getPlayer().setGameMode(GameMode.SPECTATOR);
-            return;
+            // Apply spectator player state
+            GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
+            if (team == null || team.spectator()) {
+                event.getPlayer().setGameMode(GameMode.SPECTATOR);
+                return;
+            }
         }
 
         // Apply player state

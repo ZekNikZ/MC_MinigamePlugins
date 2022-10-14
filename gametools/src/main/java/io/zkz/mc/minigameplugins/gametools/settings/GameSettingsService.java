@@ -47,64 +47,64 @@ public class GameSettingsService extends PluginService<GameToolsPlugin> {
 
     @Override
     protected void onEnable() {
-        var cat = new GameSettingCategory(
-            mm("Test Category"),
-            mm("Test Description"),
-            ISB.stack(Material.IRON_PICKAXE)
-        );
-
-        this.registerSetting(cat, new BooleanSetting(
-            mm("Test Setting 1"),
-            mm("Test Description 1"),
-            ISB.stack(Material.DIAMOND_AXE),
-            () -> true
-        ));
-
-        this.registerSetting(cat, new BooleanSetting(
-            mm("Test Setting 2"),
-            mm("Test Description 2"),
-            ISB.stack(Material.DIAMOND_AXE),
-            () -> false
-        ));
-
-        for (int i = 0; i < 10; i++) {
-            this.registerSetting(cat, new BooleanSetting(
-                mm("Test Setting 3"),
-                mm("Test Description 3"),
-                ISB.stack(Material.GOLDEN_AXE),
-                () -> false
-            ));
-        }
-
-        var cat2 = new GameSettingCategory(
-            mm("Test Category 2"),
-            mm("Test Description 2"),
-            ISB.stack(Material.IRON_PICKAXE)
-        );
-
-        this.registerSetting(cat2, new BooleanSetting(
-            mm("Test Setting 4"),
-            mm("Test Description 4"),
-            ISB.stack(Material.IRON_AXE),
-            () -> false
-        ));
-
-
-        for (int i = 0; i < 10; i++) {
-            this.registerSetting(
-                new GameSettingCategory(
-                    mm("Test Category X" + i),
-                    mm("Test Description X" + i),
-                    ISB.stack(Material.RED_WOOL)
-                ),
-                new BooleanSetting(
-                    mm("Test Setting X" + i),
-                    mm("Test Description X" + i),
-                    ISB.stack(Material.BLUE_WOOL),
-                    () -> false
-                )
-            );
-        }
+//        var cat = new GameSettingCategory(
+//            mm("Test Category"),
+//            mm("Test Description"),
+//            ISB.stack(Material.IRON_PICKAXE)
+//        );
+//
+//        this.registerSetting(cat, new BooleanSetting(
+//            mm("Test Setting 1"),
+//            mm("Test Description 1"),
+//            ISB.stack(Material.DIAMOND_AXE),
+//            () -> true
+//        ));
+//
+//        this.registerSetting(cat, new BooleanSetting(
+//            mm("Test Setting 2"),
+//            mm("Test Description 2"),
+//            ISB.stack(Material.DIAMOND_AXE),
+//            () -> false
+//        ));
+//
+//        for (int i = 0; i < 10; i++) {
+//            this.registerSetting(cat, new BooleanSetting(
+//                mm("Test Setting 3"),
+//                mm("Test Description 3"),
+//                ISB.stack(Material.GOLDEN_AXE),
+//                () -> false
+//            ));
+//        }
+//
+//        var cat2 = new GameSettingCategory(
+//            mm("Test Category 2"),
+//            mm("Test Description 2"),
+//            ISB.stack(Material.IRON_PICKAXE)
+//        );
+//
+//        this.registerSetting(cat2, new BooleanSetting(
+//            mm("Test Setting 4"),
+//            mm("Test Description 4"),
+//            ISB.stack(Material.IRON_AXE),
+//            () -> false
+//        ));
+//
+//
+//        for (int i = 0; i < 10; i++) {
+//            this.registerSetting(
+//                new GameSettingCategory(
+//                    mm("Test Category X" + i),
+//                    mm("Test Description X" + i),
+//                    ISB.stack(Material.RED_WOOL)
+//                ),
+//                new BooleanSetting(
+//                    mm("Test Setting X" + i),
+//                    mm("Test Description X" + i),
+//                    ISB.stack(Material.BLUE_WOOL),
+//                    () -> false
+//                )
+//            );
+//        }
     }
 
     // TODO: settings types

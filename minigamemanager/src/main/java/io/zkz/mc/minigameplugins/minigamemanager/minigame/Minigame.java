@@ -10,11 +10,14 @@ import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Class that represents an instance of a minigame. This class defines all the metadata and hooks of a minigame and is
@@ -114,11 +117,18 @@ public abstract class Minigame<R extends Round> {
      * @apiNote override this if not all non-spectators are participating
      */
     public Collection<UUID> getParticipants() {
-        Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
-        return players.stream()
+        return Stream.concat(
+                TeamService.getInstance().getTrackedPlayers().stream(),
+                Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId)
+            )
+            .distinct()
             .filter(uuid -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && !team.spectator();
+                if (this.isTeamGame()) {
+                    return team != null && !team.spectator();
+                } else {
+                    return team == null || !team.spectator();
+                }
             })
             .toList();
     }
@@ -130,13 +140,30 @@ public abstract class Minigame<R extends Round> {
      * @apiNote override this if not all non-spectators are participating
      */
     public Collection<UUID> getParticipantsAndGameMasters() {
-        Collection<UUID> players = TeamService.getInstance().getTrackedPlayers();
-        return players.stream()
+        return Stream.concat(
+                TeamService.getInstance().getTrackedPlayers().stream(),
+                Bukkit.getOnlinePlayers().stream().map(Entity::getUniqueId)
+            )
+            .distinct()
             .filter(uuid -> {
                 GameTeam team = TeamService.getInstance().getTeamOfPlayer(uuid);
-                return team != null && (team.equals(DefaultTeams.GAME_MASTER) || !team.spectator());
+                if (this.isTeamGame()) {
+                    return team != null && (DefaultTeams.GAME_MASTER.equals(team) || !team.spectator());
+                } else {
+                    return team == null || DefaultTeams.GAME_MASTER.equals(team) || !team.spectator();
+                }
             })
             .toList();
+    }
+
+    /**
+     * Determines whether the game is a team game or not.
+     *
+     * @return whether the game is a team game
+     * @apiNote override this if you want to disable checking if all players are on a team
+     */
+    public boolean isTeamGame() {
+        return true;
     }
 
     /**

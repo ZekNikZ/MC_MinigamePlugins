@@ -66,7 +66,11 @@ public class DefaultScoreboard {
         MinigameService.getInstance().getMinigame().modifyScoreboard(currentState, scoreboard);
         MinigameService.getInstance().getScoreboardModifiers().get(currentState).forEach(consumer -> consumer.accept(currentState, scoreboard));
 
-        ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
+        if (team == null) {
+            ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+        } else {
+            ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
+        }
     };
 
     public static void addRoundInformation(GameScoreboard scoreboard) {
@@ -90,6 +94,8 @@ public class DefaultScoreboard {
     }
 
     public static void addTeamInformation(GameScoreboard scoreboard, GameTeam team) {
+        if (team == null) return;
+
         scoreboard.addSpace();
         scoreboard.addEntry("teamScores", new TeamScoresScoreboardEntry(team));
     }

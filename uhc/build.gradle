@@ -1,6 +1,6 @@
 version "1.0-SNAPSHOT"
 
 dependencies {
-    implementation project(':gametools')
-    implementation project(':minigamemanager')
+    compileOnly project(':gametools')
+    compileOnly project(':minigamemanager')
 }

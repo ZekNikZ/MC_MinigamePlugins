@@ -332,17 +332,19 @@ public class TeamService extends PluginService<GameToolsPlugin> {
     @EventHandler(priority = EventPriority.LOWEST)
     // lowest so that the player's team is updated before other services get access to their team information
     private void onPlayerJoin(PlayerJoinEvent event) {
-        // reload team entry in database
-        this.reloadPlayerTeamEntry(event.getPlayer().getUniqueId());
+        BukkitUtils.runNow(() -> {
+            // reload team entry in database
+            this.reloadPlayerTeamEntry(event.getPlayer().getUniqueId());
 
-        GameTeam team = this.getTeamOfPlayer(event.getPlayer());
-        if (team != null) {
-            event.getPlayer().displayName(mm(team.formatTag() + "<0> <1>", team.prefix(), event.getPlayer().name()));
-        } else {
-            event.getPlayer().displayName(event.getPlayer().name());
-        }
+            GameTeam team = this.getTeamOfPlayer(event.getPlayer());
+            if (team != null) {
+                event.getPlayer().displayName(mm(team.formatTag() + "<0> <1>", team.prefix(), event.getPlayer().name()));
+            } else {
+                event.getPlayer().displayName(event.getPlayer().name());
+            }
 
-        event.joinMessage(mm("<yellow><0> joined the game.", event.getPlayer().displayName()));
+            event.joinMessage(mm("<yellow><0> joined the game.", event.getPlayer().displayName()));
+        });
     }
 
     @EventHandler

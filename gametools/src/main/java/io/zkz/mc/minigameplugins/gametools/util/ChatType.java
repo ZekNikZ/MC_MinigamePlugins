@@ -16,12 +16,12 @@ public enum ChatType {
         POINT_PREFIX + "<message>"
     ),
     ALERT(
-        INFO_PREFIX + "<aqua><b><message>",
-        POINT_PREFIX + INFO_PREFIX + "<aqua><b><message>"
+        INFO_PREFIX + "<legacy_aqua><b><message>",
+        POINT_PREFIX + INFO_PREFIX + "<legacy_aqua><b><message>"
     ),
     WARNING(
-        INFO_PREFIX + "<dark_red><b><message>",
-        POINT_PREFIX + INFO_PREFIX + "<dark_red><b><message>"
+        INFO_PREFIX + "<legacy_dark_red><b><message>",
+        POINT_PREFIX + INFO_PREFIX + "<legacy_dark_red><b><message>"
     ),
     PASSIVE_INFO(
         INFO_PREFIX + "<gray><message>",
@@ -32,33 +32,33 @@ public enum ChatType {
         POINT_PREFIX + "<message>"
     ),
     SUCCESS(
-        INFO_PREFIX + "<green><b><message>",
-        POINT_PREFIX + "<green><b><message>"
+        INFO_PREFIX + "<legacy_green><b><message>",
+        POINT_PREFIX + "<legacy_green><b><message>"
     ),
     ELIMINATION(
-        "<gray>[<red>\u2620<gray>] <message>",
-        POINT_PREFIX + "<gray>[<red>\u2620<gray>]<reset> <message>"
+        "<gray>[<legacy_red>\u2620<gray>] <message>",
+        POINT_PREFIX + "<gray>[<legacy_red>\u2620<gray>]<reset> <message>"
     ),
     TEAM_ELIMINATION(
-        "[<red>\u2620\u2620\u2620<reset>] <message>",
-        POINT_PREFIX + "[<red>\u2620\u2620\u2620<reset>] <message>"
+        "[<legacy_red>\u2620\u2620\u2620<reset>] <message>",
+        POINT_PREFIX + "[<legacy_red>\u2620\u2620\u2620<reset>] <message>"
     ),
     GAME_INFO(
         GAME_PREFIX + "<message>",
         POINT_PREFIX + GAME_PREFIX + "<message>"
     ),
     GAME_SUCCESS(
-        GAME_PREFIX + "<green><message>",
-        POINT_PREFIX + GAME_PREFIX + "<green><message>"
+        GAME_PREFIX + "<legacy_green><message>",
+        POINT_PREFIX + GAME_PREFIX + "<legacy_green><message>"
     ),
     COMMAND_SUCCESS(
-        "<light_gray><message>",
+        "<gray><message>",
         null
     ),
     COMMAND_ERROR(
-        "<alert_warning>Command error: <message>",
+        "<legacy_red>Command error: <message>",
         null,
-        "<alert_warning>Command error: <message>\n<dark_gray><cause>"
+        "<legacy_red>Command error: <message>\n<dark_gray><cause>"
     );
 
     public static class Constants {

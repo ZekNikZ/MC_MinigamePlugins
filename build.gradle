@@ -57,8 +57,6 @@ subprojects {
 
         compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
 
-        implementation 'org.reflections:reflections:0.10.2'
-
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:${worldeditVersion}") {
             exclude group: "org.spigotmc", module: "spigot-api"
             exclude group: "org.bukkit", module: "bukkit"
@@ -68,8 +66,17 @@ subprojects {
             exclude group: "org.bukkit", module: "bukkit"
         }
 
-        implementation "cloud.commandframework:cloud-paper:1.7.1"
-        implementation "cloud.commandframework:cloud-minecraft-extras:1.7.1"
+        if (project.name == "gametools") {
+            implementation 'org.reflections:reflections:0.10.2'
+
+            implementation "cloud.commandframework:cloud-paper:1.7.1"
+            implementation "cloud.commandframework:cloud-minecraft-extras:1.7.1"
+        } else {
+            compileOnly 'org.reflections:reflections:0.10.2'
+
+            compileOnly "cloud.commandframework:cloud-paper:1.7.1"
+            compileOnly "cloud.commandframework:cloud-minecraft-extras:1.7.1"
+        }
     }
 
     test {

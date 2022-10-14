@@ -5,6 +5,7 @@ import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
 import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
@@ -17,9 +18,9 @@ import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
 
 @RegisterPermissions
 public class MinigameManagerCommands {
-    private static final Permission PERM_ROUND_CHANGE = new Permission("Change Round", "Change the current round.");
+    private static final Permission PERM_ROUND_CHANGE = new Permission("minigame.round.change", "Change the current round.");
 
-    private static final Permission PERM_STATE_CHANGE = new Permission("Change State", "Change current state.");
+    private static final Permission PERM_STATE_CHANGE = new Permission("minigame.state.change", "Change current state.");
 
     @RegisterCommands
     private static void registerCommands(CommandRegistry registry) {
@@ -30,7 +31,7 @@ public class MinigameManagerCommands {
             roundBuilder.literal("set")
                 .permission(PERM_ROUND_CHANGE.getName())
                 .argument(IntegerArgument.of("round"))
-                .handler(cmd -> {
+                .handler(cmd -> BukkitUtils.runNow(() -> {
                     int round = cmd.get("round");
 
                     if (round < 0 || round >= MinigameService.getInstance().getRoundCount()) {
@@ -41,14 +42,14 @@ public class MinigameManagerCommands {
                     MinigameService.getInstance().getCurrentRound().onEnterPostRound();
                     MinigameService.getInstance().setCurrentRound(round);
                     MinigameService.getInstance().setState(MinigameState.PRE_ROUND);
-                })
+                }))
         );
 
         // Next round
         registry.registerCommand(
             roundBuilder.literal("next")
                 .permission(PERM_ROUND_CHANGE.getName())
-                .handler(cmd -> {
+                .handler(cmd -> BukkitUtils.runNow(() -> {
                     if (!TeamService.getInstance().areAllNonSpectatorsOnline()) {
                         Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: all participants are not online. Either remove offline players from teams or wait for all players to be present."));
                         return;
@@ -61,27 +62,28 @@ public class MinigameManagerCommands {
                     }
 
                     MinigameService.getInstance().goToNextRound();
-                })
+                }))
         );
 
         // Done waiting for players
         registry.registerCommand(
             registry.newBaseCommand("donewaitingforplayers")
                 .permission(PERM_STATE_CHANGE.getName())
-                .handler(cmd -> {
-                    if (!TeamService.getInstance().areAllNonSpectatorsOnline()) {
-                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: all participants are not online. Either remove offline players from teams or wait for all players to be present."));
-                        return;
-                    } else if (Bukkit.getOnlinePlayers().stream().anyMatch(p -> TeamService.getInstance().getTeamOfPlayer(p) == null)) {
-                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: someone is not on a team."));
-                        return;
-                    } else if (MinigameService.getInstance().getCurrentState() != MinigameState.WAITING_FOR_PLAYERS) {
-                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: you can only use this command in the WAITING_FOR_PLAYERS state, did you mean /nextround?"));
-                        return;
-                    }
+                .handler(cmd -> BukkitUtils.runNow(() -> {
+                    // TODO: fix this for the waiting for players
+//                    if (!TeamService.getInstance().areAllNonSpectatorsOnline()) {
+//                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: all participants are not online. Either remove offline players from teams or wait for all players to be present."));
+//                        return;
+//                    } else if (Bukkit.getOnlinePlayers().stream().anyMatch(p -> TeamService.getInstance().getTeamOfPlayer(p) == null)) {
+//                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: someone is not on a team."));
+//                        return;
+//                    } else if (MinigameService.getInstance().getCurrentState() != MinigameState.WAITING_FOR_PLAYERS) {
+//                        Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_ERROR, mm("cannot transition states: you can only use this command in the WAITING_FOR_PLAYERS state, did you mean /nextround?"));
+//                        return;
+//                    }
 
                     MinigameService.getInstance().markDoneWaitingForPlayers();
-                })
+                }))
         );
     }
 }

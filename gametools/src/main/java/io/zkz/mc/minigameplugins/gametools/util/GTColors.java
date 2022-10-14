@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.gametools.util;
 
+import io.zkz.mc.minigameplugins.gametools.GameToolsPlugin;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -13,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GTColors implements TagResolver {
-    private GTColors() {}
+    private GTColors() {
+    }
 
     private static final Map<String, GTColor> COLORS = new HashMap<>();
 
@@ -62,6 +64,6 @@ public class GTColors implements TagResolver {
 
     @Override
     public boolean has(@NotNull String name) {
-        return COLORS.containsKey(name) || StandardTags.color().has(name);
+        return COLORS.containsKey(name) || StandardTags.color().has(name) || (name.startsWith("legacy_") && StandardTags.color().has(name.substring("legacy_".length())));
     }
 }

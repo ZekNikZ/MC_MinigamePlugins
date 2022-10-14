@@ -11,23 +11,36 @@ import cloud.commandframework.minecraft.extras.MinecraftHelp;
 import cloud.commandframework.paper.PaperCommandManager;
 import io.zkz.mc.minigameplugins.gametools.command.CommandRegistry;
 import io.zkz.mc.minigameplugins.gametools.data.MySQLService;
-import io.zkz.mc.minigameplugins.gametools.reflection.ReflectionHelper;
+import io.zkz.mc.minigameplugins.gametools.reflection.RegisterCommands;
+import io.zkz.mc.minigameplugins.gametools.reflection.RegisterPermissions;
+import io.zkz.mc.minigameplugins.gametools.reflection.Service;
 import io.zkz.mc.minigameplugins.gametools.service.PluginService;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
+import io.zkz.mc.minigameplugins.gametools.util.Pair;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.ReflectionUtilsPredicates;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static org.reflections.ReflectionUtils.Fields;
+import static org.reflections.ReflectionUtils.Methods;
+import static org.reflections.scanners.Scanners.MethodsAnnotated;
+import static org.reflections.scanners.Scanners.TypesAnnotated;
 
 public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
     protected final List<PluginService<T>> services = new ArrayList<>();
@@ -120,7 +133,7 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
             .apply(this.manager, s -> s);
 
         // Find annotated services
-        this.services.addAll(ReflectionHelper.findAllServices(this.getClassLoader(), this));
+        this.services.addAll(findAllServices(this.getClassLoader(), this));
 
         PluginManager pluginManager = this.getServer().getPluginManager();
 
@@ -145,11 +158,11 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
         // Register commands
         this.getLogger().info("Initializing commands... ");
-        ReflectionHelper.findAndRegisterCommands(this.getClassLoader(), this, commandRegistry);
+        findAndRegisterCommands(this.getClassLoader(), this, commandRegistry);
 
         // Register permissions
         this.getLogger().info("Initializing permissions... ");
-        List<Permission> permissions = ReflectionHelper.findPermissions(this.getClassLoader(), this);
+        List<Permission> permissions = findPermissions(this.getClassLoader(), this);
         permissions.forEach(perm -> {
             pluginManager.addPermission(perm);
             this.getLogger().info("Registered permission node " + perm.getName());
@@ -201,5 +214,134 @@ public abstract class GTPlugin<T extends GTPlugin<T>> extends JavaPlugin {
 
     public CommandConfirmationManager<CommandSender> getCommandConfirmationManager() {
         return this.confirmationManager;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends GTPlugin<T>> List<PluginService<T>> findAllServices(ClassLoader loader, GTPlugin<T> plugin) {
+        var packageName = plugin.getClass().getPackageName();
+
+        Reflections reflections = new Reflections(
+            new ConfigurationBuilder()
+                .forPackage(packageName, loader)
+        );
+
+        Set<Pair<PluginService<T>, Integer>> res = new HashSet<>();
+        Set<Class<?>> potentialServiceClasses = reflections.getTypesAnnotatedWith(Service.class);
+        for (Class<?> potentialServiceClass : potentialServiceClasses) {
+            plugin.getLogger().warning(potentialServiceClass.getCanonicalName());
+            if (!potentialServiceClass.getPackageName().startsWith(packageName)) {
+                continue;
+            }
+
+            Service annotation = potentialServiceClass.getAnnotation(Service.class);
+
+            if (!PluginService.class.isAssignableFrom(potentialServiceClass)) {
+                plugin.getLogger().warning("Found potential service class " + potentialServiceClass.getCanonicalName() + " but it does not extend PluginService<?>.");
+                continue;
+            }
+
+            Set<Method> potentialMethods = reflections.get(
+                Methods.of(potentialServiceClass)
+                    .filter(
+                        ReflectionUtilsPredicates.withReturnType(potentialServiceClass)
+                            .and(ReflectionUtilsPredicates.withParameters())
+                            .and(ReflectionUtilsPredicates.withStatic())
+                    )
+                    .as(Method.class)
+            );
+            if (potentialMethods.isEmpty()) {
+                plugin.getLogger().warning("Potential service class " + potentialServiceClass.getCanonicalName() + " has no getInstance methods.");
+                continue;
+            }
+            if (potentialMethods.size() > 1) {
+                plugin.getLogger().warning("Potential service class " + potentialServiceClass.getCanonicalName() + " has multiple getInstance methods.");
+                continue;
+            }
+            Object service = null;
+            try {
+                service = potentialMethods.stream().findAny().orElseThrow(IllegalAccessException::new).invoke(null);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                plugin.getLogger().log(Level.WARNING, "Potential service class " + potentialServiceClass.getCanonicalName() + " has multiple getInstance methods.", e);
+            }
+
+            int priority = annotation.priority();
+            res.add(new Pair<>((PluginService<T>) service, priority));
+        }
+
+        return res.stream()
+            .sorted(Comparator.comparing((Pair<PluginService<T>, Integer> p) -> p.second()).reversed()) //NOSONAR
+            .map(Pair::first)
+            .toList();
+    }
+
+    public static void findAndRegisterCommands(ClassLoader loader, GTPlugin<?> plugin, CommandRegistry registry) {
+        var packageName = plugin.getClass().getPackageName();
+
+        Reflections reflections = new Reflections(
+            new ConfigurationBuilder()
+                .forPackage(packageName, loader)
+                .addScanners(MethodsAnnotated)
+        );
+
+        reflections.get(MethodsAnnotated.with(RegisterCommands.class)
+            .as(Method.class)
+            .filter(
+                ReflectionUtilsPredicates.withReturnType(Void.TYPE)
+                    .and(ReflectionUtilsPredicates.withParameters(CommandRegistry.class))
+                    .and(ReflectionUtilsPredicates.withStatic())
+            )
+        ).forEach(method -> {
+//            plugin.getLogger().warning(method.getDeclaringClass().getCanonicalName() + " - " + method.getName());
+            if (!method.getDeclaringClass().getPackageName().startsWith(packageName)) {
+                return;
+            }
+
+            try {
+                method.setAccessible(true);
+                method.invoke(null, registry);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                plugin.getLogger().log(Level.WARNING, "Could not register commands using method " + method.getName() + " in " + method.getDeclaringClass().getCanonicalName(), e);
+            }
+        });
+    }
+
+    public static List<Permission> findPermissions(ClassLoader loader, GTPlugin<?> plugin) {
+        var packageName = plugin.getClass().getPackageName();
+
+        Reflections reflections = new Reflections(
+            new ConfigurationBuilder()
+                .forPackage(packageName, loader)
+                .addScanners(TypesAnnotated)
+        );
+
+        List<Permission> res = new ArrayList<>();
+        reflections.get(TypesAnnotated.with(RegisterPermissions.class)
+            .asClass()
+        ).forEach(clazz ->
+            reflections.get(Fields.of(clazz)
+                .as(Field.class)
+                .filter(
+                    ReflectionUtilsPredicates.withType(Permission.class)
+                        .and(ReflectionUtilsPredicates.withStatic())
+                )
+            ).forEach(field -> {
+//                plugin.getLogger().warning(field.getDeclaringClass().getCanonicalName() + " - " + field.getName());
+                if (!field.getDeclaringClass().getPackageName().startsWith(packageName)) {
+                    return;
+                }
+
+                if (!Modifier.isFinal(field.getModifiers())) {
+                    plugin.getLogger().warning("Field" + field.getName() + " in " + field.getDeclaringClass().getCanonicalName() + " will be registered as a permission node but is not final.");
+                }
+
+                try {
+                    field.setAccessible(true);
+                    res.add((Permission) field.get(null));
+                } catch (IllegalAccessException e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not register permission in field " + field.getName() + " in " + field.getDeclaringClass().getCanonicalName(), e);
+                }
+            }));
+
+        return res;
     }
 }

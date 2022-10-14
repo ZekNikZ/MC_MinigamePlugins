@@ -10,5 +10,6 @@ public interface TeamBasedMinigameScoreboard extends MinigameScoreboard {
     @Override
     default void setup() {
         TeamService.getInstance().getAllTeams().forEach(this::apply);
+        this.apply(null);
     }
 }

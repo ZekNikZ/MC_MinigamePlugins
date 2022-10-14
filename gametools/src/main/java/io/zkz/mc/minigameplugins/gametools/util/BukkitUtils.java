@@ -16,11 +16,11 @@ public class BukkitUtils {
     }
 
     public static void runNow(Runnable runnable) {
-        Bukkit.getScheduler().runTask(CustomEventService.getInstance().getPlugin(), runnable);
+        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("GameTools"), runnable);
     }
 
     public static void runNextTick(Runnable runnable) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, 1);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("GameTools"), runnable, 1);
     }
 
     public static void dispatchEvent(Event event) {
@@ -36,7 +36,7 @@ public class BukkitUtils {
     }
 
     public static void runLater(Runnable runnable, int delay) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(CustomEventService.getInstance().getPlugin(), runnable, delay);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("GameTools"), runnable, delay);
     }
 
     public static Collection<? extends Player> allPlayersExcept(Player... players) {
