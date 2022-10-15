@@ -184,6 +184,18 @@ public abstract class Round {
     }
 
     /**
+     * Sets up player location and gamemode.
+     *
+     * @param player the player to set up
+     */
+    public final void setupPlayer(UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null) {
+            this.setupPlayer(player);
+        }
+    }
+
+    /**
      * Convenience method to end a round.
      */
     public void triggerRoundEnd() {

@@ -29,9 +29,9 @@ public class TeamMembersEntry extends ScoreboardEntry {
             .sorted(Comparator.comparing(Player::getName))
             .forEach(player -> {
                 if (MinigameService.getInstance().getCurrentRound().isAlive(player)) {
-                    this.getScoreboard().setLine(i.get(), mm("<0> - <legacy_red><1>\u2764</legacy_red>", player.displayName(), Component.text(Math.ceil(player.getHealth()) / 2.0)));
+                    this.getScoreboard().setLine(pos + i.get(), mm("<0> - <legacy_red><1>\u2764</legacy_red>", player.displayName(), Component.text(Math.ceil(player.getHealth()) / 2.0)));
                 } else {
-                    this.getScoreboard().setLine(i.get(), mm("<0> - <legacy_dark_red>\u2620</legacy_dark_red>", player.displayName()));
+                    this.getScoreboard().setLine(pos + i.get(), mm("<0> - <legacy_dark_red>\u2620</legacy_dark_red>", player.displayName()));
                 }
                 i.getAndIncrement();
             });

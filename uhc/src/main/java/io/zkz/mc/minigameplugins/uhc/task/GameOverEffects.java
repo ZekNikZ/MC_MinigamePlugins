@@ -35,7 +35,7 @@ public class GameOverEffects extends MinigameTask {
             subtitle = player.map(value -> mm("<legacy_aqua><0> wins !", value.displayName())).orElseGet(() -> mm(""));
         }
 
-        Chat.sendMessage(Bukkit.getServer(), ChatType.GAME_INFO, mm("<legacy_gold>Game over!</legacy_gold> " + subtitle));
+        Chat.sendMessage(Bukkit.getServer(), ChatType.GAME_INFO, mm("<legacy_gold>Game over!</legacy_gold> <0>", subtitle));
     }
 
     @Override

@@ -80,7 +80,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     // endregion
 
     // region Minigame Settings Variables
-    private boolean showScoreSummary = true;
     private boolean spectatorsCanOnlySeeAliveTeammates = false;
     // endregion
 
@@ -172,7 +171,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         this.registerCleanupHandler(MinigameState.PAUSED, () -> this.rounds.get(this.currentRound).onUnpause());
 
         // POST_GAME
-        this.registerSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostGameDelay() * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame), mm("Back to hub in: ")));
+        this.registerSetupHandler(MinigameState.POST_GAME, () -> this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostGameDelay() * 50L + ScoreSummaryTask.SECONDS_PER_SLIDE * ScoreSummaryTask.NUM_SLIDES * 20, TimeUnit.MILLISECONDS, this::endGame), mm("Back to hub in:")));
         this.registerTask(MinigameState.POST_GAME, ScoreSummaryTask::new);
     }
 
@@ -202,7 +201,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
                 super.onUpdate();
             }
-        }, mm("Round starts in: "));
+        }, mm("Round starts in:"));
     }
 
     public void removeRunningTask(MinigameTask task) {
@@ -402,7 +401,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (this.isLastRound()) {
             BukkitUtils.runNextTick(() -> this.setState(MinigameState.POST_GAME));
         } else {
-            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::nextRound), mm("Next round in: "));
+            this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPostRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::nextRound), mm("Next round in:"));
         }
     }
 
@@ -487,6 +486,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
             }
 
             // Apply spectator player state
+            // TODO: determine if necessary
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(event.getPlayer());
             if (team == null || team.spectator()) {
                 event.getPlayer().setGameMode(GameMode.SPECTATOR);
@@ -503,6 +503,9 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
         if (playerState != null) {
             playerState.apply(event.getPlayer());
         }
+
+        // Update scoreboard
+        this.refreshScoreboard();
     }
 
     public int getRoundCount() {
@@ -625,14 +628,6 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void earnPoints(Player player, String reason, double points) {
         ScoreService.getInstance().earnPoints(player, reason, points, this.getCurrentRoundIndex());
-    }
-
-    public void setShowScoreSummary(boolean showScoreSummary) {
-        this.showScoreSummary = showScoreSummary;
-    }
-
-    public boolean showScoreSummary() {
-        return this.showScoreSummary;
     }
 
     public boolean canSpectatorsOnlySeeAliveTeammates() {

@@ -25,6 +25,7 @@ public class WorldBorderWarningTask extends MinigameTask {
 
         MinigameState currentState = MinigameService.getInstance().getCurrentState();
         if (currentState != MinigameState.IN_GAME && currentState != MinigameState.IN_GAME_2 && currentState != MinigameState.IN_GAME_3) {
+            this.cancel();
             return;
         }
 

@@ -37,7 +37,7 @@ public class ScoreSummaryTask extends MinigameTask {
 
     @Override
     public void run() {
-        if (!MinigameService.getInstance().showScoreSummary()) {
+        if (!MinigameService.getInstance().getMinigame().getShowScoreSummary()) {
             this.cancel();
             return;
         }

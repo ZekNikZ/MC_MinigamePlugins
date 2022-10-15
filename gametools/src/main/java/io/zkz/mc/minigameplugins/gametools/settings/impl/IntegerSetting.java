@@ -1,7 +1,9 @@
 package io.zkz.mc.minigameplugins.gametools.settings.impl;
 
 import io.zkz.mc.minigameplugins.gametools.settings.GameSetting;
+import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +36,9 @@ public class IntegerSetting extends GameSetting<Integer> {
 
     @Override
     public ItemStack optionIcon() {
-        return null;
+        return ISB.material(Material.LIGHT_BLUE_DYE)
+            .name(Component.text(this.value()))
+            .build();
     }
 
     @Override

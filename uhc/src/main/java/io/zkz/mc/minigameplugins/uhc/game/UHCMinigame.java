@@ -7,7 +7,6 @@ import io.zkz.mc.minigameplugins.minigamemanager.minigame.Minigame;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.DefaultScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.MinigameScoreboard;
 import io.zkz.mc.minigameplugins.minigamemanager.scoreboard.TeamBasedMinigameScoreboard;
-import io.zkz.mc.minigameplugins.minigamemanager.state.IPlayerState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.task.MinigameTask;
 import io.zkz.mc.minigameplugins.uhc.scoreboard.ScoreboardUpdateTask;
@@ -16,6 +15,7 @@ import io.zkz.mc.minigameplugins.uhc.settings.SettingsManager;
 import io.zkz.mc.minigameplugins.uhc.settings.enums.TeamStatus;
 import io.zkz.mc.minigameplugins.uhc.task.GameOverEffects;
 import io.zkz.mc.minigameplugins.uhc.task.UpdateSpectatorInventoriesTask;
+import io.zkz.mc.minigameplugins.uhc.task.WorldBorderStateCheckerTask;
 import io.zkz.mc.minigameplugins.uhc.task.WorldBorderWarningTask;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +63,11 @@ public class UHCMinigame extends Minigame<UHCRound> {
     }
 
     @Override
+    public boolean getAutomaticNextRound() {
+        return false;
+    }
+
+    @Override
     public @Nullable MinigameScoreboard buildScoreboard(MinigameState state) {
         return (TeamBasedMinigameScoreboard) team -> {
             GameScoreboard scoreboard = ScoreboardService.getInstance().createNewScoreboard(mm("<legacy_gold><bold>UHC"));
@@ -72,15 +77,15 @@ public class UHCMinigame extends Minigame<UHCRound> {
 
             // World border
             if (state.isInGame()) {
-                scoreboard.addEntry("worldborder", new ComputableValueEntry<>("<legacy_green><bold>Worldborder: </bold></legacy_green> \u00B1<value>", () -> this.getCurrentRound().getCurrentWorldborderSize() / 2));
+                scoreboard.addEntry("worldborder", new ComputableValueEntry<>("<legacy_green><bold>Worldborder:</bold></legacy_green> \u00B1<value>", () -> this.getCurrentRound().getCurrentWorldborderSize() / 2));
                 scoreboard.addSpace();
             }
 
             // Alive people
             if (SettingsManager.SETTING_TEAM_GAME.value() == TeamStatus.TEAM_GAME) {
-                scoreboard.addEntry(new ComputableValueEntry<>("<legacy_green><bold>Alive teams: </bold></legacy_green> <value>", () -> this.getCurrentRound().getAliveTeams().size()));
+                scoreboard.addEntry(new ComputableValueEntry<>("<legacy_green><bold>Alive teams:</bold></legacy_green> <value>", () -> this.getCurrentRound().getAliveTeams().size()));
             }
-            scoreboard.addEntry(new ComputableValueEntry<>("<legacy_green><bold>Alive players: </bold></legacy_green> <value>", () -> this.getCurrentRound().getAlivePlayers().size()));
+            scoreboard.addEntry(new ComputableValueEntry<>("<legacy_green><bold>Alive players:</bold></legacy_green> <value>", () -> this.getCurrentRound().getAlivePlayers().size()));
 
             // Team members
             if (team != null && SettingsManager.SETTING_TEAM_GAME.value() == TeamStatus.TEAM_GAME) {
@@ -89,8 +94,11 @@ public class UHCMinigame extends Minigame<UHCRound> {
                 scoreboard.addEntry(new TeamMembersEntry(team));
             }
 
-            ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
-            ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+            if (team != null) {
+                ScoreboardService.getInstance().setTeamScoreboard(team.id(), scoreboard);
+            } else {
+                ScoreboardService.getInstance().setGlobalScoreboard(scoreboard);
+            }
         };
     }
 
@@ -100,8 +108,8 @@ public class UHCMinigame extends Minigame<UHCRound> {
             return List.of(
                 ScoreboardUpdateTask::new,
                 UpdateSpectatorInventoriesTask::new,
-                WorldBorderWarningTask::new
-                // TODO: worldborder state change
+                WorldBorderWarningTask::new,
+                WorldBorderStateCheckerTask::new
             );
         }
         if (state == MinigameState.POST_ROUND) {
@@ -111,15 +119,4 @@ public class UHCMinigame extends Minigame<UHCRound> {
         }
         return List.of();
     }
-
-    @Override
-    public @Nullable IPlayerState buildPlayerState(MinigameState state) {
-        return switch (state) {
-            case SERVER_STARTING, LOADING, SETUP, WAITING_FOR_PLAYERS, WAITING_TO_BEGIN, RULES -> null;
-            // TODO: gamemodes, location, etc.
-            default -> null;
-        };
-    }
-
-
 }

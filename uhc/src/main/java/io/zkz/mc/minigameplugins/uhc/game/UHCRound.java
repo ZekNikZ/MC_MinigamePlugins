@@ -2,7 +2,6 @@ package io.zkz.mc.minigameplugins.uhc.game;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
-import io.zkz.mc.minigameplugins.gametools.teams.DefaultTeams;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
@@ -13,11 +12,11 @@ import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.PlayerState;
+import io.zkz.mc.minigameplugins.uhc.schematic.SchematicLoader;
+import io.zkz.mc.minigameplugins.uhc.settings.SettingsManager;
 import io.zkz.mc.minigameplugins.uhc.settings.enums.TeamStatus;
 import io.zkz.mc.minigameplugins.uhc.settings.enums.TimeCycle;
 import io.zkz.mc.minigameplugins.uhc.settings.enums.WeatherCycle;
-import io.zkz.mc.minigameplugins.uhc.schematic.SchematicLoader;
-import io.zkz.mc.minigameplugins.uhc.settings.SettingsManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -102,7 +101,7 @@ public class UHCRound extends Round {
         World world = Bukkit.getWorlds().get(0);
         List<UUID> competitors = new ArrayList<>(this.getAlivePlayers());
         int numCompetitors = competitors.size();
-        double spreadRadius = initialBorderSize / 2d - 150;
+        double spreadRadius = initialBorderSize / 2.0 - 150;
         if (SettingsManager.SETTING_TEAM_GAME.value() == TeamStatus.INDIVIDUAL_GAME || !SettingsManager.SETTING_TEAMS_SPAWN_TOGETHER.value()) {
             for (int i = 0; i < numCompetitors; i++) {
                 int x, z;
@@ -123,7 +122,7 @@ public class UHCRound extends Round {
             for (int i = 0; i < numTeams; i++) {
                 AtomicReference<Double> thisRadius = new AtomicReference<>(spreadRadius);
                 int j = i;
-                teams.get(0).getAllMembers().forEach(playerId -> {
+                teams.get(i).getAllMembers().forEach(playerId -> {
                     int x, z;
                     Location loc;
                     do {
@@ -172,13 +171,12 @@ public class UHCRound extends Round {
 
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
-        Chat.sendMessage(Bukkit.getServer(), ChatType.ACTIVE_INFO, mm("Game starting in " + currentTimeMillis / 1000 + " seconds..."));
-        Bukkit.getServer().sendMessage(mm("<legacy_gold>Game starting in " + currentTimeMillis / 1000 + " seconds..."));
+        Chat.sendMessage(Bukkit.getServer(), ChatType.ACTIVE_INFO, mm("Game starting in " + (int) Math.ceil(currentTimeMillis / 1000.0) + " seconds..."));
     }
 
     @Override
     public void onPhase1End() {
-        if (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value() == 0) {
+        if (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value() != 0) {
             this.triggerPhase2Start();
         } else {
             this.triggerPhase2End();
@@ -195,11 +193,12 @@ public class UHCRound extends Round {
 
     @Override
     public void onPhase2End() {
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(UHCService.getInstance().getPlugin(), 20, SettingsManager.SETTING_PARLAY_TIME.value(), TimeUnit.MINUTES, this::triggerPhase3Start), mm("Sudden death in: "));
+        MinigameService.getInstance().changeTimer(new GameCountdownTimer(UHCService.getInstance().getPlugin(), 20, SettingsManager.SETTING_PARLAY_TIME.value(), TimeUnit.MINUTES, this::triggerPhase3Start), mm("Sudden death in:"));
     }
 
     @Override
     public void onPhase3Start() {
+        MinigameService.getInstance().changeTimer(null, null);
         // TODO: phase 3 start
         // TODO: start sudden death
         Bukkit.broadcast(mm("Sudden death!"));
@@ -238,6 +237,8 @@ public class UHCRound extends Round {
 
     @Override
     protected void onPlayerDeath(UUID playerId) {
+        this.setupPlayer(playerId);
+
         ScoreboardService.getInstance().getAllScoreboards().forEach(GameScoreboard::redraw);
         GameStats.getInstance().handlePlayerElimination(playerId);
         Chat.sendMessage(Bukkit.getServer(), ChatType.ELIMINATION, mm("<0> has been eliminated! <1> players remain.", Bukkit.getPlayer(playerId).displayName(), Component.text(this.getAlivePlayers().size())));
@@ -250,48 +251,88 @@ public class UHCRound extends Round {
             }
 
             // End game
-            if (this.getAliveTeams().size() == 1) {
+            if (this.getAliveTeams().size() <= 1) {
                 this.triggerRoundEnd();
             }
         } else {
             // End game
-            if (this.getAlivePlayers().size() == 1) {
+            if (this.getAlivePlayers().size() <= 1) {
                 this.triggerRoundEnd();
             }
         }
-
     }
 
     @Override
     protected void onPlayerSetup(Player player, PlayerState playerState) {
         MinigameState currentState = MinigameService.getInstance().getCurrentState();
-        GameTeam team = TeamService.getInstance().getTeamOfPlayer(player);
 
-        // Clear inventory
-        player.getInventory().clear();
+        switch (currentState) {
+            case SERVER_STARTING:
+            case LOADING:
+            case SETUP:
+            case WAITING_FOR_PLAYERS:
+            case RULES:
+            case WAITING_TO_BEGIN:
+                // Clear inventory
+                player.getInventory().clear();
 
-        // Health & saturation
-        player.setHealth(20.0);
-        player.setFoodLevel(20);
-        player.setFireTicks(0);
+                // Health & saturation
+                player.setHealth(20.0);
+                player.setFoodLevel(20);
+                player.setFireTicks(0);
 
-        // Pre-game
-        if (playerState == PlayerState.SPEC || team == null || team.spectator() || List.of(MinigameState.SETUP, MinigameState.WAITING_FOR_PLAYERS, MinigameState.RULES, MinigameState.WAITING_TO_BEGIN).contains(currentState)) {
-            var loc = LOBBY_TP_LOCATION.toLocation(player.getWorld());
-            player.teleport(loc);
-            player.setBedSpawnLocation(loc, true);
-            return;
+                // Game mode
+                player.setGameMode(GameMode.ADVENTURE);
+
+                // Teleport
+                player.teleport(LOBBY_TP_LOCATION.toLocation(player.getWorld()));
+                break;
+            case PAUSED:
+                if (playerState == PlayerState.ALIVE) {
+                    player.setGameMode(GameMode.ADVENTURE);
+                }
+                break;
+            case PRE_ROUND:
+                // Clear inventory
+                player.getInventory().clear();
+
+                // Health & saturation
+                player.setHealth(20.0);
+                player.setFoodLevel(20);
+                player.setFireTicks(0);
+
+                // Game mode and teleport
+                if (playerState == PlayerState.ALIVE) {
+                    player.setGameMode(GameMode.ADVENTURE);
+                    player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
+                } else {
+                    player.setGameMode(GameMode.SPECTATOR);
+                    player.teleport(LOBBY_TP_LOCATION.toLocation(player.getWorld()));
+                }
+                break;
+            case IN_GAME:
+            case MID_GAME:
+            case IN_GAME_2:
+            case MID_GAME_2:
+            case IN_GAME_3:
+                if (playerState == PlayerState.ALIVE) {
+                    player.setGameMode(GameMode.SURVIVAL);
+                } else {
+                    player.setGameMode(GameMode.SPECTATOR);
+                    player.teleport(LOBBY_TP_LOCATION.toLocation(player.getWorld()));
+                }
+                break;
+            case POST_ROUND:
+            case POST_GAME:
+                if (playerState == PlayerState.ALIVE) {
+                    player.setGameMode(GameMode.ADVENTURE);
+                } else {
+                    player.setGameMode(GameMode.SPECTATOR);
+                }
+                break;
+            default:
+                break;
         }
-
-        // Pre-round
-        if (currentState == MinigameState.PRE_ROUND) {
-            player.setGameMode(GameMode.ADVENTURE);
-            player.teleport(this.assignedSpawnLocations.get(player.getUniqueId()));
-            return;
-        }
-
-        // In-game
-        player.setGameMode(GameMode.SURVIVAL);
     }
 
     private Location getHighestBlock(World world, int x, int z) {
