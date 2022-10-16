@@ -82,6 +82,8 @@ public class MinigameManagerCommands {
 //                        return;
 //                    }
 
+                    Chat.sendMessage(cmd.getSender(), ChatType.COMMAND_SUCCESS, mm("Starting rules slideshow..."));
+
                     MinigameService.getInstance().markDoneWaitingForPlayers();
                 }))
         );

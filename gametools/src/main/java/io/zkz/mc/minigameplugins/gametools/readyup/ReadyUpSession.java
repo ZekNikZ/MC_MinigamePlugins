@@ -29,7 +29,6 @@ public class ReadyUpSession {
         this.sessionId = sessionId;
         this.onAllReady = onAllReady;
         this.onPlayerReady = onPlayerReady;
-        Bukkit.broadcast(ComponentUtils.join(mm(", "), players.stream().map(UUID::toString).map(Component::text).toList()));
         players.forEach(playerId -> this.readyPlayers.put(playerId, false));
         this.bossBar = Bukkit.createBossBar("Ready Up: 0/" + players.size() + " players ready", BarColor.GREEN, BarStyle.SOLID);
         this.updateBossbar();

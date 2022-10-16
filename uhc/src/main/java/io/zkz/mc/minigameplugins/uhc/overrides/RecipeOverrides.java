@@ -1,6 +1,7 @@
 package io.zkz.mc.minigameplugins.uhc.overrides;
 
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
+import io.zkz.mc.minigameplugins.uhc.UHCPlugin;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -50,5 +51,9 @@ public class RecipeOverrides {
             }
         }
         return null;
+    }
+
+    public static void removeShieldRecipe(JavaPlugin plugin) {
+        removeRecipe(plugin, ISB.stack(Material.SHIELD));
     }
 }

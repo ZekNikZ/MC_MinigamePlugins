@@ -40,6 +40,7 @@ public class GameScoreboard {
 
     private final Scoreboard scoreboard;
     private final Objective objective;
+    private @Nullable Objective tabListObjective = null;
     private final List<ScoreboardEntry> entries = new ArrayList<>();
     private final Map<String, ScoreboardEntry> mappedEntries = new HashMap<>();
     private final List<Component> components = new ArrayList<>(15);
@@ -196,6 +197,16 @@ public class GameScoreboard {
     public void cleanup() {
         this.scoreboard.getTeams().forEach(this::unregisterTeam);
         this.entries.forEach(ScoreboardEntry::cleanup);
+    }
+
+    public void setTabListObjective(String name, Criteria criteria, Component displayName, RenderType renderType) {
+        if (this.tabListObjective != null) {
+            this.tabListObjective.unregister();
+            this.tabListObjective = null;
+        }
+
+        this.tabListObjective = this.scoreboard.registerNewObjective(name, criteria, displayName, renderType);
+        this.tabListObjective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
     }
 
     @Override

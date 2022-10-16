@@ -76,6 +76,6 @@ public class GameCountdownTimer extends AbstractTimer {
             lastRun = Long.MAX_VALUE;
         }
 
-        return currentTimeMillis <= event.delay() && (lastRun - currentTimeMillis) >= event.period();
+        return (this.timerValueMillis - currentTimeMillis) >= event.delay() && (lastRun - currentTimeMillis) >= event.period();
     }
 }

@@ -75,7 +75,6 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
         }
     }
 
-    private final Map<UUID, Long> fireballCooldown = new HashMap<>();
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -85,21 +84,25 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
 
         // Fireball
         if (material == Material.FIRE_CHARGE && SettingsManager.SETTING_THROWABLE_FIREBALLS.value() && action == Action.RIGHT_CLICK_AIR) {
-            if (fireballCooldown.get(player.getUniqueId()) == null || System.currentTimeMillis() - fireballCooldown.get(player.getUniqueId()) > 1000) {
-                Fireball fireball = player.launchProjectile(Fireball.class);
-                fireball.setVelocity(fireball.getVelocity().multiply(2));
-                fireball.setYield(fireball.getYield() * 2.5f);
-                if (player.getGameMode() != GameMode.CREATIVE) {
-                    player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
-                }
-                fireballCooldown.put(player.getUniqueId(), System.currentTimeMillis());
-            } else {
-                player.sendMessage(String.format(ChatColor.RED + "You must wait %.1f more seconds to do that!", (1000 - (System.currentTimeMillis() - fireballCooldown.get(player.getUniqueId()))) / 1000f));
+            if (player.hasCooldown(Material.FIRE_CHARGE)) {
+                return;
             }
+            Fireball fireball = player.launchProjectile(Fireball.class);
+            fireball.setVelocity(fireball.getVelocity().multiply(2));
+            fireball.setYield(fireball.getYield() * 2.5f);
+            if (player.getGameMode() != GameMode.CREATIVE) {
+                player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
+            }
+            player.setCooldown(Material.FIRE_CHARGE, 20);
         }
 
         // Compass
         else if (material == Material.COMPASS) {
+            if (player.hasCooldown(Material.COMPASS)) {
+                event.setCancelled(true);
+                return;
+            }
+
             if (SettingsManager.SETTING_COMPASS_BEHAVIOR.value() != CompassBehavior.NORMAL) {
                 Location location = null;
                 double minDistance = Double.MAX_VALUE;
@@ -122,6 +125,7 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
                     double distance = player.getLocation().distance(onlinePlayer.getLocation());
                     if (location == null || distance < minDistance) {
                         location = onlinePlayer.getLocation();
+                        minDistance = Math.min(distance, minDistance);
                     }
                 }
 
@@ -130,6 +134,7 @@ public class GameEventsListener extends PluginService<UHCPlugin> {
                 } else {
                     player.sendMessage("Updated tracking");
                     player.setCompassTarget(location);
+                    player.setCooldown(Material.COMPASS, 100);
                 }
             }
             event.setCancelled(true);

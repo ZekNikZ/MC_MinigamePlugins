@@ -30,6 +30,13 @@ public abstract class Minigame<R extends Round> {
     // region Abstract Methods
 
     /**
+     * Name of the minigame.
+     *
+     * @return the name of the minigame, for use in chat messages
+     */
+    public abstract String getMinigameName();
+
+    /**
      * Build the list of rules slides to be displayed in the pre-game phase.
      *
      * @return a list of "slides" (= lists of components) each component representing a single line in the chat

@@ -2,9 +2,14 @@ package io.zkz.mc.minigameplugins.uhc.game;
 
 import io.zkz.mc.minigameplugins.gametools.scoreboard.GameScoreboard;
 import io.zkz.mc.minigameplugins.gametools.scoreboard.ScoreboardService;
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.teams.GameTeam;
 import io.zkz.mc.minigameplugins.gametools.teams.TeamService;
+import io.zkz.mc.minigameplugins.gametools.timer.AbstractTimer;
 import io.zkz.mc.minigameplugins.gametools.timer.GameCountdownTimer;
+import io.zkz.mc.minigameplugins.gametools.timer.GameCountupTimer;
+import io.zkz.mc.minigameplugins.gametools.util.BukkitUtils;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.gametools.util.WorldSyncUtils;
@@ -12,6 +17,7 @@ import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.Round;
 import io.zkz.mc.minigameplugins.minigamemanager.state.MinigameState;
 import io.zkz.mc.minigameplugins.minigamemanager.state.PlayerState;
+import io.zkz.mc.minigameplugins.uhc.overrides.RecipeOverrides;
 import io.zkz.mc.minigameplugins.uhc.schematic.SchematicLoader;
 import io.zkz.mc.minigameplugins.uhc.settings.SettingsManager;
 import io.zkz.mc.minigameplugins.uhc.settings.enums.TeamStatus;
@@ -29,17 +35,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mm;
+import static io.zkz.mc.minigameplugins.gametools.util.GTMiniMessage.mmArgs;
 
 public class UHCRound extends Round {
-    // TODO: Sudden death will begin in X minutes/seconds
-    // TODO: World border will now shrink to X blocks wide over Y minutes (Z blocks/sec)
-    // TODO: Sudden death has begun! The world border will shrink to a cube over the next X minutes.
-
     private static final Vector LOBBY_TP_LOCATION = new Vector(0, 201, 0);
     private Location centerLocation;
     private double currentWorldBorderSpeed;
     private double currentWorldBorderTarget;
-    private Map<UUID, Location> assignedSpawnLocations = new HashMap<>();
+    private final Map<UUID, Location> assignedSpawnLocations = new HashMap<>();
+    private AbstractTimer gameEventTimer;
 
     @Override
     public void onSetup() {
@@ -79,6 +83,9 @@ public class UHCRound extends Round {
 
         // Set up default teams
         TeamService.getInstance().setupDefaultTeams();
+
+        // Timer on scoreboard
+        MinigameService.getInstance().changeTimer(null, mm("Game starts in:"));
     }
 
     @Override
@@ -89,12 +96,13 @@ public class UHCRound extends Round {
         WorldSyncUtils.setWorldBorderSize(initialBorderSize);
         WorldSyncUtils.setWorldBorderWarningTime(180);
         WorldSyncUtils.setWorldBorderWarningDistance(10);
-        WorldSyncUtils.setWorldBorderDamageBuffer(5);
+        WorldSyncUtils.setWorldBorderDamageBuffer(2);
         WorldSyncUtils.setWorldBorderDamageAmount(0.2);
 
         // Setup gamerules
         WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, SettingsManager.SETTING_TIME_CYCLE.value() == TimeCycle.NORMAL);
         WorldSyncUtils.setGameRule(GameRule.DO_WEATHER_CYCLE, SettingsManager.SETTING_WEATHER_CYCLE.value() == WeatherCycle.NORMAL);
+        WorldSyncUtils.setGameRule(GameRule.DO_INSOMNIA, SettingsManager.SETTING_SPAWN_PHANTOMS.value());
 
         // Assign spread player locations
         this.assignedSpawnLocations.clear();
@@ -155,45 +163,98 @@ public class UHCRound extends Round {
             player.setFoodLevel(20);
             player.setSaturation(20);
 
-            // TODO: give team-tracking compasses
+            // TODO: give team-tracking compasses for proximity chat
         });
 
         // World stuff
         WorldSyncUtils.setDifficulty(Difficulty.HARD);
         WorldSyncUtils.setTime(0);
         WorldSyncUtils.setWeatherClear();
+        WorldSyncUtils.setGameRule(GameRule.DO_MOB_SPAWNING, true);
 
         // Start world border
         this.currentWorldBorderTarget = SettingsManager.SETTING_WORLD_BORDER_DISTANCE_2.value();
         this.currentWorldBorderSpeed = (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_1.value() - SettingsManager.SETTING_WORLD_BORDER_DISTANCE_2.value()) / 2d / (SettingsManager.SETTING_WORLD_BORDER_TIME_1.value() * 60);
         WorldSyncUtils.setWorldBorderSize(SettingsManager.SETTING_WORLD_BORDER_DISTANCE_2.value(), SettingsManager.SETTING_WORLD_BORDER_TIME_1.value() * 60);
+        Chat.sendMessage(ChatType.ACTIVE_INFO, mmArgs("The world border will now shrink to <legacy_aqua><0></legacy_aqua> blocks in diameter over <legacy_aqua><1></legacy_aqua> minutes (<legacy_yellow>about 1 block every <2> second(s)</legacy_yellow>).", (int) this.currentWorldBorderTarget, SettingsManager.SETTING_WORLD_BORDER_TIME_1.value(), String.format("%.1f", 1 / this.currentWorldBorderSpeed)));
+
+        // Elapsed time timer
+        MinigameService.getInstance().changeTimer(new GameCountupTimer(UHCService.getInstance().getPlugin(), 10), mm("Game time:"));
+        this.gameEventTimer = new GameCountupTimer(UHCService.getInstance().getPlugin(), 5);
+        if (SettingsManager.SETTING_PERMADAY_TIME.value() > 0) {
+            this.gameEventTimer.scheduleEvent((long) (SettingsManager.SETTING_PERMADAY_TIME.value() - 5) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Permaday will be enabled in <legacy_aqua>5</legacy_aqua> minutes."));
+            });
+            this.gameEventTimer.scheduleEvent((SettingsManager.SETTING_PERMADAY_TIME.value() - 1) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Permaday will be enabled in <legacy_aqua>1</legacy_aqua> minute."));
+            });
+            this.gameEventTimer.scheduleEvent(SettingsManager.SETTING_PERMADAY_TIME.value() * 60000L, () -> {
+                WorldSyncUtils.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                WorldSyncUtils.setTime(6000);
+            });
+        }
+        if (SettingsManager.SETTING_PEACEFUL_TIME.value() > 0) {
+            this.gameEventTimer.scheduleEvent((long) (SettingsManager.SETTING_PEACEFUL_TIME.value() - 5) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Peaceful mode will be enabled in <legacy_aqua>5</legacy_aqua> minutes."));
+            });
+            this.gameEventTimer.scheduleEvent((SettingsManager.SETTING_PEACEFUL_TIME.value() - 1) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Peaceful mode will be enabled in <legacy_aqua>1</legacy_aqua> minute."));
+            });
+            this.gameEventTimer.scheduleEvent(SettingsManager.SETTING_PEACEFUL_TIME.value() * 60000L, () -> {
+                WorldSyncUtils.setDifficulty(Difficulty.PEACEFUL);
+            });
+        }
+        if (SettingsManager.SETTING_SHIELDLESS_TIME.value() > 0) {
+            this.gameEventTimer.scheduleEvent((long) (SettingsManager.SETTING_SHIELDLESS_TIME.value() - 5) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Shields will be disabled in <legacy_aqua>5</legacy_aqua> minutes."));
+            });
+            this.gameEventTimer.scheduleEvent((SettingsManager.SETTING_SHIELDLESS_TIME.value() - 1) * 60000L, () -> {
+                Chat.sendMessage(ChatType.GAME_INFO, mm("Shields will be disabled in <legacy_aqua>1</legacy_aqua> minute."));
+            });
+            this.gameEventTimer.scheduleEvent(SettingsManager.SETTING_SHIELDLESS_TIME.value() * 60000L, () -> {
+                BukkitUtils.forEachPlayer(player -> player.getInventory().remove(Material.SHIELD));
+                RecipeOverrides.removeShieldRecipe(UHCService.getInstance().getPlugin());
+            });
+        }
+        this.gameEventTimer.start();
+
+        // Sounds
+        SoundUtils.playSound(Bukkit.getOnlinePlayers(), StandardSounds.GAME_OVER, 1, 1);
     }
 
     @Override
     public void onPreRoundTimerTick(long currentTimeMillis) {
-        Chat.sendMessage(Bukkit.getServer(), ChatType.ACTIVE_INFO, mm("Game starting in " + (int) Math.ceil(currentTimeMillis / 1000.0) + " seconds..."));
-    }
-
-    @Override
-    public void onPhase1End() {
-        if (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value() != 0) {
-            this.triggerPhase2Start();
-        } else {
-            this.triggerPhase2End();
+        int time = (int) Math.ceil(currentTimeMillis / 1000.0);
+        if (time > 0) {
+            Chat.sendMessage(ChatType.ACTIVE_INFO, mm("Game starting in " + time + " seconds..."));
         }
     }
 
     @Override
+    public void onPhase1End() {
+        BukkitUtils.runNextTick(this::triggerPhase2Start);
+    }
+
+    @Override
     public void onPhase2Start() {
+        if (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value() == 0 || SettingsManager.SETTING_WORLD_BORDER_TIME_2.value() == 0) {
+            BukkitUtils.runNextTick(this::triggerPhase2End);
+            return;
+        }
+
         // Start second world border
         this.currentWorldBorderTarget = SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value();
         this.currentWorldBorderSpeed = (SettingsManager.SETTING_WORLD_BORDER_DISTANCE_2.value() - SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value()) / 2d / (SettingsManager.SETTING_WORLD_BORDER_TIME_2.value() * 60);
         WorldSyncUtils.setWorldBorderSize(SettingsManager.SETTING_WORLD_BORDER_DISTANCE_3.value(), SettingsManager.SETTING_WORLD_BORDER_TIME_2.value() * 60);
+        Chat.sendMessage(ChatType.ACTIVE_INFO, mmArgs("The world border will now shrink to <legacy_aqua><0></legacy_aqua> blocks in diameter over <legacy_aqua><1></legacy_aqua> minutes (<legacy_yellow>about 1 block every <2> second(s)</legacy_yellow>).", (int) this.currentWorldBorderTarget, SettingsManager.SETTING_WORLD_BORDER_TIME_2.value(), String.format("%.1f", 1 / this.currentWorldBorderSpeed)));
     }
 
     @Override
     public void onPhase2End() {
-        MinigameService.getInstance().changeTimer(new GameCountdownTimer(UHCService.getInstance().getPlugin(), 20, SettingsManager.SETTING_PARLAY_TIME.value(), TimeUnit.MINUTES, this::triggerPhase3Start), mm("Sudden death in:"));
+        if (SettingsManager.SETTING_SUDDEN_DEATH_ENABLED.value()) {
+            MinigameService.getInstance().changeTimer(new GameCountdownTimer(UHCService.getInstance().getPlugin(), 20, SettingsManager.SETTING_PARLAY_TIME.value(), TimeUnit.MINUTES, this::triggerPhase3Start), mm("Sudden death in:"));
+            Chat.sendMessage(ChatType.ACTIVE_INFO, mmArgs("Sudden death will begin in <legacy_aqua><0></legacy_aqua> minutes.", SettingsManager.SETTING_PARLAY_TIME.value()));
+        }
     }
 
     @Override
@@ -201,7 +262,8 @@ public class UHCRound extends Round {
         MinigameService.getInstance().changeTimer(null, null);
         // TODO: phase 3 start
         // TODO: start sudden death
-        Bukkit.broadcast(mm("Sudden death!"));
+        WorldSyncUtils.setWorldBorderSize(1, SettingsManager.SETTING_SUDDEN_DEATH_TIME.value() * 60);
+        Chat.sendMessage(ChatType.ACTIVE_INFO, mmArgs("The world border is now a cube and will shrink to <legacy_aqua>1</legacy_aqua> block in diameter over <legacy_aqua><0></legacy_aqua> minutes.", SettingsManager.SETTING_SUDDEN_DEATH_TIME.value()));
     }
 
     @Override
@@ -216,6 +278,7 @@ public class UHCRound extends Round {
         Bukkit.getOnlinePlayers().forEach(player -> {
             player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 1000000, 4, false, false));
         });
+        this.gameEventTimer.pause();
     }
 
     @Override
@@ -224,6 +287,7 @@ public class UHCRound extends Round {
         Bukkit.getOnlinePlayers().forEach(player -> {
             player.removePotionEffect(PotionEffectType.DAMAGE_RESISTANCE);
         });
+        this.gameEventTimer.unpause();
     }
 
     public int getCurrentWorldborderSize() {
@@ -237,17 +301,18 @@ public class UHCRound extends Round {
 
     @Override
     protected void onPlayerDeath(UUID playerId) {
-        this.setupPlayer(playerId);
+        BukkitUtils.runNextTick(() -> this.setupPlayer(playerId));
 
         ScoreboardService.getInstance().getAllScoreboards().forEach(GameScoreboard::redraw);
         GameStats.getInstance().handlePlayerElimination(playerId);
-        Chat.sendMessage(Bukkit.getServer(), ChatType.ELIMINATION, mm("<0> has been eliminated! <1> players remain.", Bukkit.getPlayer(playerId).displayName(), Component.text(this.getAlivePlayers().size())));
+        Chat.sendMessage(ChatType.ELIMINATION, mm("<0> has been eliminated! <1> players remain.", Bukkit.getPlayer(playerId).displayName(), Component.text(this.getAlivePlayers().size())));
+        SoundUtils.playSound(Bukkit.getOnlinePlayers(), StandardSounds.PLAYER_ELIMINATION, 1, 1);
 
         if (SettingsManager.SETTING_TEAM_GAME.value() == TeamStatus.TEAM_GAME) {
             GameTeam team = TeamService.getInstance().getTeamOfPlayer(playerId);
             if (team != null) {
                 GameStats.getInstance().handleTeamElimination(team.id());
-                Chat.sendMessage(Bukkit.getServer(), ChatType.TEAM_ELIMINATION, mm("<0> has been eliminated! <1> players remain.", team.getDisplayName(), Component.text(this.getAliveTeams().size())));
+                Chat.sendMessage(ChatType.TEAM_ELIMINATION, mm("<0> has been eliminated! <1> players remain.", team.getDisplayName(), Component.text(this.getAliveTeams().size())));
             }
 
             // End game

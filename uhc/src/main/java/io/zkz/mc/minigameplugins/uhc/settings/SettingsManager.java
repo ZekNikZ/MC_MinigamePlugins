@@ -292,6 +292,47 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
         )
     );
 
+    // ================
+    // LATE GAME EVENTS
+    // ================
+    private static final GameSettingCategory LATE_GAME_EVENTS_CATEGORY = new GameSettingCategory(mm("Late-Game Events"), mm("Settings to enable late-game events."), ISB.stack(Material.NETHERITE_INGOT));
+
+    public static final IntegerSetting SETTING_PERMADAY_TIME = setting(LATE_GAME_EVENTS_CATEGORY,
+        new IntegerSetting(
+            mm("Time to Enable Permaday (Minutes)"),
+            mm("Determines the time it takes to enable permaday. Set to 0 to disable."),
+            ISB.stack(Material.SUNFLOWER),
+            60,
+            0,
+            180,
+            1
+        )
+    );
+
+    public static final IntegerSetting SETTING_PEACEFUL_TIME = setting(LATE_GAME_EVENTS_CATEGORY,
+        new IntegerSetting(
+            mm("Time to Enable Peaceful Mode (Minutes)"),
+            mm("Determines the time it takes to enable peaceful mode. Set to 0 to disable."),
+            ISB.stack(Material.POPPY),
+            60,
+            0,
+            180,
+            1
+        )
+    );
+
+    public static final IntegerSetting SETTING_SHIELDLESS_TIME = setting(LATE_GAME_EVENTS_CATEGORY,
+        new IntegerSetting(
+            mm("Time to Enable No Shield Mode (Minutes)"),
+            mm("Determines the time it takes to enable no shield mode. Set to 0 to disable."),
+            ISB.stack(Material.SHIELD),
+            60,
+            0,
+            180,
+            1
+        )
+    );
+
     @SafeVarargs
     private static <T extends IGameSetting<?>> T setting(GameSettingCategory category, T setting, IObserver<T>... observers) {
         GameSettingsService.getInstance().registerSetting(category, setting);
@@ -337,6 +378,11 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
         SETTING_SUDDEN_DEATH_ENABLED.value(config.suddenDeathEnabled());
         SETTING_PARLAY_TIME.value(config.parlayTime());
         SETTING_SUDDEN_DEATH_TIME.value(config.suddenDeathTime());
+
+        // Late-game events
+        SETTING_PERMADAY_TIME.value(config.permadayTime());
+        SETTING_PEACEFUL_TIME.value(config.peacefulTime());
+        SETTING_SHIELDLESS_TIME.value(config.shieldlessTime());
     }
 
     @Override
@@ -365,7 +411,11 @@ public class SettingsManager extends PluginService<UHCPlugin> implements ConfigH
             SETTING_WORLD_BORDER_DISTANCE_3.value(),
             SETTING_SUDDEN_DEATH_ENABLED.value(),
             SETTING_PARLAY_TIME.value(),
-            SETTING_SUDDEN_DEATH_TIME.value()
+            SETTING_SUDDEN_DEATH_TIME.value(),
+            // Late-game events
+            SETTING_PERMADAY_TIME.value(),
+            SETTING_PEACEFUL_TIME.value(),
+            SETTING_SHIELDLESS_TIME.value()
         );
     }
 }

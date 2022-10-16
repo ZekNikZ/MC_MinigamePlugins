@@ -16,12 +16,11 @@ public class MySQLDataManager<T extends PluginService<?>> extends AbstractDataMa
 
     private final int taskId;
 
-    @SuppressWarnings("deprecation")
     public MySQLDataManager(T service, @NotNull Consumer<Connection> loader) {
         super(service);
         this.loader = loader;
 
-        this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(this.service.getPlugin(), this::trySaveData, 200, 100);
+        this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(this.service.getPlugin(), this::trySaveData, 20, 5);
     }
 
     @Override

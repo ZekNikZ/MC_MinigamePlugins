@@ -4,6 +4,7 @@ import io.zkz.mc.minigameplugins.gametools.settings.IGameSetting;
 import io.zkz.mc.minigameplugins.gametools.util.AbstractObservable;
 import io.zkz.mc.minigameplugins.gametools.util.ISB;
 import net.kyori.adventure.text.Component;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,6 +85,7 @@ public class OptionSetting<T> extends AbstractObservable implements IGameSetting
         return ISB.fromItemStack(this.options.get(this.index).display())
             .name(this.options.get(this.index).name())
             .lore(this.options.get(this.index).description())
+            .addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_DYE)
             .build();
     }
 

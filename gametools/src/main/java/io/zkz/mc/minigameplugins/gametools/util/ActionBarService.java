@@ -20,12 +20,13 @@ public class ActionBarService extends PluginService<GameToolsPlugin> {
 
     private BukkitTask task;
     private int index = 0;
+    private int delay = 0;
     private final Map<UUID, List<String>> messageOrder = new HashMap<>();
     private final Map<UUID, Map<String, Component>> messages = new HashMap<>();
 
     @Override
     protected void onEnable() {
-        this.task = Bukkit.getScheduler().runTaskTimer(this.getPlugin(), this::displayActionBarMessages, 40, 40);
+        this.task = Bukkit.getScheduler().runTaskTimer(this.getPlugin(), this::displayActionBarMessages, 1, 1);
     }
 
     @Override
@@ -41,7 +42,9 @@ public class ActionBarService extends PluginService<GameToolsPlugin> {
             this.messageOrder.put(playerId, new ArrayList<>());
         }
         this.messages.get(playerId).put(key, message);
-        this.messageOrder.get(playerId).add(key);
+        if (!this.messageOrder.get(playerId).contains(key)) {
+            this.messageOrder.get(playerId).add(key);
+        }
     }
 
     public void removeMessage(UUID playerId, String key) {
@@ -67,6 +70,11 @@ public class ActionBarService extends PluginService<GameToolsPlugin> {
             player.sendActionBar(this.messages.get(playerId).get(this.messageOrder.get(playerId).get(this.index % this.messageOrder.get(playerId).size())));
         });
 
-        ++this.index;
+        if (this.delay > 0) {
+            --this.delay;
+        } else {
+            ++this.index;
+            this.delay = 30;
+        }
     }
 }

@@ -1,5 +1,7 @@
 package io.zkz.mc.minigameplugins.uhc.task;
 
+import io.zkz.mc.minigameplugins.gametools.sound.SoundUtils;
+import io.zkz.mc.minigameplugins.gametools.sound.StandardSounds;
 import io.zkz.mc.minigameplugins.gametools.util.Chat;
 import io.zkz.mc.minigameplugins.gametools.util.ChatType;
 import io.zkz.mc.minigameplugins.minigamemanager.minigame.MinigameService;
@@ -29,13 +31,15 @@ public class GameOverEffects extends MinigameTask {
         title = mm("<legacy_gold><bold>GAME OVER");
         if (SettingsManager.SETTING_TEAM_GAME.value() == TeamStatus.TEAM_GAME) {
             var team = MinigameService.getInstance().getCurrentRound().getAliveTeams().keySet().stream().findFirst();
-            subtitle = team.map(gameTeam -> mm("<0> <legacy_aqua> wins !", gameTeam.getDisplayName())).orElseGet(() -> mm(""));
+            subtitle = team.map(gameTeam -> mm("<0> <legacy_aqua>wins!", gameTeam.getDisplayName())).orElseGet(() -> mm(""));
         } else {
             var player = MinigameService.getInstance().getCurrentRound().getOnlineAlivePlayers().stream().findFirst();
-            subtitle = player.map(value -> mm("<legacy_aqua><0> wins !", value.displayName())).orElseGet(() -> mm(""));
+            subtitle = player.map(value -> mm("<legacy_aqua><0> wins!", value.displayName())).orElseGet(() -> mm(""));
         }
 
+        Bukkit.getServer().showTitle(Title.title(title, subtitle));
         Chat.sendMessage(Bukkit.getServer(), ChatType.GAME_INFO, mm("<legacy_gold>Game over!</legacy_gold> <0>", subtitle));
+        SoundUtils.playSound(Bukkit.getOnlinePlayers(), StandardSounds.GAME_OVER, 1, 1);
     }
 
     @Override
@@ -44,8 +48,6 @@ public class GameOverEffects extends MinigameTask {
             this.cancel();
             return;
         }
-
-        Bukkit.getServer().showTitle(Title.title(title, subtitle));
 
         MinigameService.getInstance().getCurrentRound().getOnlineAlivePlayers().forEach(p -> {
             //Spawn the Firework, get the FireworkMeta.

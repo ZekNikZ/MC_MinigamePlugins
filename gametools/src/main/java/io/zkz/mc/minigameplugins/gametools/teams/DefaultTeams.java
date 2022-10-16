@@ -44,6 +44,30 @@ public class DefaultTeams {
         .color(GTColors.RED)
         .scoreboardColor(NamedTextColor.RED)
         .build();
+    public static final GameTeam GREEN = GameTeam.builder("green", mm("Green Team"))
+        .prefix(mm("<green><bold>G"))
+        .formatTag("<green>")
+        .color(GTColors.GREEN)
+        .scoreboardColor(NamedTextColor.DARK_GREEN)
+        .build();
+    public static final GameTeam YELLOW = GameTeam.builder("yellow", mm("Yellow Team"))
+        .prefix(mm("<yellow><bold>Y"))
+        .formatTag("<yellow>")
+        .color(GTColors.YELLOW)
+        .scoreboardColor(NamedTextColor.YELLOW)
+        .build();
+    public static final GameTeam MAGENTA = GameTeam.builder("magenta", mm("Magenta Team"))
+        .prefix(mm("<magenta><bold>M"))
+        .formatTag("<magenta>")
+        .color(GTColors.MAGENTA)
+        .scoreboardColor(NamedTextColor.LIGHT_PURPLE)
+        .build();
+    public static final GameTeam AQUA = GameTeam.builder("aqua", mm("Aqua Team"))
+        .prefix(mm("<aqua><bold>A"))
+        .formatTag("<aqua>")
+        .color(GTColors.AQUA)
+        .scoreboardColor(NamedTextColor.AQUA)
+        .build();
 
     public static void addAll() {
         try {
@@ -52,6 +76,9 @@ public class DefaultTeams {
             TeamService.getInstance().createTeam(SPECTATOR, true);
             TeamService.getInstance().createTeam(BLUE, true);
             TeamService.getInstance().createTeam(RED, true);
+            TeamService.getInstance().createTeam(GREEN, true);
+            TeamService.getInstance().createTeam(YELLOW, true);
+            TeamService.getInstance().createTeam(MAGENTA, true);
         } catch (TeamService.TeamCreationException exception) {
             GameToolsPlugin.logger().log(Level.SEVERE, exception, () -> "Could not create default teams.");
         }

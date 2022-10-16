@@ -82,4 +82,8 @@ public class WorldSyncUtils {
             world.setThundering(true);
         });
     }
+
+    public static long getTime() {
+        return Bukkit.getWorlds().get(0).getTime();
+    }
 }

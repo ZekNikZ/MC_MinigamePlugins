@@ -401,6 +401,8 @@ public class TeamService extends PluginService<GameToolsPlugin> {
     }
 
     private void loadDB(Connection conn) {
+        List<Runnable> actions = new ArrayList<>();
+
         // Clear existing data
         this.teams.clear();
         this.players.clear();
@@ -420,7 +422,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
                     NamedTextColor.namedColor(resultSet.getInt("teamScoreboardColor")),
                     resultSet.getBoolean("teamIsSpectator")
                 );
-                this.createTeam(team, true);
+                actions.add(() -> this.createTeam(team, true));
             }
         } catch (SQLException e) {
             GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
@@ -432,15 +434,21 @@ public class TeamService extends PluginService<GameToolsPlugin> {
         )) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                this.joinTeam(
-                    UUID.fromString(resultSet.getString("playerId")),
-                    resultSet.getString("teamId"),
+                UUID uuid = UUID.fromString(resultSet.getString("playerId"));
+                String teamId = resultSet.getString("teamId");
+                actions.add(() -> this.joinTeam(
+                    uuid,
+                    teamId,
                     true
-                );
+                ));
             }
         } catch (SQLException e) {
             GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);
         }
+
+//        BukkitUtils.runNow(() -> {
+            actions.forEach(Runnable::run);
+//        });
     }
 
     private void reloadPlayerTeamEntry(UUID playerId) {
@@ -462,7 +470,7 @@ public class TeamService extends PluginService<GameToolsPlugin> {
                 }
 
                 if (!found) {
-                    this.leaveTeam(playerId);
+                    BukkitUtils.runNow(() -> this.leaveTeam(playerId));
                 }
             } catch (SQLException e) {
                 GameToolsPlugin.logger().log(Level.SEVERE, "Could not load team data", e);

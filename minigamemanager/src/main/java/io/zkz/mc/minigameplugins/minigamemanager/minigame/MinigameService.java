@@ -1,5 +1,6 @@
 package io.zkz.mc.minigameplugins.minigamemanager.minigame;
 
+import io.zkz.mc.minigameplugins.gametools.MinigameConstantsService;
 import io.zkz.mc.minigameplugins.gametools.data.AbstractDataManager;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpService;
 import io.zkz.mc.minigameplugins.gametools.readyup.ReadyUpSession;
@@ -190,18 +191,16 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
     }
 
     private void startPreRoundTimer() {
-        this.changeTimer(new GameCountdownTimer(this.getPlugin(), 20, this.minigame.getPreRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame) {
-            @Override
-            protected void onUpdate() {
-                if (getCurrentTimeMillis() <= 5000) {
-                    SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
-                }
-
-                getCurrentRound().onPreRoundTimerTick(getCurrentTimeMillis());
-
-                super.onUpdate();
+        var timer = new GameCountdownTimer(this.getPlugin(), 5, this.minigame.getPreRoundDelay() * 50L, TimeUnit.MILLISECONDS, this::transitionToInGame);
+        timer.scheduleRepeatingEvent(0, 1000, (currentTime, cancel) -> {
+            if (currentTime <= 5000) {
+                SoundUtils.playSound(StandardSounds.TIMER_TICK, 1, 1);
             }
-        }, mm("Round starts in:"));
+
+            getCurrentRound().onPreRoundTimerTick(currentTime);
+        });
+
+        this.changeTimer(timer, mm("Round starts in:"));
     }
 
     public void removeRunningTask(MinigameTask task) {
@@ -301,6 +300,8 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     public void setMinigame(Minigame<?> minigame) {
         this.minigame = minigame;
+
+        MinigameConstantsService.getInstance().setMinigameName(minigame.getMinigameName());
 
         // Cleanup old minigames
 //        this.stateSetupHandlers.values().forEach(List::clear);
@@ -479,7 +480,7 @@ public class MinigameService extends PluginService<MinigameManagerPlugin> {
 
     @EventHandler
     private void onPlayerJoin(PlayerJoinEvent event) {
-        if (this.state != MinigameState.WAITING_FOR_PLAYERS) {
+        if (this.state != MinigameState.WAITING_FOR_PLAYERS && !this.getCurrentRound().isAlive(event.getPlayer())) {
             // Ensure new players are spectators
             if (TeamService.getInstance().getTeamOfPlayer(event.getPlayer()) == null) {
                 TeamService.getInstance().joinTeam(event.getPlayer(), DefaultTeams.SPECTATOR);

@@ -36,4 +36,9 @@ public final class UHCConfig {
     private boolean suddenDeathEnabled;
     private int parlayTime;
     private int suddenDeathTime;
+
+    // Late-game events
+    private int permadayTime;
+    private int peacefulTime;
+    private int shieldlessTime;
 }
