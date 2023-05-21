@@ -79,6 +79,7 @@ public class DefaultTeams {
             TeamService.getInstance().createTeam(GREEN, true);
             TeamService.getInstance().createTeam(YELLOW, true);
             TeamService.getInstance().createTeam(MAGENTA, true);
+            TeamService.getInstance().createTeam(AQUA, true);
         } catch (TeamService.TeamCreationException exception) {
             GameToolsPlugin.logger().log(Level.SEVERE, exception, () -> "Could not create default teams.");
         }
